@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/RP_MIG_POS_FILE</NAME>
+    <DBAPL>H</DBAPL>
+    <DBNA>PC</DBNA>
+    <SUBC>1</SUBC>
+    <APPL>H</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>D</RLOAD>
+    <FIXPT>X</FIXPT>
+    <LDBNAME>PCH</LDBNAME>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Weitere Selektionsmöglichkeiten</ENTRY>
+     <LENGTH>62</LENGTH>
+    </item>
+    <item>
+     <ID>R</ID>
+     <ENTRY>Report /SEW/RP_MIG_POS_FILE</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>FILE</KEY>
+     <ENTRY>Dateipfad</ENTRY>
+     <LENGTH>17</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,1102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Infotyp 0003 (Abrechnungsstatus)</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>AB1</KEY>
+     <ENTRY>abrechnen bis</ENTRY>
+     <LENGTH>13</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>AB2</KEY>
+     <ENTRY>Tag vor &quot;nicht mehr abrechnen&quot;</ENTRY>
+     <LENGTH>30</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>ABR</KEY>
+     <ENTRY>abgerechnet bis</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>GBO</KEY>
+     <ENTRY>Früh.Änd.Stamm.Bonus.</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>GRR</KEY>
+     <ENTRY>Früh.Änd.Stamm.</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>RRD</KEY>
+     <ENTRY>Rückrechnungsdatum</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>VOS</KEY>
+     <ENTRY>Pers.tiefste Rückrechnung</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>VOZ</KEY>
+     <ENTRY>Pers. tiefste Rückrechnung Zeit</ENTRY>
+     <LENGTH>31</LENGTH>
+    </item>
+   </TPOOL>
+   <I18N_TPOOL>
+    <item>
+     <LANGUAGE>1</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>运行工资发放</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>&quot;未核算&quot;前一日</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>核算至</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>MD 改变－奖金</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>最早主数据更改</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>追溯核算日期</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>最早的人员追溯核算数据</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>最早的人员追溯核算时间</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>8</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Розрахув.до</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>За день до &apos;більше не розр.&apos;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Розраховано до</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Зміна ОД - премія</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Найр.зміна ОД</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Дата зворотн.обл.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Найраніша особист.дата ЗР</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Найраніший особ.час ЗР</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>C</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Zúčtovat do</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>den před &quot;už nezúčtovávat&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Zúčtováno do</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Dřív.změn.kmen.bonus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Dřív.zm.kmen.d.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Datum zpět.přepoč.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Nejzazší os.zpět.přepočet</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Nejzazší os.zpětný přepočet-čas</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>E</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Run Payr. to</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Day before &quot;do not acct after&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Accounted to</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>MD change - Bonus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Earl.MD change</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Retroaccount. date</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Earliest personal RA date</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Earliest personal RA time</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>F</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Calculer jsq</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Jour avant &quot;ne plus calculer&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Calc. jusqu&apos;au</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>DonnBase1èreDatePrime</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>1ère modif.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Date calcul rétro.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Calcul rétro. + éloigné</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Période calc. rétro. + éloignée</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>H</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Bérszf. határ</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>&quot;Nincs több bérszf.&quot; előtti n.</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Bérszámf. határ</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Legk. törzsmód./bón.</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Törzs legk.mód.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Vm. számf. dátum</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Szem. legkor. vm. számf.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Szem. legkor. vm. számfejt./idő</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>I</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Calc.r. fino</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>G.prec.&quot;non calc. più retr.&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>calcolato fino</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Pr.mod.dt.anagr.Bonus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Pr.mod.dt.anag.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Data calc. retr.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Calc. retr. più arretr.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Periodo calc. retr. più arretr.</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>K</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Afregn til</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Dag før &quot;skal ej afregn. mere&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Afregnet til</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Tidl.ændr.Stam.Bonus.</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>TidlÆndrStamdat</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>EfterafregningDato</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Tidl. pers. efterafregn.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Tidl. pers. efterafregn. tid</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>L</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Rozlicz. do</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Dz. przed &quot;bez dalsz. przetw.&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Rozliczono do</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Najw.zmiana DP-premia</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Najwcz. zm. DP</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Data rozlicz. wst.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Najwcz. ind. rozl. wst.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Najw. ind. czas rozlicz. wst.</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>N</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Afrekenen tot</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Dag voor &quot;niet meer afrekenen&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Afgerekend tot</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Vroeg.Wijz.Stam.Bon.</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Vroegste wijzig</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Herberek.datum</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Vroegste pers. herberek.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Vroegste pers. herberek. tijd</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>O</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Avregning til</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Ingen avregning etter</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Avregnet til</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Tidl. st.endr. bonus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Tidl. st.endr.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Etterberegn.dato</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Tidl. indiv. etterber.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Tidl. indiv. etterber. - tid</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>P</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Calcular até</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Dia antes &quot;não calcular mais&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Calculado até</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>1ª modif.DdsMst.bônus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>1ª modif.DdsMs.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Data cálc.retroat.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>CálcRetr.pess.mais antigo</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Tmp.cálc.retr.pess.mais antigo</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>Q</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Zúčtovať do</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Deň pred &quot;už nezúčtovať&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Zúčtované do</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Najs.zmen.kmeň.bonusu</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Najs.zmn.km.dát</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Dát.spät.prepočtu</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Najskor.os.spät.prepočet</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Najskor.os.spätný prepočet-čas</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>R</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Рассчитать по</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>За день до &quot;больше не рассч.&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Рассчитано по</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>РаннИзмОснДанн/бонус</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>СамРанДИзменОсД</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Дата ОбратнРасчета</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Сам. ран. инд. обр. расч.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Сам. ранн. инд. обр. расчет/вр.</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>S</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Liq.hasta</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Día antes &quot;no liquidar más&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Liquidado a</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Modif.maest.Bono</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Mod.temp.mtro.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Fe.retroactividad</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Retroact.pers.más antigua</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Retroact.pers.más ant.tmpo.</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>T</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Brd.hspl.sonu</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>&quot;Art.brd.hesaplama&quot; öncesi gün</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Brd.hspl.sn.trh</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>En erken AV dğşk.-prm</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>İlk AV dğşk.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Yeniden hspl.trh.</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>En erken yen.hesaplama</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Pers.en erken yen.zaman hspl.</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>U</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Laske - asti:</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Päivä ennen &quot;Lopeta laskenta&quot;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Laskettu - asti</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>AikPTietomuutPalkkio</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Aik.PTietomuut.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Jälkilaskentapvm</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Henk. aikaisin jälkilask.</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Henk. aikaisin jälkilask.-aika</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+    <item>
+     <LANGUAGE>V</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>AB1</KEY>
+       <ENTRY>Lönekörn. t.</ENTRY>
+       <LENGTH>13</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>AB2</KEY>
+       <ENTRY>Dag före &apos;Ingen lönek. efter&apos;</ENTRY>
+       <LENGTH>30</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>ABR</KEY>
+       <ENTRY>Lönekörning t.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GBO</KEY>
+       <ENTRY>Tid. ändr.basd. bonus</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>GRR</KEY>
+       <ENTRY>Tid. ändr.basd.</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>RRD</KEY>
+       <ENTRY>Retrokörn.datum</ENTRY>
+       <LENGTH>18</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOS</KEY>
+       <ENTRY>Pers. tidigaste retrokörn</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>VOZ</KEY>
+       <ENTRY>Pers. tidigaste retrokörn. tid</ENTRY>
+       <LENGTH>31</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+   </I18N_TPOOL>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>A_EXTENDED_CHANGES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Erweiterte Änderungen (entsprechend PU03)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_ABRDT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Prüfen, ob &apos;abgerechnet bis&apos; mit Cluster übereinstimmt</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_ABWD</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Abwicklungsende 1 und 2 prüfen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_ARCHIVE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Verprobung gegen archivierte Daten (Infotyp 0283)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_PRDAT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>persönlich tiefstes Rückrechnungsdatum Abrechnung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_PRTEV</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Persönliches tiefstes Rückrechnungsdatum Zeitauswertung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>CHECK_RRDAT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Rückrechnungsdatum verproben</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>FILTER_PAY_TIME_RELEVANCE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Infotyp 0283 anhand Zeit- oder Abrechnungsrelevanz filtern</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>PAYROLL_LOCK</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Personalnummer für die Abrechnung sperren</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>SPECIAL_MODE_GET</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Erweiterter Modus zum Ändern spez. Felder auslesen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>SPECIAL_MODE_RESET</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Erweiterter Modus zum Ändern spez. Felder zurücksetzen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>SPECIAL_MODE_SET</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Erweiterter Modus zum Ändern spez. Felder setzen (-&gt;PU03)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_HRPA_INFTY_0003</CLSNAME>
+     <CMPNAME>SPECIFIC_COMPUTATIONS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Infotypspezifische Verprobungen</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

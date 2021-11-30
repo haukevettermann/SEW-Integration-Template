@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_STATICS</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_STATICS</CLSNAME>
+     <CMPNAME>ARCHIVE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_STATICS</CLSNAME>
+     <CMPNAME>ORA_BAL</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp zu /SEW/INT_ORA_BAL</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_STATICS</CLSNAME>
+     <CMPNAME>READ_ARCHIVE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_STATICS</CLSNAME>
+     <CMPNAME>TEST_RUN</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>Oracle HCM Integration: Cloud comm.</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>/SEW/LINT_CLOUD_COMMTOP</SOBJ_NAME>
+    <SOBJ_NAME>/SEW/SAPLINT_CLOUD_COMM</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>/SEW/INT_EXTRACT_RECEIVER</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Oracle HCM Integration Extract receiver</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>XML_STRING</PARAMETER>
+       <TYP>XSTRING</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>FILE_NAME</PARAMETER>
+       <TYP>CHAR70</TYP>
+      </RSIMP>
+     </IMPORT>
+     <EXPORT>
+      <RSEXP>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <TYP>BAPIRET1</TYP>
+      </RSEXP>
+     </EXPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>XML_STRING</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>FILE_NAME</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Characterfeld der Länge 70</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Returnparameter</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
+     <FUNCNAME>/SEW/INT_LEARNING_RECEIVER</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Oracle HCM Integration Learning Extract Receiver</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>XML_XSTRING</PARAMETER>
+       <TYP>XSTRING</TYP>
+      </RSIMP>
+     </IMPORT>
+     <EXPORT>
+      <RSEXP>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <TYP>BAPIRET1</TYP>
+      </RSEXP>
+     </EXPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>XML_XSTRING</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Returnparameter</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+    <item>
+     <FUNCNAME>/SEW/INT_REPORT_RECEIVER</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Oracle HCM Integration Extract receiver</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>XML_STRING</PARAMETER>
+       <TYP>XSTRING</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>FILE_NAME</PARAMETER>
+       <TYP>CHAR70</TYP>
+      </RSIMP>
+     </IMPORT>
+     <EXPORT>
+      <RSEXP>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <TYP>BAPIRET1</TYP>
+      </RSEXP>
+     </EXPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>XML_STRING</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>FILE_NAME</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Characterfeld der Länge 70</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>RESPONSE</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Returnparameter</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

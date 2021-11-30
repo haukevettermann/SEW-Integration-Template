@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_TABL" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <DD02V>
+    <TABNAME>/SEW/RANGE_ANY</TABNAME>
+    <DDLANGUAGE>D</DDLANGUAGE>
+    <TABCLASS>INTTAB</TABCLASS>
+    <DDTEXT>Interne Tabelle für Range der Konten</DDTEXT>
+    <APPLCLASS>FK</APPLCLASS>
+    <EXCLASS>1</EXCLASS>
+   </DD02V>
+   <DD03P_TABLE>
+    <DD03P>
+     <FIELDNAME>SIGN</FIELDNAME>
+     <ROLLNAME>CHAR1</ROLLNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <COMPTYPE>E</COMPTYPE>
+    </DD03P>
+    <DD03P>
+     <FIELDNAME>OPTION</FIELDNAME>
+     <ROLLNAME>CHAR2</ROLLNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <COMPTYPE>E</COMPTYPE>
+    </DD03P>
+    <DD03P>
+     <FIELDNAME>LOW</FIELDNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <INTTYPE>g</INTTYPE>
+     <INTLEN>000008</INTLEN>
+     <DATATYPE>STRG</DATATYPE>
+     <MASK>  STRG</MASK>
+    </DD03P>
+    <DD03P>
+     <FIELDNAME>HIGH</FIELDNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <INTTYPE>g</INTTYPE>
+     <INTLEN>000008</INTLEN>
+     <DATATYPE>STRG</DATATYPE>
+     <MASK>  STRG</MASK>
+    </DD03P>
+   </DD03P_TABLE>
+   <I18N_LANGS>
+    <LANGU>1</LANGU>
+    <LANGU>8</LANGU>
+    <LANGU>C</LANGU>
+    <LANGU>E</LANGU>
+    <LANGU>F</LANGU>
+    <LANGU>H</LANGU>
+    <LANGU>I</LANGU>
+    <LANGU>K</LANGU>
+    <LANGU>L</LANGU>
+    <LANGU>N</LANGU>
+    <LANGU>O</LANGU>
+    <LANGU>P</LANGU>
+    <LANGU>Q</LANGU>
+    <LANGU>R</LANGU>
+    <LANGU>S</LANGU>
+    <LANGU>T</LANGU>
+    <LANGU>U</LANGU>
+    <LANGU>V</LANGU>
+   </I18N_LANGS>
+   <DD02_TEXTS>
+    <item>
+     <DDLANGUAGE>1</DDLANGUAGE>
+     <DDTEXT>帐户范围内部表</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>8</DDLANGUAGE>
+     <DDTEXT>Internal table for range of accounts</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>C</DDLANGUAGE>
+     <DDTEXT>Interní tabulka pro pořadí účtů</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>E</DDLANGUAGE>
+     <DDTEXT>Internal table for range of accounts</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>F</DDLANGUAGE>
+     <DDTEXT>Table interne pour intervalle des comptes</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>H</DDLANGUAGE>
+     <DDTEXT>Belső tábla a Számlák rendjéhez</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>I</DDLANGUAGE>
+     <DDTEXT>Tabella interna per range conti</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>K</DDLANGUAGE>
+     <DDTEXT>Intern tabel for kontointervaller</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>L</DDLANGUAGE>
+     <DDTEXT>Tabela wewnętrzna dla zakresu kont</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>N</DDLANGUAGE>
+     <DDTEXT>Interne tabel voor range van rekeningen</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>O</DDLANGUAGE>
+     <DDTEXT>Intern tabell for rangering av kontoer</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>P</DDLANGUAGE>
+     <DDTEXT>Tabela interna para intervalo de contas</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>Q</DDLANGUAGE>
+     <DDTEXT>Interná tab. pre poradie účtov</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>R</DDLANGUAGE>
+     <DDTEXT>Внутренняя таблица для рангов счетов</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>S</DDLANGUAGE>
+     <DDTEXT>Tabla interna para rangos de cuentas</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>T</DDLANGUAGE>
+     <DDTEXT>Hesap aralığına ilişkin dahili tablo</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>U</DDLANGUAGE>
+     <DDTEXT>Sisäinen taulu - tilien väli</DDTEXT>
+    </item>
+    <item>
+     <DDLANGUAGE>V</DDLANGUAGE>
+     <DDTEXT>Intern tabell för intervall med konton</DDTEXT>
+    </item>
+   </DD02_TEXTS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/RP_TIME_CHANGES</NAME>
+    <DBAPL>P</DBAPL>
+    <DBNA>PN</DBNA>
+    <SUBC>1</SUBC>
+    <APPL>P</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>D</RLOAD>
+    <FIXPT>X</FIXPT>
+    <LDBNAME>PNPCE</LDBNAME>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>000</KEY>
+     <LENGTH>10</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Statusselektionen</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Weitere Optionen</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>003</KEY>
+     <ENTRY>Initiale und Fehlerhafte</ENTRY>
+     <LENGTH>48</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>004</KEY>
+     <ENTRY>Nur Initiale</ENTRY>
+     <LENGTH>22</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>005</KEY>
+     <ENTRY>Nur Fehlerhafte</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>006</KEY>
+     <ENTRY>Formularsteuerung</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>007</KEY>
+     <ENTRY>Zeitnachweise</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>008</KEY>
+     <ENTRY>Entgeltformulare</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>009</KEY>
+     <ENTRY>Alle Formulare</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>R</ID>
+     <ENTRY>Programm /SEW/RP_TIME_CHANGES</ENTRY>
+     <LENGTH>29</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_ALV</KEY>
+     <ENTRY>Protokollausgabe</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_FORCE</KEY>
+     <ENTRY>Erneut auslesen</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_SIMU</KEY>
+     <ENTRY>Testlauf</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+   </TPOOL>
+   <LONGTEXTS>
+    <item>
+     <DOKIL>
+      <ID>RE</ID>
+      <OBJECT>/SEW/RP_TIME_CHANGES</OBJECT>
+      <LANGU>D</LANGU>
+      <TYP>E</TYP>
+      <VERSION>0006</VERSION>
+      <MASTERLANG>X</MASTERLANG>
+      <TXTLINES>00018</TXTLINES>
+      <DOKSTATE>A</DOKSTATE>
+     </DOKIL>
+     <HEAD>
+      <TDOBJECT>DOKU</TDOBJECT>
+      <TDNAME>/SEW/RP_TIME_CHANGES</TDNAME>
+      <TDID>RE</TDID>
+      <TDSPRAS>D</TDSPRAS>
+      <TDFORM>S_DOCU_SHOW</TDFORM>
+      <TDSTYLE>S_DOCUS1</TDSTYLE>
+      <TDVERSION>00006</TDVERSION>
+      <TDLINESIZE>072</TDLINESIZE>
+     </HEAD>
+     <LINES>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;PURPOSE&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+       <TDLINE>Auslesen von Zeitarten sowie Erkennen von Veränderungen auf Basis des</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>Cluster B2.</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;INTEGRATION&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;PREREQUISITES&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;FEATURES&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U2</TDFORMAT>
+       <TDLINE>&amp;SELECTION&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+       <TDLINE>Es können über verschiedene Selektions-Optionen bestimmt werden für</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>welche Personalnummern in welchem Auswertungszeitraum die Zeitarten und</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>-änderungen ausgelesen werden. Über das Flag &quot;Testlauf&quot; wird bestimmt ob</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>es sich um eine Simulation handelt. Hierbei werden die Zeitarten und</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>-änderungen nicht in der Datenbanktabelle /sew/int_rem_upd abgelegt.</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>Andernfalls werden diese in die Datenbanktabelle geschrieben. Über das</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>Flag &quot;Protokollausgabe&quot; kann selektiert werden, ob eine ALV Ausgabe</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>erwünscht ist. Das Flag &quot;Erneut auslesen&quot; bestimmt ob die Zeitarten</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>unabhängig davon, ob es Veränderungen der Werte gab, erneut ausgelesen</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>werden. Dieses Flag kann u.a. dazu verwendet werden, Zeitarten erneut</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>auszulesen die nicht korrekt nach Oracle übertragen wurden.</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U2</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U2</TDFORMAT>
+       <TDLINE>&amp;STANDARD_VARIANTS&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U2</TDFORMAT>
+       <TDLINE>&amp;OUTPUT&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+       <TDLINE>Ist das Flag &quot;Protokollausgabe&quot; gesetzt, wird eine ALV Ausgabe</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDLINE>ausgegeben.</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;ACTIVITIES&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>U1</TDFORMAT>
+       <TDLINE>&amp;EXAMPLE&amp;</TDLINE>
+      </TLINE>
+      <TLINE>
+       <TDFORMAT>AS</TDFORMAT>
+      </TLINE>
+     </LINES>
+    </item>
+   </LONGTEXTS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

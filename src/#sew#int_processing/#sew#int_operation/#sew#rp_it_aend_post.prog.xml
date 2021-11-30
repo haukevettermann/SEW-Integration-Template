@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/RP_IT_AEND_POST</NAME>
+    <SUBC>1</SUBC>
+    <APPL>P</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>E</RLOAD>
+    <FIXPT>X</FIXPT>
+    <LDBNAME>PNPCE</LDBNAME>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Cloud ID</ENTRY>
+     <LENGTH>27</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Weitere Optionen</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>003</KEY>
+     <ENTRY>Initiale und Fehlerhafte</ENTRY>
+     <LENGTH>48</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>004</KEY>
+     <ENTRY>Nur Initiale</ENTRY>
+     <LENGTH>22</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>005</KEY>
+     <ENTRY>Nur Fehlerhafte</ENTRY>
+     <LENGTH>25</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>006</KEY>
+     <ENTRY>Worker Verbuchung kann nicht gestartet werden, da es noch Initiale- oder Fehlerfälle für Departments/Departments Tree gibt!</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>R</ID>
+     <ENTRY>HCM Integration - Verbuchung der Infotypen</ENTRY>
+     <LENGTH>70</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_ALV</KEY>
+     <ENTRY>Protokollausgabe</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_SIMU</KEY>
+     <ENTRY>Testlauf</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_CLDID</KEY>
+     <ENTRY>Cloud ID</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_INFTY</KEY>
+     <ENTRY>Infotypen</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_INTR</KEY>
+     <ENTRY>Integrationslauf</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+   </TPOOL>
+   <I18N_TPOOL>
+    <item>
+     <LANGUAGE>E</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>001</KEY>
+       <ENTRY>Statusselektionen</ENTRY>
+       <LENGTH>27</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>002</KEY>
+       <ENTRY>Weitere Optionen</ENTRY>
+       <LENGTH>26</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>003</KEY>
+       <ENTRY>Initiale und fehlerhafte</ENTRY>
+       <LENGTH>48</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>004</KEY>
+       <ENTRY>Nur initiale</ENTRY>
+       <LENGTH>22</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>005</KEY>
+       <ENTRY>Nur fehlerhafte</ENTRY>
+       <LENGTH>25</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>006</KEY>
+       <ENTRY>Worker Verbuchung kann nicht gestartet werden, da es noch Initiale- oder Fehlerfälle für Departments/Departments Tree gibt!</ENTRY>
+       <LENGTH>132</LENGTH>
+      </item>
+      <item>
+       <ID>R</ID>
+       <ENTRY>HCM Integration - Verbuchung der Infotypen</ENTRY>
+       <LENGTH>42</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>PA_ALV</KEY>
+       <ENTRY>Protokollausgabe</ENTRY>
+       <LENGTH>24</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>PA_SIMU</KEY>
+       <ENTRY>Testlauf</ENTRY>
+       <LENGTH>16</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>SO_CLDID</KEY>
+       <ENTRY>Cloud ID</ENTRY>
+       <LENGTH>16</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>SO_INFTY</KEY>
+       <ENTRY>Infotypen</ENTRY>
+       <LENGTH>17</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>SO_INTR</KEY>
+       <ENTRY>Integrationslauf</ENTRY>
+       <LENGTH>24</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+   </I18N_TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

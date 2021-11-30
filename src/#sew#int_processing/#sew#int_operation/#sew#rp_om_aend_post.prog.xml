@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/RP_OM_AEND_POST</NAME>
+    <SUBC>1</SUBC>
+    <APPL>P</APPL>
+    <RSTAT>T</RSTAT>
+    <RLOAD>D</RLOAD>
+    <FIXPT>X</FIXPT>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Department Tree Verbuchung kann nicht gestartet werden, da es noch Initiale- oder Fehlerfälle für Departments gibt!</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>R</ID>
+     <ENTRY>OM Verbuchung</ENTRY>
+     <LENGTH>13</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_ALV</KEY>
+     <ENTRY>Protokollausgabe</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ETYPE</KEY>
+     <ENTRY>Oracle Objekttyp</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_MANAG</KEY>
+     <ENTRY>Managerverknüpfungen buchen</ENTRY>
+     <LENGTH>35</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_OTYPE</KEY>
+     <ENTRY>SAPObjekttyp</ENTRY>
+     <LENGTH>20</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_TEST</KEY>
+     <ENTRY>Simulation</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_CLDID</KEY>
+     <ENTRY>Oracle ID</ENTRY>
+     <LENGTH>17</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_INTR</KEY>
+     <ENTRY>Integration Run</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>SO_SAPID</KEY>
+     <ENTRY>SAP ID</ENTRY>
+     <LENGTH>14</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

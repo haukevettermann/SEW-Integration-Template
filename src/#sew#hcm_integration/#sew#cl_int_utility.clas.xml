@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_UTILITY</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration Utility Class for general logic</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_UTILITY</CLSNAME>
+     <CMPNAME>CHECK_PROJECT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Checks if molga belongs to COGL or COFU</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_UTILITY</CLSNAME>
+     <CMPNAME>IT0105_PROCESSER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

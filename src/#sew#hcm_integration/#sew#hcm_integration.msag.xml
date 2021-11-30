@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+    <MASTERLANG>D</MASTERLANG>
+    <STEXT>HCM - Oracle Integration</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>000</MSGNR>
+     <TEXT>Kein Infotyp Customizing für Molga &amp;1 und Objekt &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>Kein Infotypfeld Customizing für Molga &amp;1 und Objekt &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>Die Infotypänderung konnten nicht erfolgreich gespeichert werden.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>Die Infotypänderungen konnten nicht erfolgreich gelöscht werden.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>Fehler bei Verarbeitung der Feldänderung.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>Fehler bei Verarbeitung der Feldänderung. Alter Feldwert nicht gefunden.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>Mappingwert für Feldwert &amp;1 fehlt (Feld SAP &amp;2, Feld Oracle &amp;3).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>007</MSGNR>
+     <TEXT>Fehler beim Auslesen der Molga (Objekttype:&amp;1, SAP ID:&amp;2, Oracle ID: &amp;3).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>008</MSGNR>
+     <TEXT>Objekt &amp;1 wurde mit Gültigkeit &amp;2 - &amp;3 erfolgreich angelegt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>009</MSGNR>
+     <TEXT>IT&amp;1 wurde für Objekt &amp;4 mit Gültigkeit &amp;2 - &amp;3 erfolgreich angelegt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>010</MSGNR>
+     <TEXT>Objekt &amp;1 wurde mit Gültigkeit &amp;2 - &amp;3 erfolgreich geändert.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>011</MSGNR>
+     <TEXT>IT&amp;1 wurde für Objekt &amp;4 mit Gültigkeit &amp;2 - &amp;3 erfolgreich geändert.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>012</MSGNR>
+     <TEXT>Verknüpfung für Objekt &amp;1 mit Gültigkeit &amp;2 - &amp;3 erfolgreich angelegt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>013</MSGNR>
+     <TEXT>Keine Verknüpfung zu erstellen für Objekt &amp;1, kein Parent verfügbar.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>014</MSGNR>
+     <TEXT>Keine SAP ID zu Cloud ID &amp;1 für Objekttyp &amp;2 verfügbar.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>015</MSGNR>
+     <TEXT>Objekt &amp;1 mit Gültigkeit &amp;2 - &amp;3 wurde erfolgreich zum &amp;4 abgegrenzt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>016</MSGNR>
+     <TEXT>IT &amp;4 wurde für Person &amp;1 mit einem Zeitraum &amp;2 - &amp;3 erfolgreich geändert</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>017</MSGNR>
+     <TEXT>Für Personalnummer &amp;1 wurde IT&amp;2 Subtyp &amp;3 zum &amp;4 erfolgreich abgegrenzt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>018</MSGNR>
+     <TEXT>Dummy Position &amp;1 wurde für Mitarbeiter &amp;2 erstellt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>019</MSGNR>
+     <TEXT>Fehler bei der Erstellung einer Dummy Position für Mitarbeiter &amp;2.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>020</MSGNR>
+     <TEXT>Maßnahme &amp;4 wurde für Person &amp;1 für den Zeitraum &amp;2 - &amp;3 erstellt.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>021</MSGNR>
+     <TEXT>XML ungültig.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>022</MSGNR>
+     <TEXT>Austritt für Person &amp;1 in IT&amp;2 gepflegt durch Datenänderung in Hire.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>023</MSGNR>
+     <TEXT>Keine Änderung für Objekt &amp;4 im IT&amp;1 für den Zeitraum &amp;2 - &amp;3</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>024</MSGNR>
+     <TEXT>Simulation: Erstellung Verknüpfung &amp;3 zwischen &amp;1 und &amp;2 für Zeitraum &amp;4</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>025</MSGNR>
+     <TEXT>Simulation: Objekterstellung in IT&amp;1 für Objekttyp &amp;2 für Zeitraum &amp;3</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>026</MSGNR>
+     <TEXT>Simulation: Objektdeaktivierung für &amp;1 in IT&amp;2 für Zeitraum &amp;3</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>027</MSGNR>
+     <TEXT>Simulation: Anpassung in IT&amp;2 für Objekt &amp;1 im Zeitraum &amp;3</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>028</MSGNR>
+     <TEXT>Objekt &amp;1 für Sprache &amp;2 konnte nicht ermittelt werden für Inaktivierung</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>029</MSGNR>
+     <TEXT>Keine Änderung</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>030</MSGNR>
+     <TEXT>OrgEinheit &amp;1 konnte nicht abgegrenzt werden aufgrund aktiver Verkn.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>031</MSGNR>
+     <TEXT>Infotype 0003 existiert nicht.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>032</MSGNR>
+     <TEXT>Der Infotyp &amp;1 konnten nicht erfolgreich für &amp;2 gespeichert werden (&amp;3).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>033</MSGNR>
+     <TEXT>Der Infotyp &amp;1 konnten erfolgreich für &amp;2 gespeichert werden (&amp;3).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>034</MSGNR>
+     <TEXT>Mapping-Infotyp HRP9402 nicht vorhanden für Cloud ID &amp;1</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>035</MSGNR>
+     <TEXT>Ausnahme aufgetreten: &amp;1</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>036</MSGNR>
+     <TEXT>Zeitereignisart (SATZA) für Zeitereignis am &amp;1 für &amp;2 (&amp;3) ungültig (&amp;4).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>037</MSGNR>
+     <TEXT>Oracle Event Id für Zeitereignis am &amp;1 für &amp;2 (&amp;3) fehlt (&amp;4).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>038</MSGNR>
+     <TEXT>Erzeugen der PDSNR-Nummer für ZE am &amp;1 für &amp;2 (&amp;3) fehlerhaft (&amp;4).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>039</MSGNR>
+     <TEXT>Zeitereignisart am &amp;1 für &amp;2 (&amp;3) nicht gefunden &amp; nicht gelöscht (&amp;4).</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>040</MSGNR>
+     <TEXT>Es wurden keine Einträge selektiert.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/HCM_INTEGRATION</ARBGB>
+     <MSGNR>041</MSGNR>
+     <TEXT>Fehler während ALV Aufbereitung.</TEXT>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>

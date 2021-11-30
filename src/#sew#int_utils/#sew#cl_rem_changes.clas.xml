@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HR remuneration utils class</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>COMPARE_TABLES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Compare result tables</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>CREATE_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Creates bal_upd entries from cluster data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>DATES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp von RSDSSELOPT</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>DETECT_CHANGES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Detect cluster changes</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>DETERMINE_STRUKNAME</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get payxx_result strukture name to corresponding molga</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>GET_CHANGE_DATE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get change date for pay result</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>GET_QUARTER_PERIOD</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get begda &amp; endda of quater of a certain date</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>GET_WAGE_TYPE_TEXT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get wage type text to corresponding LGART</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>INT_REM_UPD</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Outbound Forms changes to Oracle</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>MESSAGE_HANDLER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Message Handler HCM</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>PERIODS_T</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Periodendefinition</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>PREPARE_PROTOCOL</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Prepare ALV output</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>READ_CLUSTER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Read wage type cluster data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>READ_CLUSTER_FORCE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Read wage type cluster data with force flag</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>SAVE_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Save changes to /sew/int_rem_upd</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>SEQNR_T</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Internal table for seqnrs</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>SIMU</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>boolsche Variable (X=true, -=false, space=unknown)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>SKIPPED_PERNRS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabelle von Personalnummern</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>STATUS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp von RSDSSELOPT</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>STATUS_HANDLER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Working class for table /SEW/INT_IT_AEND</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_REM_CHANGES</CLSNAME>
+     <CMPNAME>TIME_PAY_RESULTS_T</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Timeslip/Paystub result structure</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

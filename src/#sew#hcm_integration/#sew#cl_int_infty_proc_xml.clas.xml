@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration XML functionality for Employee</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>ACTION</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Maßnahmenart</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>CUSTOMIZING</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Object Customizing</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>DETERMINE_TIME_SLICES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Zeitscheiben bestimmen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>DETERMINE_TIME_SLICES_FOLDER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Zeitscheiben bestimmen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>DETERMINE_TIME_SLICES_OLD</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Zeitscheiben bestimmen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>GET_NEXT_FOLDER</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Folder Hierarchie auslesen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>GO_INSTANCE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration XML functionality for Employee</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>HAS_ERROR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>HAS_MULTIPLE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>INT_RUN</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>GUID im &apos;CHAR&apos; Format in Großschreibung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ländergruppierung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>PROCESS_CONVERSIONS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>PROCESS_MAPPINGS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>PT_2006_LOGIC</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Verarbeitung von 2006</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>PT_200X_LOGIC</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Verarbeitung von 2001/2</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>SEQNR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Nummer eines Infotypsatzes bei gleichem Schlüssel</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_PROC_XML</CLSNAME>
+     <CMPNAME>TIME_SLICES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Perioden-Tabellentyp</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

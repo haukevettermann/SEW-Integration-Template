@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>SEW/Oracle Migration Funktionsgruppe</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>/SEW/LHCM_MIG_FGTOP</SOBJ_NAME>
+    <SOBJ_NAME>/SEW/SAPLHCM_MIG_FG</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>/SEW/MIG_COGU</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>RFC-FuBa CoGu CoExistenz</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>COUNTRY</PARAMETER>
+       <TYP>STRING</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>OM</PARAMETER>
+       <TYP>BOOLEAN</TYP>
+      </RSIMP>
+     </IMPORT>
+     <EXPORT>
+      <RSEXP>
+       <PARAMETER>ZIP</PARAMETER>
+       <TYP>XSTRING</TYP>
+      </RSEXP>
+     </EXPORT>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>COUNTRY</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>OM</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>boolsche Variable (X=true, -=false, space=unknown)</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>ZIP</PARAMETER>
+       <KIND>P</KIND>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_CUSTOMIZING</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration Customizing</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_CUSTOMIZING</CLSNAME>
+     <CMPNAME>INFTY</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Infotyp</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_CUSTOMIZING</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ländergruppierung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_CUSTOMIZING</CLSNAME>
+     <CMPNAME>READ_REL_FIELDS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Read relevant field customizing</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

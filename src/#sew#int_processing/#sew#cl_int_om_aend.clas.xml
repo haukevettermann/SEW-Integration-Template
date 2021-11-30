@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Working class for table /SEW/INT_IT_AEND</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>ACTION</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Action Type</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>AEND_ID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>GUID in &apos;CHAR&apos; Format in Uppercase</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>AEND_NEW</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for /SEW/INT_IT_AEND</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>AEND_NOCHNG</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for /SEW/INT_IT_AEND</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>AEND_ORIG</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for /SEW/INT_IT_AEND</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>CLOUD_ID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Object ID</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>GET</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant infotype changes according range tables</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>INT_RUN</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>GUID in &apos;CHAR&apos; Format in Uppercase</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Country Grouping</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>PNNNN_TO_OM_AEND</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Transform infotype structure into table structure</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>PRELP_TO_OM_AEND</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Transform infotype structure into table structure</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>SAP_ID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Object ID</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_OM_AEND</CLSNAME>
+     <CMPNAME>SAVE_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Store IT_AEND entries</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

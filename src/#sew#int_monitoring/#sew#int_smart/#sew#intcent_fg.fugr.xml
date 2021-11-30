@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>Integrtation Center Function Group</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>/SEW/LINTCENT_FGTOP</SOBJ_NAME>
+    <SOBJ_NAME>/SEW/SAPLINTCENT_FG</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>/SEW/INTCENT_FM_OADP_SEL</FUNCNAME>
+     <SHORT_TEXT>Integration Center OADP Selection</SHORT_TEXT>
+     <IMPORT>
+      <RSIMP>
+       <PARAMETER>USER</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>SYUNAME</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>BEGDA</PARAMETER>
+       <DEFAULT>SY-DATUM</DEFAULT>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>OBJEC-BEGDA</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>ENDDA</PARAMETER>
+       <DEFAULT>SY-DATUM</DEFAULT>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>OBJEC-ENDDA</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>EVPATH</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>GDSTR-WEGID</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>EVALPATH</PARAMETER>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>GDSTR-WEGID</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>DEPTH</PARAMETER>
+       <DEFAULT>0</DEFAULT>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+       <TYP>GDSTR-DEPTH</TYP>
+      </RSIMP>
+      <RSIMP>
+       <PARAMETER>PLVAR</PARAMETER>
+       <DBFIELD>OBJEC-PLVAR</DBFIELD>
+       <OPTIONAL>X</OPTIONAL>
+       <REFERENCE>X</REFERENCE>
+      </RSIMP>
+     </IMPORT>
+     <TABLES>
+      <RSTBL>
+       <PARAMETER>PATHROOTS</PARAMETER>
+       <DBSTRUCT>HRROOTOB</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>ROOT_OBJECTS</PARAMETER>
+       <DBSTRUCT>HRROOTOB</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>ROOT_OBJEC</PARAMETER>
+       <DBSTRUCT>OBJEC</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>ROOT_STRUC</PARAMETER>
+       <DBSTRUCT>STRUC</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>PARAMVALUES</PARAMETER>
+       <DBSTRUCT>HRWPC_S_OADP_PARAMVALUE</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>RESULT_OBJEC</PARAMETER>
+       <DBSTRUCT>OBJEC</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+      <RSTBL>
+       <PARAMETER>RESULT_STRUC</PARAMETER>
+       <DBSTRUCT>STRUC</DBSTRUCT>
+       <OPTIONAL>X</OPTIONAL>
+      </RSTBL>
+     </TABLES>
+     <DOCUMENTATION>
+      <RSFDO>
+       <PARAMETER>USER</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>User Name</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>BEGDA</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Start Date</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>ENDDA</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>End Date</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>EVPATH</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Evaluation Path</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>EVALPATH</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Evaluation Path</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>DEPTH</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Display Depth of Structure</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>PLVAR</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Planvariante</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>PATHROOTS</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Wurzelobjekte</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>ROOT_OBJECTS</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Wurzelobjekte</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>ROOT_OBJEC</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Workarea zur Datenbank PCH</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>ROOT_STRUC</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Struktur-Information zur Datenbank PCH</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>PARAMVALUES</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Parametername und -wert</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>RESULT_OBJEC</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Workarea zur Datenbank PCH</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>RESULT_STRUC</PARAMETER>
+       <KIND>P</KIND>
+       <STEXT>Struktur-Information zur Datenbank PCH</STEXT>
+      </RSFDO>
+     </DOCUMENTATION>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration Conversion Klasse</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>CLOUD_ID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Element</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>GO_INSTANCE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>HCM - Oracle Integration Conversion Klasse</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>INT_RUN</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Globally Unique Identifier</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ländergruppierung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>PRELP_TAB</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabelle von generischen Infotypen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>PRELP_TAB_NOCHNG</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabelle von generischen Infotypen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>PRELP_TAB_ORIG</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabelle von generischen Infotypen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_DATA_TRANSFORM</CLSNAME>
+     <CMPNAME>SAP_ID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Personalnummer</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

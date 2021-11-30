@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/RP_WORK_SCHEDULES_CHANGES</NAME>
+    <DBAPL>P</DBAPL>
+    <DBNA>PN</DBNA>
+    <SUBC>1</SUBC>
+    <APPL>P</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>D</RLOAD>
+    <FIXPT>X</FIXPT>
+    <LDBNAME>PNPCE</LDBNAME>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Selektion Arbeitszeitplan</ENTRY>
+     <LENGTH>50</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>002</KEY>
+     <ENTRY>Weitere Optionen</ENTRY>
+     <LENGTH>26</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>003</KEY>
+     <ENTRY>Diese Auswahl übersteuert den Block &quot;Selektionsbedingungen&quot;</ENTRY>
+     <LENGTH>59</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>004</KEY>
+     <ENTRY>ALV-Ausgabe</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>005</KEY>
+     <ENTRY>XML-Ausgabe</ENTRY>
+     <LENGTH>21</LENGTH>
+    </item>
+    <item>
+     <ID>R</ID>
+     <ENTRY>Programm /SEW/RP_WORK_SCHEDULES_CHANGES</ENTRY>
+     <LENGTH>39</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_ALV</KEY>
+     <ENTRY>Protokollausgabe</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_SCHKZ</KEY>
+     <ENTRY>Arbeitszeitplanregel</ENTRY>
+     <LENGTH>28</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>PA_SIMU</KEY>
+     <ENTRY>Testlauf</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+   </TPOOL>
+   <I18N_TPOOL>
+    <item>
+     <LANGUAGE>E</LANGUAGE>
+     <TEXTPOOL>
+      <item>
+       <ID>I</ID>
+       <KEY>001</KEY>
+       <ENTRY>Selection of a Work Schedule Rule</ENTRY>
+       <LENGTH>50</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>002</KEY>
+       <ENTRY>Additional Options</ENTRY>
+       <LENGTH>26</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>003</KEY>
+       <ENTRY>Diese Auswahl übersteuert den Block &quot;Selektionsbedingungen&quot;</ENTRY>
+       <LENGTH>59</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>004</KEY>
+       <ENTRY>Output ALV</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>I</ID>
+       <KEY>005</KEY>
+       <ENTRY>Output XML</ENTRY>
+       <LENGTH>21</LENGTH>
+      </item>
+      <item>
+       <ID>R</ID>
+       <ENTRY>Programm /SEW/RP_WORK_SCHEDULES_CHANGES</ENTRY>
+       <LENGTH>70</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>PA_ALV</KEY>
+       <ENTRY>Protocol output</ENTRY>
+       <LENGTH>38</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>PA_SCHKZ</KEY>
+       <ENTRY>Work Schedule Ruke</ENTRY>
+       <LENGTH>38</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>PA_SIMU</KEY>
+       <ENTRY>Test run</ENTRY>
+       <LENGTH>38</LENGTH>
+      </item>
+     </TEXTPOOL>
+    </item>
+   </I18N_TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

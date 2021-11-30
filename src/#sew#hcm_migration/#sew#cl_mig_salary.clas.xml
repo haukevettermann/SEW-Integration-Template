@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Create work relationship migration structure</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>COGU</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Boolean Variable (X=true, -=false, space=unknown)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>COLLECT_HR_PERIODS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Collect all relevant Periods</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>CREATE_METADATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Create worker metadata string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>GET_COFU_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant infotype data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>GET_MAPPING_FIELDS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant migration mapping fields</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>GET_MAPPING_VALUES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant migration mapping values</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>HR_PERIODS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Perioden-Tabellentyp</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>MAP_COFU_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Mapping in COFU Ausgabestruktur</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>MAP_MIG_VALUES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Mapping of field vlaues</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>P0008</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Personal-Stammsatz Infotyp 0008 (Basisbezüge)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>PN_BEGDA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Start Date</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_SALARY</CLSNAME>
+     <CMPNAME>PROCEED_COFU_SALARY</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Proceed person name entity for migration to Oracle HCM</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

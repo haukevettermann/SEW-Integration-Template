@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_PROG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <PROGDIR>
+    <NAME>/SEW/INT_RESET_CASE</NAME>
+    <SUBC>1</SUBC>
+    <APPL>P</APPL>
+    <RSTAT>K</RSTAT>
+    <RLOAD>D</RLOAD>
+    <FIXPT>X</FIXPT>
+    <UCCHECK>X</UCCHECK>
+   </PROGDIR>
+   <TPOOL>
+    <item>
+     <ID>R</ID>
+     <ENTRY>HCM - Oracle Integration: Zurücksetzen der INT Tabellen eines Tests</ENTRY>
+     <LENGTH>67</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_CLDID</KEY>
+     <ENTRY>Cloud ID</ENTRY>
+     <LENGTH>16</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_INTRUN</KEY>
+     <ENTRY>Integration Run</ENTRY>
+     <LENGTH>23</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_RBOM</KEY>
+     <ENTRY>OM Case</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_RBPA</KEY>
+     <ENTRY>PA Case</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_SAPID</KEY>
+     <ENTRY>SAP ID</ENTRY>
+     <LENGTH>14</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_TEST</KEY>
+     <ENTRY>Testmodus</ENTRY>
+     <LENGTH>17</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

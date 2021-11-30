@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_ORA_BAL</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Tabellenklassen für /SEW/INT_ORA_BAL</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_ORA_BAL</CLSNAME>
+     <CMPNAME>DELETE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Einträge löschen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_ORA_BAL</CLSNAME>
+     <CMPNAME>GET</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Einträge auslesen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_ORA_BAL</CLSNAME>
+     <CMPNAME>GET_PERAS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Auslesen aller relevanter Personalnummer</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_ORA_BAL</CLSNAME>
+     <CMPNAME>INSERT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Einträge erfassen</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

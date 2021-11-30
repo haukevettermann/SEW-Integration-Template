@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Reportklasse zu /SEW/RP_ORA_BALANCE</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>000</KEY>
+     <ENTRY>Abgleich Kontingente</ENTRY>
+     <LENGTH>40</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>001</KEY>
+     <ENTRY>Korrektur vornehmen</ENTRY>
+     <LENGTH>29</LENGTH>
+    </item>
+   </TPOOL>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>CHECK_OPEN_BOOKINGS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Prüfung auf offene Verbuchungen (2001/2006)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>COMBINE_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Einträge P2006/Oracle Balance verknüpfen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Konstruktor</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>CREATE_CORRV_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>IT2006 Korrektureinträge erzeugen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>GET_CORRV_ENTRIES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Zu korregierende Einträge auswählen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>GET_OPEN_BOOKINGS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ermitteln aller offenen Buchung für 2001/2006</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>GET_P2006</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ermittlung aller relevanter Kontingentsätze</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>PERNR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp von RSDSSELOPT</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>PERNR_PLANB</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp von RSDSSELOPT</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>PREPARE_ALV</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>ALV vorbereiten</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_RP_ORA_BAL</CLSNAME>
+     <CMPNAME>SET_COLOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Farbe für UI bestimmen</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

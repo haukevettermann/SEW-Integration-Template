@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>Class for position data migration</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>BEGDA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Gültigkeitsbeginn</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>CONNECTIONS_TO_JOBS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp : HRP1001</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>CONNECTIONS_TO_ORGUNITS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp : HRP1001</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>CONSTRUCTOR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>CONSTRUCTOR</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>CREATE_METADATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Create position metadata string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>ENDDA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Gültigkeitsende</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_BUKRS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get bukrs for input orgunit</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_EFFECTIVE_START_DATE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get effective start date</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_JOB_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get assigned job data for input position</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_MAPPING_FIELDS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant migration mapping fields</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_MAPPING_VALUES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant migration mapping values</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_ORGUNIT_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get assigned orgunits data for input position</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_POS_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get relevant infotype data</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>GET_WERKS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Get werks for input orgunit</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>IT1008</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for infotype 1008</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>JOBS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for infotype 1000</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>MAP_MIG_VALUES</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Mapping of field values</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>MAP_POS_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Map infotype structure to migration string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Tabellentyp von RSDSSELOPT</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>OBJECTS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Orgmanagement: Tabelle von Objec Einträgen</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>ORGUNITS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for infotype 1000 orgunits</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>POSITIONS</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Table type for infotype 1000 positions</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>PROCEED_FILE_CONSTRUCTION</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Construction of migration file content</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_POS_DATA</CLSNAME>
+     <CMPNAME>PROCEED_POS_DATA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Proceed position data for migration to Oracle HCM</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

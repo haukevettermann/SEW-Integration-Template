@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+    <LANGU>D</LANGU>
+    <DESCRIPT>HCM - Oracle Integration Infotyp preparation for IT_AEND</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+   </VSEOCLASS>
+   <DESCRIPTIONS>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>BEGDA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Feld vom Typ DATS</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>ENDDA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Feld vom Typ DATS</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>INFTY</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Infotyp</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>LDATE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Logisches Datum</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>MOLGA</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Ländergruppierung</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>OBJID</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Objekt-Id</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>OTYPE</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Objekttyp</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>PERNR</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Personalnummer</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_INFTY_DELTA</CLSNAME>
+     <CMPNAME>USER2</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Frei verwendbares Kundenfeld</DESCRIPT>
+    </SEOCOMPOTX>
+   </DESCRIPTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>
