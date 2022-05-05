@@ -32,6 +32,18 @@
      <ENTRY>Dateipfad</ENTRY>
      <LENGTH>17</LENGTH>
     </item>
+    <item>
+     <ID>S</ID>
+     <KEY>ZIPFILE</KEY>
+     <ENTRY>Zip?</ENTRY>
+     <LENGTH>12</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>ZIP_FILE</KEY>
+     <ENTRY>Zipname</ENTRY>
+     <LENGTH>15</LENGTH>
+    </item>
    </TPOOL>
   </asx:values>
  </asx:abap>

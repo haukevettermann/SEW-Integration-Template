@@ -54,12 +54,6 @@
      <LANGU>E</LANGU>
      <DESCRIPT>Map infotyp structure to migration string</DESCRIPT>
     </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/SEW/CL_MIG_PERSON_CITIZENSHIP</CLSNAME>
-     <CMPNAME>P0001</CMPNAME>
-     <LANGU>E</LANGU>
-     <DESCRIPT>HR Master Record: Infotype 0001 (Organizational Assignment)</DESCRIPT>
-    </SEOCOMPOTX>
    </DESCRIPTIONS>
   </asx:values>
  </asx:abap>

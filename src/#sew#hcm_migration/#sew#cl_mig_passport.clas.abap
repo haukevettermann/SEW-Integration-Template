@@ -62,7 +62,7 @@ ENDCLASS.
 CLASS /SEW/CL_MIG_PASSPORT IMPLEMENTATION.
 
 
-method CONSTRUCTOR.
+METHOD constructor.
 
   me->pernr = pernr.
   me->begda = begda.
@@ -73,27 +73,27 @@ method CONSTRUCTOR.
   me->molga = molga.
 
   IF cogl EQ abap_true.
-    " add later?
+
   ELSEIF cogu EQ abap_true.
-    " add later?
+
   ELSEIF cofu EQ abap_true.
 
-    vp_passport_structure = VALUE #( ( name = 1	  value = /sew/cl_mig_utils=>merge )
-                                     ( name = 2	  value = person_passport )
-                                     ( name = 3	  value = 'SourceSystemOwner' )
-                                     ( name = 4	  value = 'SourceSystemId' )
-                                     ( name = 5	  value = 'PersonId(SourceSystemId)' )
-                                     ( name = 6	  value = 'LegislationCode' )
-                                     ( name = 7	  value = 'PassportType' )
-                                     ( name = 8	  value = 'PassportNumber' )
-                                     ( name = 9	  value = 'IssueDate' )
-                                     ( name = 10  value = 'ExpirationDate' )
-                                     ( name = 11  value = 'IssuingAuthority' )
-                                     ( name = 12  value = 'IssuingCountry' )
-                                     ( name = 13  value = 'IssuingLocation' ) ).
+    vp_passport_structure = VALUE #( ( name = 1	 value = /sew/cl_mig_utils=>merge )
+                                     ( name = 2	 value = person_passport )
+                                     ( name = 3	 value = 'SourceSystemOwner' )
+                                     ( name = 4	 value = 'SourceSystemId' )
+                                     ( name = 5	 value = 'PersonId(SourceSystemId)' )
+                                     ( name = 6	 value = 'LegislationCode' )
+                                     ( name = 7	 value = 'PassportType' )
+                                     ( name = 8	 value = 'PassportNumber' )
+                                     ( name = 9	 value = 'IssueDate' )
+                                     ( name = 10 value = 'ExpirationDate' )
+                                     ( name = 11 value = 'IssuingAuthority' )
+                                     ( name = 12 value = 'IssuingCountry' )
+                                     ( name = 13 value = 'IssuingLocation' ) ).
   ENDIF.
 
-endmethod.
+ENDMETHOD.
 
 
   method CREATE_METADATA.
@@ -120,31 +120,31 @@ endmethod.
   endmethod.
 
 
-  method GET_COFU_DATA.
+METHOD get_cofu_data.
 
-    "get IT0002
-    SELECT pernr,
-           begda,
-           endda,
-           natio INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
-                                                                         AND begda LE @endda
-                                                                         AND endda GE @begda
-                                                                         AND natio IS NOT NULL.
+  "get IT0002
+  SELECT pernr,
+         begda,
+         endda,
+         natio INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
+                                                                       AND begda LE @endda
+                                                                       AND endda GE @begda.
+*                                                                         AND natio IS NOT NULL. "IFT20211207 D
 
-    "get IT0094
-    SELECT pernr,
-           begda,
-           endda,
-           fpncd,
-           docn1,
-           date1,
-           auth1,
-           expid FROM pa0094 INTO CORRESPONDING FIELDS OF TABLE @p0094 WHERE pernr IN @pernr AND
-                                                                             begda LE @endda AND
-                                                                             endda GE @begda AND
-                                                                             fpncd EQ '02'. "Only Passport relevant
+  "get IT0094
+  SELECT pernr,
+         begda,
+         endda,
+         fpncd,
+         docn1,
+         date1,
+         auth1,
+         expid FROM pa0094 INTO CORRESPONDING FIELDS OF TABLE @p0094 WHERE pernr IN @pernr AND
+                                                                           begda LE @endda AND
+                                                                           endda GE @begda AND
+                                                                           fpncd EQ '02'. "Only Passport relevant
 
-  endmethod.
+ENDMETHOD.
 
 
 METHOD GET_MAPPING_FIELDS.
@@ -211,14 +211,14 @@ ENDMETHOD.
                   sys_id
                   src_id
                   src_sys_id
-                  <p0002>-natio "LegislationCode
-                  fpncd         "PassportType
-                  <p0094>-docn1 "PassportNumber
+                  <p0002>-natio  " LegislationCode
+                  fpncd          " PassportType
+                  <p0094>-docn1  " PassportNumber
                   issue_date
                   expiration_date
-                  <p0094>-auth1 "IssuingAuthority
-                  '' "IssuingCountry
-                  '' "IssuingLocation
+                  <p0094>-auth1  " IssuingAuthority
+                  ''             " IssuingCountry
+                  ''             " IssuingLocation
       INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
 
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.

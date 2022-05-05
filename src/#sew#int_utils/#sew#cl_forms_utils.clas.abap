@@ -255,8 +255,7 @@ CLASS /SEW/CL_FORMS_UTILS IMPLEMENTATION.
       xml_node->append_child( new_child = xml_single_node ).
 
       xml_single_node = xml_document->create_element( name = 'XString' ).
-      xml_single_node->set_value( value = CONV #( <line>-xstring ) ). " könnte das ein Problem werden? wenn wir den XString vorher kovertieren in eine 'normalen' String
-*      xml_single_node->set_value( value = <line>-pdf_data  ).
+      xml_single_node->set_value( value = CONV #( <line>-xstring ) ).
       xml_node->append_child( new_child = xml_single_node ).
 
 
@@ -269,14 +268,6 @@ CLASS /SEW/CL_FORMS_UTILS IMPLEMENTATION.
 
     xstring = xml->create_xstring_from_xml( xml = xml_document ).
 
-
-
-*    CALL FUNCTION 'DISPLAY_XML_STRING'
-*      EXPORTING
-*        xml_string      = xstring
-*      EXCEPTIONS
-*        no_xml_document = 1
-*        OTHERS          = 2.
   ENDMETHOD.
 
 
@@ -329,16 +320,11 @@ CLASS /SEW/CL_FORMS_UTILS IMPLEMENTATION.
     ls_pmehf-juper = ls_p0001-juper.
     ls_pmehf-vdsk1 = ls_p0001-vdsk1.
     ls_pmehf-gsber = ls_p0001-gsber.
-    ls_pmehf-rclas = COND #( WHEN sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands "IFT20211119 C
-                             AND otype EQ 'R'
-                             THEN 'EDTIN'
-                             ELSE rclas ).
+    ls_pmehf-rclas = rclas.
     ls_pmehf-molga = /sew/cl_forms_utils=>get_molga( pernr ).
 
-    DATA(tmp_feature) = COND #(  WHEN sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands "IFT20211119 I
-                                 AND otype EQ 'R'
-                                 THEN 'EDTIN'
-                                 ELSE 'HRFOR' ).
+    DATA(tmp_feature) = 'HRFOR'. "IFT20211207 C
+
 
     CALL METHOD cl_hrpa_feature=>get_value
       EXPORTING
@@ -361,141 +347,6 @@ CLASS /SEW/CL_FORMS_UTILS IMPLEMENTATION.
           content_s   TYPE string,
           pdf_xstring TYPE xstring.
 
-
-
-*    IF object_type = 'T' OR object_type = 'R'.
-*      "*** Timeslip & Paystubs upload
-*
-***      """" begin of test data
-***      DATA: change_data_tim  TYPE STANDARD TABLE OF /sew/int_fo_aeup,
-***            change_data_line TYPE /sew/int_fo_aeup,
-***            change_data_rem  TYPE STANDARD TABLE OF /sew/int_fo_aeup.
-*********      molga = VALUE #( ( sign = 'I' option = 'EQ' low = '15' ) ).
-***      change_data_line-pernr = '00200081'.
-***      change_data_line-begda = '20210101'.
-***      change_data_line-endda = '20210131'.
-***      change_data_line-cloud_id = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = change_data_line-pernr ).
-***      APPEND change_data_line TO change_data_tim.
-***      APPEND change_data_line TO change_data_rem.
-***      """" end of test data
-*
-*      DATA: temp_results      TYPE /sew/cl_forms_utils=>time_pay_results_t,
-*            results           TYPE /sew/cl_forms_utils=>time_pay_results_t,
-*            records_to_delete TYPE TABLE OF /sew/int_fo_aeup,
-*            content           TYPE stringtab.
-*
-*      IF object_type = 'T'.
-*        zip_file = 'Time_Statements.zip'.
-*
-*        SELECT * FROM /sew/int_fo_aeup INTO TABLE @DATA(change_data_tim) WHERE otype = 'T'.
-*
-*        IF sy-subrc NE 0.
-*          RETURN.
-*        ENDIF.
-*
-*        DATA(change_data_tim_temp) = change_data_tim.
-*
-*        LOOP AT change_data_tim_temp ASSIGNING FIELD-SYMBOL(<tim_line>).
-*          CALL METHOD /sew/cl_forms_utils=>get_time_pdf_data
-*            EXPORTING
-*              pernr       = <tim_line>-pernr
-*              begda       = <tim_line>-begda
-*              endda       = <tim_line>-endda
-*              worker_id   = <tim_line>-cloud_id
-*            IMPORTING
-*              timeresults = temp_results.
-*
-*          IF temp_results IS NOT INITIAL AND NOT line_exists( temp_results[ status = '04' ] ).
-*            <tim_line>-status = '02'.
-*            APPEND LINES OF  temp_results TO results.
-*          ELSE.
-*            <tim_line>-status = '03'.
-*          ENDIF.
-*          CLEAR temp_results.
-*        ENDLOOP.
-*
-*
-*      ELSEIF object_type = 'R'.
-*
-*        zip_file = 'Pay_Statements.zip'.
-*
-*        SELECT * FROM /sew/int_fo_aeup INTO TABLE @DATA(change_data_rem) WHERE otype = 'R'.
-*
-*        IF sy-subrc NE 0.
-*          RETURN.
-*        ENDIF.
-*
-*        DATA(change_data_rem_temp) = change_data_rem.
-*
-*        LOOP AT change_data_rem_temp ASSIGNING FIELD-SYMBOL(<rem_line>).
-*
-*          CALL METHOD /sew/cl_forms_utils=>get_rem_pdf_data
-*            EXPORTING
-*              pernr      = <rem_line>-pernr
-*              begda      = <rem_line>-begda
-*              endda      = <rem_line>-endda
-*              worker_id  = <rem_line>-cloud_id
-*            IMPORTING
-*              payresults = temp_results.
-*
-*          IF temp_results IS NOT INITIAL AND NOT line_exists( temp_results[ status = '04' ] ).
-*            <rem_line>-status = '02'.
-*            APPEND LINES OF  temp_results TO results.
-*          ELSE.
-*            <rem_line>-status = '03'.
-*          ENDIF.
-*          CLEAR temp_results.
-*        ENDLOOP.
-*      ENDIF.
-*    ENDIF.
-*
-*
-*    IF results IS INITIAL.
-*      RETURN.
-*    ENDIF.
-*
-*    zip = NEW cl_abap_zip( ).
-*
-*    LOOP AT results ASSIGNING FIELD-SYMBOL(<line>).
-*
-*      zip->add( name    = <line>-document_code && '.pdf'
-*                content = <line>-xstring ).
-*
-*    ENDLOOP.
-*
-*    DATA(zip_xstring) = zip->save( ).
-*
-*    CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
-*      EXPORTING
-*        buffer     = zip_xstring
-*      TABLES
-*        binary_tab = zip_tab.
-*
-*
-**    CASE al11.
-**      WHEN abap_true.
-*
-**        CHECK filename IS NOT INITIAL.
-**
-**        OPEN DATASET filename FOR OUTPUT IN BINARY MODE.
-**        CHECK sy-subrc IS INITIAL.
-**
-**        LOOP AT zip_tab ASSIGNING FIELD-SYMBOL(<zip_tab>).
-**          TRANSFER <zip_tab> TO filename.
-**        ENDLOOP.
-**        CLOSE DATASET filename.
-**
-**
-**      WHEN abap_false.
-**        cl_gui_frontend_services=>gui_download(
-**          EXPORTING
-***             bin_filesize              = me->pv_zip_size
-**           filename                  = zip_file
-**           filetype                  = 'BIN'
-**         CHANGING
-**           data_tab                  = zip_tab ).
-**    ENDCASE.
-
   ENDMETHOD.
 
 
@@ -510,8 +361,7 @@ METHOD generate_document_name.
                   begda+4(2)
                   INTO document_name SEPARATED BY '_'.
     WHEN 'R'.
-*     2021-10 Payslip (01.10.2021 – 31.10.2021).
-*     2021-04 Payslip(01042021 -30042021)
+
       DATA(begda_tmp) = begda+6(2) &&
                         '.'        &&
                         begda+4(2) &&
@@ -563,7 +413,7 @@ METHOD GENERATE_FILE_NAME.
 
   document_name = SWITCH #( otype
                             WHEN 'T' THEN 'TimeStatement'
-                            WHEN 'R' THEN 'ThirdPartyPayslip' ).
+                            WHEN 'R' THEN 'Payslip' ).
 
   document_name = document_name &&
                   '_'           &&
@@ -654,7 +504,7 @@ ENDMETHOD.
       year = period+0(4).
       document_name = 'Time Statement' && ` ` && month && ` ` && year.
     ENDIF.
-    " Der Typ von "EN" Is nicht in den Typ von "SPRAS" konvertierbar.
+
   ENDMETHOD.
 
 
@@ -689,10 +539,7 @@ ENDMETHOD.
                                                        pernr = pernr ).
 
       CATCH cx_hrpa_violated_assertion.
-*      RAISE EXCEPTION TYPE cx_hcmfab_common
-*        EXPORTING
-*          textid   = cx_hcmfab_common=>no_countrygrouping
-*          mv_pernr = iv_pernr.
+
     ENDTRY.
   ENDMETHOD.
 
@@ -850,7 +697,7 @@ ENDMETHOD.
                                                              otype  = int_fo_aeup-otype ).
     DATA(documenttype) = SWITCH string( int_fo_aeup-otype
                                         WHEN 'T' THEN 'Time Statement'
-                                        WHEN 'R' THEN 'Third Party Payslip' ).
+                                        WHEN 'R' THEN 'Payslip' ).
 
     CONCATENATE /sew/cl_forms_utils=>merge
                 'DocumentsOfRecord'
@@ -954,7 +801,7 @@ METHOD get_rem_pdf_data.
                   begda     = <ls_rgdir>-ipend
                   endda     = <ls_rgdir>-ipend
                   rclas     = 'CESS'
-                  otype     = 'R'
+*                  otype     = 'R' " IFT20211207 D
                 IMPORTING
                   form_name = form_name.
 
@@ -1091,7 +938,7 @@ METHOD get_time_data.
                                                            otype = int_fo_aeup-otype ).
   DATA(documenttype) = SWITCH string( int_fo_aeup-otype
                                       WHEN 'T' THEN 'Time Statement'
-                                      WHEN 'R' THEN 'Third Party Payslip' ).
+                                      WHEN 'R' THEN 'Payslip' ).
 
 **JMB20211025 start insert - check for deletion flag
 *
@@ -1172,7 +1019,6 @@ ENDMETHOD.
     country_iso = /sew/cl_forms_utils=>get_country_by_molga( molga ).
 
 
-*    LOOP AT periods ASSIGNING FIELD-SYMBOL(<single_period>).
 
     CALL METHOD determine_form_name
       EXPORTING
@@ -1194,18 +1040,6 @@ ENDMETHOD.
         message     = message.
 
     IF message IS NOT INITIAL.
-      " error occured.
-*      WRITE: / 'MESSAGE START',
-*    / message-type,
-*    / message-id,
-*    / message-number,
-*    / message-message_v1,
-*    / message-message_v2,
-*    / message-message_v3,
-*    / message-message_v4,
-*    / 'LOGGER',
-*    / 'MESSAGE END'.
-*      EXIT.
 
     ENDIF.
 
@@ -1294,46 +1128,6 @@ ENDMETHOD.
 
 
   METHOD test_data_and_xml.
-
-*    DATA: is_aendup    TYPE /sew/int_it_aeup,
-*          s0000        TYPE p0000,
-*          s0002        TYPE p0002,
-*          s0001        TYPE p0001,
-*          filename     TYPE string,
-*          message      TYPE bapiret1,
-*          changed_data TYPE TABLE OF /sew/int_it_aeup,
-*          xml_string   TYPE string.
-*
-*    SELECT SINGLE * FROM /sew/int_objects INTO @DATA(ls_object) WHERE object = 'P'.
-*    SELECT * FROM /sew/int_it_aeup INTO TABLE @DATA(changed_data) WHERE status = '01'
-*                                                                  AND   infty = '2001'.
-
-
-
-*    APPEND INITIAL LINE TO changed_data ASSIGNING FIELD-SYMBOL(<line>).
-*
-*    CASE sy-mandt.
-*      WHEN '400'.
-*
-*        <line>-pernr  = CONV #( '93400107' ).
-*        <line>-infty  = CONV #( '2001' ).
-*        <line>-subty  = CONV #( '0100' ).
-*        <line>-begda  = CONV #( '20211227' ).
-*        <line>-endda  = CONV #( '20211231' ).
-*        <line>-status = CONV #( '01' ).
-*        <line>-aedtm  = CONV #( '20211001' ).
-*
-*      WHEN '102'.
-*
-*        <line>-pernr  = CONV #( '23680' ).
-*        <line>-infty  = CONV #( '2001' ).
-*        <line>-subty  = CONV #( '4500' ).
-*        <line>-begda  = CONV #( '20140822' ).
-*        <line>-endda  = CONV #( '20140822' ).
-*        <line>-status = CONV #( '01' ).
-*        <line>-aedtm  = CONV #( '20211001' ).
-*
-*    ENDCASE.
 
 
     DATA: is_aendup  TYPE /sew/int_it_aeup,

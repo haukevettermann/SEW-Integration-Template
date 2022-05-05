@@ -20,6 +20,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_INT_UTILITY</CLSNAME>
+     <CMPNAME>GET_TIME_CONSTRAINT</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>check time constraint of infotype / infotype and subtype</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_INT_UTILITY</CLSNAME>
      <CMPNAME>IT0105_PROCESSER</CMPNAME>
      <LANGU>D</LANGU>
      <DESCRIPT>Datenelement zur Domäne BOOLE: TRUE (=&apos;X&apos;) und FALSE (=&apos; &apos;)</DESCRIPT>

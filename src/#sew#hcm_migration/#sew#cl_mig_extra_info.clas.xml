@@ -56,6 +56,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_MIG_EXTRA_INFO</CLSNAME>
+     <CMPNAME>P0004</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>HR Master Record: Infotype 0004 (Challenge)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_EXTRA_INFO</CLSNAME>
      <CMPNAME>P0105</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Table type for infotype structure 0105</DESCRIPT>

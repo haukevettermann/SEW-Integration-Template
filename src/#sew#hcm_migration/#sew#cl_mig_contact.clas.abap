@@ -11,7 +11,6 @@ public section.
   data COGL type BOOLEAN .
   data COGU type BOOLEAN .
   data MOLGA type RSDSSELOPT_T .
-  data P0002 type P0002_TAB .
   data VP_PER_CONTACT_STRUCTURE type /IWBEP/T_MGW_NAME_VALUE_PAIR .
   constants CONTACT type STRING value 'Contact' ##NO_TEXT.
   constants PER type STRING value 'PER' ##NO_TEXT.
@@ -107,32 +106,29 @@ CLASS /SEW/CL_MIG_CONTACT IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_cofu_data.
-    " Read infotype 0002
-    SELECT pernr,
-           begda,
-           endda,
-           natio
-           INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
-                                                                   AND begda LE @endda
-                                                                   AND endda GE @begda.
+METHOD get_cofu_data.
+**JMB20211312 start insert - select only specific subtypes
+*
+  DATA: famsa TYPE rsdsselopt_t.
+  CASE sy-mandt.
+    WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
+      famsa = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '1' )
+                                  ( sign = 'I' option = 'EQ' low = '13' )
+                                  ( sign = 'I' option = 'EQ' low = '15' ) ).
+  ENDCASE.
+*JMB20211312 insert end
 
-    SELECT pernr,
-           begda,
-           endda,
-           famsa,
-           seqnr,
-           emrgn,
-           subty,
-           objps,
-           fgbdt,
-           zz_telnr,
-           zz_telnr2,
-           zz_art
-    INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr
-                                                                AND begda LE @endda
-                                                                AND endda GE @begda.
-  ENDMETHOD.
+
+  "Read Infotype 0021
+  SELECT pernr,
+         begda,
+         endda,
+         fgbdt
+  INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr AND
+                                                              famsa IN @famsa AND
+                                                              begda LE @endda AND
+                                                              endda GE @begda.
+ENDMETHOD.
 
 
   METHOD map_cofu_data.
@@ -145,13 +141,6 @@ CLASS /SEW/CL_MIG_CONTACT IMPLEMENTATION.
 
     DATA(check_pernr) = p0021[ 1 ]-pernr.
     DATA(count) = 0.
-
-* pernr | check | count
-* 1234  | 1234  | 1
-* 1234  | 1234  | 2
-* 1234  | 1234  | 3
-* 1234  | 1234  | 4
-* 4321  | 1234  | 1 <- set count to 1, and set check_pernr to pernr
 
     LOOP AT p0021 ASSIGNING FIELD-SYMBOL(<p0021>).
 
@@ -202,42 +191,6 @@ CLASS /SEW/CL_MIG_CONTACT IMPLEMENTATION.
 
     ENDLOOP.
 
-**IFT20211116 Start Deletion
-*
-*    LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>).
-*      DATA(eff_start_date) = COND #( WHEN <p0002>-begda IS NOT INITIAL THEN  /sew/cl_mig_utils=>convert_date( <p0002>-begda )
-*                                     ELSE '' ).
-*      DATA(start_date) = COND #( WHEN <p0002>-begda IS NOT INITIAL THEN  /sew/cl_mig_utils=>convert_date( <p0002>-begda )
-*                                 ELSE '' ). " SY-DATUM???
-*
-*      DATA(date_of_birth) = COND #( WHEN <p0002>-gbdat IS NOT INITIAL THEN  /sew/cl_mig_utils=>convert_date( <p0002>-gbdat )
-*                                    ELSE '' ).
-*
-*      sys_id = 'SAP_' && sy-mandt.
-*      CONCATENATE per
-*                  cont
-*                  <p0002>-pernr
-*                  INTO src_id SEPARATED BY '_'. "PER_CONT_00200518
-*
-*      CONCATENATE per
-*                  <p0002>-pernr
-*                  INTO DATA(tmp_pernr) SEPARATED BY '_'.
-*
-*      CONCATENATE /sew/cl_mig_utils=>merge
-*                  contact
-*                  eff_start_date
-*                  ''
-*                  tmp_pernr
-*                  start_date
-*                  date_of_birth
-*                  sys_id
-*                  src_id
-*      INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
-*
-*      CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
-*
-*    ENDLOOP.
-*IFT20211116 End Deletion
 
   ENDMETHOD.
 
@@ -245,9 +198,6 @@ CLASS /SEW/CL_MIG_CONTACT IMPLEMENTATION.
   METHOD proceed_cofu_per_contact.
 
     get_cofu_data( ).
-*    /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = worker->p0000
-*                                           CHANGING p0002 = p0002 ).
-
     data = map_cofu_data( vp_src_id ).
 
   ENDMETHOD.

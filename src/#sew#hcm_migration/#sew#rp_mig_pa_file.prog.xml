@@ -31,6 +31,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>AL11</KEY>
+     <ENTRY>AL11</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>COFU</KEY>
      <ENTRY>COFU</ENTRY>
      <LENGTH>38</LENGTH>
@@ -73,14 +79,14 @@
     </item>
     <item>
      <ID>S</ID>
-     <KEY>FILE_CT</KEY>
-     <ENTRY>Kontakt</ENTRY>
+     <KEY>FILE_BK</KEY>
+     <ENTRY>Bankverbindung Details</ENTRY>
      <LENGTH>38</LENGTH>
     </item>
     <item>
      <ID>S</ID>
-     <KEY>FILE_DI</KEY>
-     <ENTRY>Schwerbehinderung</ENTRY>
+     <KEY>FILE_CT</KEY>
+     <ENTRY>Kontakt</ENTRY>
      <LENGTH>38</LENGTH>
     </item>
     <item>
@@ -109,6 +115,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>FILE_SL</KEY>
+     <ENTRY>Gehalt</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>FILE_TM</KEY>
      <ENTRY>Austritt</ENTRY>
      <LENGTH>38</LENGTH>
@@ -117,6 +129,30 @@
      <ID>S</ID>
      <KEY>FILE_UR</KEY>
      <ENTRY>User</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>FILE_ZIP</KEY>
+     <ENTRY>Zipname</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>FILE_ZP2</KEY>
+     <ENTRY>Zipname Schritt 2</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>FILE_ZP3</KEY>
+     <ENTRY>Zipname Schritt 3</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>ZIPFILE</KEY>
+     <ENTRY>Zip?</ENTRY>
      <LENGTH>38</LENGTH>
     </item>
    </TPOOL>
@@ -191,15 +227,15 @@
       </item>
       <item>
        <ID>S</ID>
-       <KEY>FILE_CT</KEY>
-       <ENTRY>Contact</ENTRY>
-       <LENGTH>15</LENGTH>
+       <KEY>FILE_BK</KEY>
+       <ENTRY>Bank details 2</ENTRY>
+       <LENGTH>22</LENGTH>
       </item>
       <item>
        <ID>S</ID>
-       <KEY>FILE_DI</KEY>
-       <ENTRY>Person Disability</ENTRY>
-       <LENGTH>25</LENGTH>
+       <KEY>FILE_CT</KEY>
+       <ENTRY>Contact</ENTRY>
+       <LENGTH>15</LENGTH>
       </item>
       <item>
        <ID>S</ID>
@@ -227,6 +263,12 @@
       </item>
       <item>
        <ID>S</ID>
+       <KEY>FILE_SL</KEY>
+       <ENTRY>Salary</ENTRY>
+       <LENGTH>14</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
        <KEY>FILE_TM</KEY>
        <ENTRY>Termination</ENTRY>
        <LENGTH>19</LENGTH>
@@ -235,6 +277,30 @@
        <ID>S</ID>
        <KEY>FILE_UR</KEY>
        <ENTRY>User</ENTRY>
+       <LENGTH>12</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>FILE_ZIP</KEY>
+       <ENTRY>Zipname</ENTRY>
+       <LENGTH>15</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>FILE_ZP2</KEY>
+       <ENTRY>Zipname Step 2</ENTRY>
+       <LENGTH>22</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>FILE_ZP3</KEY>
+       <ENTRY>Zipname Step 3</ENTRY>
+       <LENGTH>22</LENGTH>
+      </item>
+      <item>
+       <ID>S</ID>
+       <KEY>ZIPFILE</KEY>
+       <ENTRY>Zip?</ENTRY>
        <LENGTH>12</LENGTH>
       </item>
      </TEXTPOOL>

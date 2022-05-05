@@ -5,6 +5,12 @@ class /SEW/CL_INT_IT_AENDUP definition
 
 public section.
 
+  class-methods DELETE_ENTRIES
+    importing
+      value(PERNR) type PERNR_D optional
+      value(CLOUD_ID) type /SEW/DD_VALUE optional
+    returning
+      value(RETURN_IS_OK) type BOOLEAN .
   methods CONSTRUCTOR .
   methods ENHANCE_ENTRIES
     importing
@@ -41,6 +47,28 @@ CLASS /SEW/CL_INT_IT_AENDUP IMPLEMENTATION.
 
   method CONSTRUCTOR.
   endmethod.
+
+
+METHOD delete_entries.
+
+
+*Wenn pernr und cloud übergeben wird
+  IF pernr IS NOT INITIAL AND cloud_id IS NOT INITIAL.
+    Select * FROM /sew/int_it_aeup INTO Table @data(tab) WHERE pernr = @pernr AND cloud_id = @cloud_id.
+    DELETE FROM /sew/int_it_aeup WHERE pernr = pernr AND cloud_id = cloud_id.
+
+*Wenn nur pernr übergeben wird
+  ELSEIF pernr IS NOT INITIAL AND cloud_id IS INITIAL.
+
+    DELETE FROM /sew/int_it_aeup WHERE pernr = pernr.
+
+  ENDIF.
+
+  IF sy-subrc EQ 0.
+    return_is_ok = abap_true.
+  ENDIF.
+
+ENDMETHOD.
 
 
   METHOD enhance_entries.

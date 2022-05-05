@@ -43,6 +43,7 @@ private section.
   data MAPPING_VALUES_ANSSA type /SEW/CL_MIG_UTILS=>/SEW/TT_INT_MAPPING .
   data MAPPING_FIELDS_SUBTY type /SEW/CL_MIG_UTILS=>/SEW/TT_INT_MAPP_FI .
   data MAPPING_VALUES_SUBTY type /SEW/CL_MIG_UTILS=>/SEW/TT_INT_MAPPING .
+  data P0000 type P0000_TAB .
 
   methods GET_COFU_DATA .
   methods MAP_COFU_DATA
@@ -64,43 +65,43 @@ ENDCLASS.
 CLASS /SEW/CL_MIG_PERSON_ADDRESS IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
+  METHOD constructor.
 
-  me->pernr = pernr.
-  me->begda = begda.
-  me->endda = endda.
-  me->cofu  = cofu.
-  me->cogl  = cogl.
-  me->cogu  = cogu.
-  me->molga = molga.
+    me->pernr = pernr.
+    me->begda = begda.
+    me->endda = endda.
+    me->cofu  = cofu.
+    me->cogl  = cogl.
+    me->cogu  = cogu.
+    me->molga = molga.
 
-  IF cogl EQ abap_true.
-    " add later?
-  ELSEIF cogu EQ abap_true.
-    " add later?
-  ELSEIF cofu EQ abap_true.
+    IF cogl EQ abap_true.
 
-    vp_person_address_structure = VALUE #( ( name = 1  value = /sew/cl_mig_utils=>merge )
-                                          ( name = 2  value = person_address )
-                                          ( name = 3  value = 'SourceSystemOwner' )
-                                          ( name = 4  value = 'SourceSystemId' )
-                                          ( name = 5  value = 'EffectiveStartDate' )
-                                          ( name = 6  value = 'EffectiveEndDate' )
-                                          ( name = 7  value = 'PersonId(SourceSystemId)' )
-                                          ( name = 8  value = 'AddressType' )
-                                          ( name = 9  value = 'AddressLine1' )
-                                          ( name = 10 value = 'AddressLine2' )
-                                          ( name = 11 value = 'AddressLine3' )
-                                          ( name = 12 value = 'AddressLine4' )
-                                          ( name = 13 value = 'TownOrCity' )
-                                          ( name = 14 value = 'Country' )
-                                          ( name = 15 value = 'Region3' )
-                                          ( name = 16 value = 'PostalCode' )
-                                          ( name = 17 value = 'PrimaryFlag' )
-                                          ( name = 18 value = 'AddlAddressAttribute1' ) ).
-  ENDIF.
+    ELSEIF cogu EQ abap_true.
 
-  endmethod.
+    ELSEIF cofu EQ abap_true.
+
+      vp_person_address_structure = VALUE #( ( name = 1  value = /sew/cl_mig_utils=>merge )
+                                             ( name = 2  value = person_address )
+                                             ( name = 3  value = 'SourceSystemOwner' )
+                                             ( name = 4  value = 'SourceSystemId' )
+                                             ( name = 5  value = 'EffectiveStartDate' )
+                                             ( name = 6  value = 'EffectiveEndDate' )
+                                             ( name = 7  value = 'PersonId(SourceSystemId)' )
+                                             ( name = 8  value = 'AddressType' )
+                                             ( name = 9  value = 'AddressLine1' )
+                                             ( name = 10 value = 'AddressLine2' )
+                                             ( name = 11 value = 'AddressLine3' )
+                                             ( name = 12 value = 'AddressLine4' )
+                                             ( name = 13 value = 'TownOrCity' )
+                                             ( name = 14 value = 'Country' )
+                                             ( name = 15 value = 'Region3' )
+                                             ( name = 16 value = 'PostalCode' )
+                                             ( name = 17 value = 'PrimaryFlag' )
+                                             ( name = 18 value = 'AddlAddressAttribute1' ) ).
+    ENDIF.
+
+  ENDMETHOD.
 
 
   method CREATE_METADATA.
@@ -135,6 +136,9 @@ CLASS /SEW/CL_MIG_PERSON_ADDRESS IMPLEMENTATION.
            endda,
            anssa,
            stras,
+           hsnmr,
+           posta,
+           name2,
            ort01,
            land1,
            state,
@@ -173,57 +177,86 @@ CLASS /SEW/CL_MIG_PERSON_ADDRESS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  method MAP_COFU_DATA.
+METHOD map_cofu_data.
 
-    DATA: src_id  TYPE string,
-          sys_id  TYPE string.
+  DATA: src_id      TYPE string,
+        sys_id      TYPE string,
+        pernr_old   TYPE pernr_d,
+        pernr_subty TYPE rsdsselopt_t.
 
-    CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
+  CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
 
-    LOOP AT p0006 ASSIGNING FIELD-SYMBOL(<p0006>).
+  SORT p0000 BY pernr begda.
 
-      DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0006>-begda ).
-      DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <p0006>-endda ).
+  LOOP AT p0006 ASSIGNING FIELD-SYMBOL(<p0006>).
 
-      CONCATENATE address <p0006>-pernr INTO src_id.
+    IF pernr_old NE <p0006>-pernr OR
+       pernr_old IS INITIAL.
+      CLEAR: pernr_subty.
+      pernr_old = <p0006>-pernr.
+    ENDIF.
 
-      "get source id
-      DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0006>-pernr
-                                                        begda = <p0006>-begda
-                                                        endda = <p0006>-endda
-                                                        vp_src_id = vp_src_id ).
+    "address needs to start on employee start date
+    IF <p0006>-subty NOT IN pernr_subty OR
+       pernr_subty   IS INITIAL.
+      "get first entry of employee in P0000
+      LOOP AT p0000 ASSIGNING FIELD-SYMBOL(<p0000>) WHERE pernr EQ <p0006>-pernr.
+        <p0006>-begda = <p0000>-begda.
+        EXIT.
+      ENDLOOP.
+    ENDIF.
 
-      DATA(entkm) = CONV string( <p0006>-zzentkm ).
-      CONDENSE entkm.
+    APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0006>-subty ) TO pernr_subty.
 
-      map_mig_values( EXPORTING p0006 = <p0006>
-                      IMPORTING subty = DATA(subty) ).
+    DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0006>-begda ).
+    DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <p0006>-endda ).
 
-      CONCATENATE /sew/cl_mig_utils=>merge
-                  person_address
-                  sys_id
-                  src_id
-                  begda_tmp
-                  endda_tmp
-                  src_sys_id
-                  subty
-                  <p0006>-stras
-                  <p0006>-adr03
-                  <p0006>-adr04
-                  '' "AddressLine4 is NULL
-                  <p0006>-ort01
-                  <p0006>-land1
-                  <p0006>-state
-                  <p0006>-pstlz
-                  'Y' "primary flag is Y
-                  entkm
-      INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+    "get source id
+    DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0006>-pernr
+                                                      begda = <p0006>-begda
+                                                      endda = <p0006>-endda
+                                                      vp_src_id = vp_src_id ).
 
-      CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+    DATA(entkm) = CONV string( <p0006>-zzentkm ).
+    CONDENSE entkm.
 
-    ENDLOOP.
+    map_mig_values( EXPORTING p0006 = <p0006>
+                    IMPORTING subty = DATA(subty) ).
 
-  endmethod.
+    CHECK subty IS NOT INITIAL.
+
+    CONCATENATE address <p0006>-pernr '_' subty INTO src_id.
+
+    DATA(primary_flag) = 'N'.
+    IF <p0006>-subty EQ '0001'.
+      primary_flag = 'Y'.
+    ENDIF.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                person_address
+                sys_id
+                src_id
+                begda_tmp
+                endda_tmp
+                src_sys_id
+                subty
+                <p0006>-stras
+                <p0006>-hsnmr
+                <p0006>-posta
+                <p0006>-name2
+                <p0006>-ort01
+                <p0006>-land1
+                <p0006>-state
+                <p0006>-pstlz
+                primary_flag
+                entkm
+    INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+
+  ENDLOOP.
+
+ENDMETHOD.
 
 
 METHOD map_mig_values.
@@ -247,12 +280,12 @@ METHOD map_mig_values.
 ENDMETHOD.
 
 
-  method PROCEED_COFU_PERSON_ADDRESS.
+METHOD proceed_cofu_person_address.
+  p0000 = worker->p0000.
+  get_cofu_data( ).
+  get_mapping_fields( ).
+  get_mapping_values( ).
+  data = map_cofu_data( vp_src_id ).
 
-    get_cofu_data( ).
-    get_mapping_fields( ).
-    get_mapping_values( ).
-    data = map_cofu_data( vp_src_id ).
-
-  endmethod.
+ENDMETHOD.
 ENDCLASS.

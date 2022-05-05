@@ -383,7 +383,58 @@ public section.
       value(VALUE_OUT) type /SEW/DD_VALUE
       !MESSAGE type BAPIRET1
       !DO_SIMPLE type BOOLE_D .
-  class-methods GET_NUM01
+  class-methods GET_COM01
+    importing
+      !PERNR type PERNR_D optional
+      !OBJID type HROBJID optional
+      !BEGDA type DATS optional
+      !ENDDA type DATS optional
+      !INFTY type INFTY optional
+      !SEQNR type SEQNR default 000
+      !FIELD_SAP type /SEW/DD_FIELD optional
+      !FIELD_ORACLE type /SEW/DD_FIELD optional
+      !IMPORT type BOOLE_D
+      value(EXPORT) type BOOLE_D
+      !FIELDS type /SEW/CL_INT_INFTY_PROC_XML=>T_FIELDS
+    exporting
+      value(VALUE_OUT) type /SEW/DD_VALUE
+      !MESSAGE type BAPIRET1
+      !DO_SIMPLE type BOOLE_D .
+  class-methods GET_TELNR
+    importing
+      !PERNR type PERNR_D optional
+      !OBJID type HROBJID optional
+      !BEGDA type DATS optional
+      !ENDDA type DATS optional
+      !INFTY type INFTY optional
+      !SEQNR type SEQNR default 000
+      !FIELD_SAP type /SEW/DD_FIELD optional
+      !FIELD_ORACLE type /SEW/DD_FIELD optional
+      !IMPORT type BOOLE_D
+      value(EXPORT) type BOOLE_D
+      !FIELDS type /SEW/CL_INT_INFTY_PROC_XML=>T_FIELDS
+    exporting
+      value(VALUE_OUT) type /SEW/DD_VALUE
+      !MESSAGE type BAPIRET1
+      !DO_SIMPLE type BOOLE_D .
+  class-methods GET_CTTYP
+    importing
+      !PERNR type PERNR_D optional
+      !OBJID type HROBJID optional
+      !BEGDA type DATS optional
+      !ENDDA type DATS optional
+      !INFTY type INFTY optional
+      !SEQNR type SEQNR default 000
+      !FIELD_SAP type /SEW/DD_FIELD optional
+      !FIELD_ORACLE type /SEW/DD_FIELD optional
+      !IMPORT type BOOLE_D
+      value(EXPORT) type BOOLE_D
+      !FIELDS type /SEW/CL_INT_INFTY_PROC_XML=>T_FIELDS
+    exporting
+      value(VALUE_OUT) type /SEW/DD_VALUE
+      !MESSAGE type BAPIRET1
+      !DO_SIMPLE type BOOLE_D .
+  class-methods GET_SUBTY_15
     importing
       !PERNR type PERNR_D optional
       !OBJID type HROBJID optional
@@ -417,7 +468,7 @@ public section.
       value(VALUE_OUT) type /SEW/DD_VALUE
       !MESSAGE type BAPIRET1
       !DO_SIMPLE type BOOLE_D .
-  class-methods GET_TELNR
+  class-methods GET_NUM01
     importing
       !PERNR type PERNR_D optional
       !OBJID type HROBJID optional
@@ -502,6 +553,23 @@ public section.
       value(VALUE_OUT) type /SEW/DD_VALUE
       !MESSAGE type BAPIRET1
       !DO_SIMPLE type BOOLE_D .
+  class-methods GET_USRTY_15
+    importing
+      !PERNR type PERNR_D optional
+      !OBJID type HROBJID optional
+      !BEGDA type DATS optional
+      !ENDDA type DATS optional
+      !INFTY type INFTY optional
+      !SEQNR type SEQNR default 000
+      !FIELD_SAP type /SEW/DD_FIELD optional
+      !FIELD_ORACLE type /SEW/DD_FIELD optional
+      !IMPORT type BOOLE_D
+      value(EXPORT) type BOOLE_D
+      !FIELDS type /SEW/CL_INT_INFTY_PROC_XML=>T_FIELDS
+    exporting
+      value(VALUE_OUT) type /SEW/DD_VALUE
+      !MESSAGE type BAPIRET1
+      !DO_SIMPLE type BOOLE_D .
   class-methods GET_WERKS
     importing
       !PERNR type PERNR_D optional
@@ -519,7 +587,7 @@ public section.
       value(VALUE_OUT) type /SEW/DD_VALUE
       !MESSAGE type BAPIRET1
       !DO_SIMPLE type BOOLE_D .
-  class-methods GET_GRELG
+  class-methods GET_GRAWG
     importing
       !PERNR type PERNR_D optional
       !OBJID type HROBJID optional
@@ -536,7 +604,7 @@ public section.
       value(VALUE_OUT) type /SEW/DD_VALUE
       !MESSAGE type BAPIRET1
       !DO_SIMPLE type BOOLE_D .
-  class-methods GET_GRAWG
+  class-methods GET_GRELG
     importing
       !PERNR type PERNR_D optional
       !OBJID type HROBJID optional
@@ -595,6 +663,7 @@ public section.
       !OBJID type HROBJID optional
       !INFTY type INFTY optional
       !SEQNR type SEQNR default 000
+      !MOLGA type MOLGA optional
       !FIELD_SAP type /SEW/DD_FIELD optional
       !FIELD_ORACLE type /SEW/DD_FIELD optional
       !IMPORT type BOOLE_D
@@ -668,7 +737,7 @@ CLASS /SEW/CL_INT_MAPPING IMPLEMENTATION.
             READ TABLE fields WITH KEY field_oracle = /sew/cl_int_constants=>fields-termination_date ASSIGNING <termination_date>.
           ENDIF.
           IF <hire_date> IS NOT INITIAL.
-            SELECT * FROM pa0000 INTO TABLE @DATA(it0000) WHERE pernr = @pernr AND massn = @/sew/cl_int_constants=>hire.
+            SELECT * FROM pa0000 INTO TABLE @DATA(it0000) WHERE pernr = @pernr AND massn IN @/sew/cl_int_constants=>hire_range.
             IF sy-subrc IS INITIAL.
               SORT it0000 BY begda ASCENDING.
               READ TABLE it0000 ASSIGNING FIELD-SYMBOL(<s0000>) INDEX 1.
@@ -676,7 +745,10 @@ CLASS /SEW/CL_INT_MAPPING IMPLEMENTATION.
               value_out = /sew/cl_int_conversion=>convert_date( value_in = <hire_date>-value ).
 *              ENDIF.
             ELSE.
-              value_out = <hire_date>-value.
+              READ TABLE fields WITH KEY field_oracle = 'ProjectedStartDate' ASSIGNING FIELD-SYMBOL(<pro_date>).
+              IF <pro_date> IS ASSIGNED.
+                value_out = <pro_date>-value. "<hire_date>-value.
+              ENDIF.
             ENDIF.
           ENDIF.
         ENDIF.
@@ -713,6 +785,52 @@ CLASS /SEW/CL_INT_MAPPING IMPLEMENTATION.
       ENDIF.
     ENDIF.
   ENDMETHOD.
+
+
+METHOD get_com01.
+  IF export = abap_true.
+
+  ELSEIF import = abap_true.
+*    READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap value = 'HM'.
+
+*    DATA(field_number) = fields[ field_sap = field_sap value = 'HM' ].
+*    READ TABLE fields INTO DATA(field_ext) WITH KEY field_sap = 'NUM01_EXT'.
+*    READ TABLE fields INTO DATA(field_acode) WITH KEY field_sap = 'NUM01_ACODE'.
+*    READ TABLE fields INTO DATA(field_ccode) WITH KEY field_sap = 'NUM01_CCODE'.
+    READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'COM01' value = 'HM'.
+
+*    LOOP AT fields ASSIGNING FIELD-SYMBOL(<field_number>) WHERE field_sap = field_sap AND value = 'HM'.
+*      EXIT.
+*    ENDLOOP.
+    IF field_type IS NOT INITIAL.
+      value_out = 'TEL2'.
+    ELSE.
+      value_out = '-'.
+    ENDIF.
+*    IF seqnr = 005.
+*      value_out = '9001'.
+*    ELSE.
+*      IF field_type-value = 'HM'.
+*        CONCATENATE '+' field_ccode-value '/' field_acode-value '/' field_number-value '/' field_ext-value '/' INTO value_out.
+*      ENDIF.
+*
+*    ENDIF.
+  ENDIF.
+ENDMETHOD.
+
+
+METHOD get_cttyp.
+  IF export = abap_true.
+
+  ELSEIF import = abap_true.
+    READ TABLE fields INTO DATA(field_ctedt) WITH KEY field_sap = 'CTEDT'.
+    IF field_ctedt-value IS NOT INITIAL.
+      value_out = '02'.
+    ELSE.
+      value_out = '01'.
+    ENDIF.
+  ENDIF.
+ENDMETHOD.
 
 
   METHOD get_ename.
@@ -773,20 +891,21 @@ CLASS /SEW/CL_INT_MAPPING IMPLEMENTATION.
     IF export = abap_true.
 
     ELSEIF import = abap_true.
-      READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap.
-      READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'ZAUSW_TYPE'.
+*      READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap.
+*      READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'ZAUSW_TYPE'.
+*
+*
+*      IF field_type-value = 'Time Device Badge ID'."/sew/cl_int_constants=>zausw.
+*        value_out = field_number-value.
+*      ELSE. "IF field_type-value = 'ORA_TCLOCK_BADGE_ID'.
+*        READ TABLE fields INTO DATA(field_type_cofu) WITH KEY field_sap = 'ZAUSW_TYPE' value = 'ORA_TCLOCK_BADGE_ID'.
+**        READ TABLE fields INTO DATA(field_number_cofu) WITH KEY field_sap = field_sap seqnr = field_type_cofu-seqnr.
+*        IF field_type_cofu IS NOT INITIAL.
+*          value_out = '001'.
+*        ENDIF.
+*      ENDIF.
 
-
-      IF field_type-value = 'Time Device Badge ID'."/sew/cl_int_constants=>zausw.
-        value_out = field_number-value.
-      ELSE. "IF field_type-value = 'ORA_TCLOCK_BADGE_ID'.
-        READ TABLE fields INTO DATA(field_type_cofu) WITH KEY field_sap = 'ZAUSW_TYPE' value = 'ORA_TCLOCK_BADGE_ID'.
-*        READ TABLE fields INTO DATA(field_number_cofu) WITH KEY field_sap = field_sap seqnr = field_type_cofu-seqnr.
-        IF field_type_cofu IS NOT INITIAL.
-          value_out = '001'.
-        ENDIF.
-      ENDIF.
-
+      value_out = '001'.
 
     ENDIF.
   ENDMETHOD.
@@ -837,6 +956,8 @@ ENDMETHOD.
               OR <term_action>-value = 'TERMINATE_PLACEMENT' OR <term_action>-value = 'TERMINATION'.
               value_out = /sew/cl_int_constants=>termination.
             ELSEIF <term_action>-value EQ 'REHIRE'.
+            ELSEIF <term_action>-value EQ 'ORA_EMPL_REV_TERMINATION'.
+              value_out = '-'.
             ELSEIF <term_action>-value EQ 'GLB_TRANSFER'.
               IF <term_action>-endda IS NOT INITIAL AND <term_action>-endda NE /sew/cl_int_constants=>highdate.
                 value_out = /sew/cl_int_constants=>termination.
@@ -848,119 +969,234 @@ ENDMETHOD.
                 value_out = /sew/cl_int_constants=>termination.
               ENDIF.
             ELSE.
-              IF <hire_date> IS NOT INITIAL.
-                SELECT * FROM pa0000 INTO TABLE @DATA(it0000) WHERE pernr = @pernr AND massn = @/sew/cl_int_constants=>hire.
-                IF sy-subrc IS INITIAL.
-                  SORT it0000 BY begda ASCENDING.
-                  READ TABLE it0000 ASSIGNING FIELD-SYMBOL(<s0000>) INDEX 1.
-                  DATA(hire_date) = /sew/cl_int_conversion=>convert_date( value_in = <hire_date>-value ).
-                  IF <s0000>-begda NE hire_date.
-                    SELECT SINGLE * FROM pa0041 INTO @DATA(s0041) WHERE pernr = @pernr.
-                    IF s0041-dar01 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat01 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ELSEIF s0041-dat01 NE hire_date.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar02 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat02 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar03 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat03 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar04 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat04 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar05 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat05 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar06 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat06 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar07 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat07 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar08 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat08 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar09 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat09 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar10 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat10 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar11 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat11 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar12 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat12 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar13 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat13 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar14 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat14 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar15 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat15 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar16 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat16 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar17 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat17 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar18 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat18 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar19 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat19 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar20 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat20 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar21 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat21 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar22 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat22 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar23 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat23 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
-                      ENDIF.
-                    ELSEIF s0041-dar24 = /sew/cl_int_constants=>date_type_hire.
-                      IF s0041-dat24 EQ <s0000>-begda.
-                        value_out = /sew/cl_int_constants=>hire_date_change.
+              IF <hire_date> IS ASSIGNED.
+                IF <hire_date> IS NOT INITIAL.
+                  SELECT * FROM pa0000 INTO TABLE @DATA(it0000) WHERE pernr = @pernr AND massn IN @/sew/cl_int_constants=>hire_range. "= @/sew/cl_int_constants=>hire.
+                  IF sy-subrc IS INITIAL.
+                    SORT it0000 BY begda ASCENDING.
+                    READ TABLE it0000 ASSIGNING FIELD-SYMBOL(<s0000>) INDEX 1.
+                    IF <term_action>-value = 'ADD_PEN_WKR'.
+                      READ TABLE fields WITH KEY field_oracle = 'ProjectedStartDate' ASSIGNING FIELD-SYMBOL(<projected_start>).
+                    ENDIF.
+                    DATA(hire_date) = /sew/cl_int_conversion=>convert_date( value_in = <hire_date>-value ).
+                    IF <projected_start> IS ASSIGNED.
+                      DATA(projected_date) = /sew/cl_int_conversion=>convert_date( value_in = <projected_start>-value ).
+                      IF projected_date NE hire_date.
+                        hire_date = projected_date.
                       ENDIF.
                     ENDIF.
-                    IF <termination_date> IS NOT INITIAL AND <termination_date>-value NE /sew/cl_int_constants=>highdate and <termination_date>-value ne 'DELETED'.
-                      value_out = /sew/cl_int_constants=>termination.
-                    ENDIF.
-                  ELSE.
-                    IF <termination_date> IS NOT INITIAL AND <termination_date>-value NE /sew/cl_int_constants=>highdate and <termination_date>-value ne 'DELETED'.
-                      value_out = /sew/cl_int_constants=>termination.
+                    IF <s0000>-begda NE hire_date.
+                      SELECT SINGLE * FROM pa0041 INTO @DATA(s0041) WHERE pernr = @pernr.
+                      IF s0041-dar01 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat01 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ELSEIF s0041-dat01 NE hire_date.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar02 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat02 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar03 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat03 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar04 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat04 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar05 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat05 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar06 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat06 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar07 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat07 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar08 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat08 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar09 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat09 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar10 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat10 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar11 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat11 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar12 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat12 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar13 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat13 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar14 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat14 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar15 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat15 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar16 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat16 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar17 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat17 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar18 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat18 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar19 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat19 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar20 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat20 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar21 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat21 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar22 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat22 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar23 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat23 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar24 = /sew/cl_int_constants=>date_type_hire.
+                        IF s0041-dat24 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ENDIF.
+
+                      IF s0041-dar01 = '01'.
+                        IF s0041-dat01 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ELSEIF s0041-dat01 NE hire_date.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar02 = '01'.
+                        IF s0041-dat02 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar03 = '01'.
+                        IF s0041-dat03 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar04 = '01'.
+                        IF s0041-dat04 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar05 = '01'.
+                        IF s0041-dat05 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar06 = '01'.
+                        IF s0041-dat06 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar07 = '01'.
+                        IF s0041-dat07 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar08 = '01'.
+                        IF s0041-dat08 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar09 = '01'.
+                        IF s0041-dat09 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar10 = '01'.
+                        IF s0041-dat10 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar11 = '01'.
+                        IF s0041-dat11 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar12 = '01'.
+                        IF s0041-dat12 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar13 = '01'.
+                        IF s0041-dat13 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar14 = '01'.
+                        IF s0041-dat14 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar15 = '01'.
+                        IF s0041-dat15 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar16 = '01'.
+                        IF s0041-dat16 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar17 = '01'.
+                        IF s0041-dat17 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar18 = '01'.
+                        IF s0041-dat18 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar19 = '01'.
+                        IF s0041-dat19 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar20 = '01'.
+                        IF s0041-dat20 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar21 = '01'.
+                        IF s0041-dat21 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar22 = '01'.
+                        IF s0041-dat22 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar23 = '01'.
+                        IF s0041-dat23 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ELSEIF s0041-dar24 = '01'.
+                        IF s0041-dat24 EQ <s0000>-begda.
+                          value_out = /sew/cl_int_constants=>hire_date_change.
+                        ENDIF.
+                      ENDIF.
+                      IF <termination_date> IS ASSIGNED.
+                        IF <termination_date> IS NOT INITIAL AND <termination_date>-value NE /sew/cl_int_constants=>highdate AND <termination_date>-value NE 'DELETED'.
+                          value_out = /sew/cl_int_constants=>termination.
+                        ENDIF.
+                      ENDIF.
+                    ELSE.
+                      IF <termination_date> IS ASSIGNED.
+                        IF <termination_date> IS NOT INITIAL AND <termination_date>-value NE /sew/cl_int_constants=>highdate AND <termination_date>-value NE 'DELETED'.
+                          value_out = /sew/cl_int_constants=>termination.
+                        ENDIF.
+                      ENDIF.
                     ENDIF.
                   ENDIF.
                 ENDIF.
@@ -974,18 +1210,250 @@ ENDMETHOD.
         ELSEIF seqnr = 001.
           READ TABLE fields WITH KEY field_oracle = /sew/cl_int_constants=>fields-ass_stat ASSIGNING FIELD-SYMBOL(<ass_stat>).
           READ TABLE fields WITH KEY field_oracle = /sew/cl_int_constants=>fields-action_code ASSIGNING FIELD-SYMBOL(<action_code>).
-          IF <action_code>-value NE 'HIRE' AND <action_code>-value NE 'ADD_CWK' AND <action_code>-value NE 'HIRE_ADD_WORK_RELATION'.
+          IF <action_code>-value NE 'HIRE' AND <action_code>-value NE 'ADD_CWK' AND <action_code>-value NE 'HIRE_ADD_WORK_RELATION' AND <action_code>-value NE 'ADD_PEN_WKR'.
             IF <ass_stat>-value = 'SUSPEND_PROCESS'.
-              value_out = '08'.
-            ELSE.
+*              value_out = '08'.
               do_simple = abap_true.
-            ENDIF.
-          ELSE.
-            IF <action_code>-value EQ 'HIRE' OR <action_code>-value EQ 'ADD_CWK' OR <action_code>-value EQ 'HIRE_ADD_WORK_RELATION'.
-              IF pernr IS NOT INITIAL.
-                value_out = ''.
+            ELSE.
+              READ TABLE fields WITH KEY field_oracle = 'TermReasonCode' ASSIGNING FIELD-SYMBOL(<reason_code>).
+              IF <reason_code> IS ASSIGNED AND <action_code>-value = 'TERMINATION' AND <reason_code>-value = 'SEW_NOSHOW'.
+                value_out = 'ZZ'.
               ELSE.
                 do_simple = abap_true.
+              ENDIF.
+            ENDIF.
+          ELSE.
+            IF <action_code>-value EQ 'HIRE' OR <action_code>-value EQ 'ADD_CWK' OR <action_code>-value EQ 'HIRE_ADD_WORK_RELATION' OR <action_code>-value EQ 'ADD_PEN_WKR'.
+              IF pernr IS NOT INITIAL.
+                SELECT * FROM pa0000 INTO TABLE @DATA(it0000_001) WHERE pernr = @pernr AND massn IN @/sew/cl_int_constants=>hire_range. "= @/sew/cl_int_constants=>hire.
+                IF sy-subrc IS INITIAL.
+                  SORT it0000_001 BY begda ASCENDING.
+                  READ TABLE it0000_001 ASSIGNING FIELD-SYMBOL(<s0000_001>) INDEX 1.
+                  IF <term_action>-value = 'ADD_PEN_WKR'.
+*                    READ TABLE fields WITH KEY field_oracle = 'ProjectedStartDate' ASSIGNING FIELD-SYMBOL(<projected_start_001>).
+                  ENDIF.
+                  READ TABLE fields WITH KEY field_sap = 'HIRE_DATE' ASSIGNING FIELD-SYMBOL(<hire_date_001>).
+                  DATA hire_date_value TYPE /sew/dd_value.
+                  IF <hire_date_001> IS ASSIGNED AND <hire_date_001> IS NOT INITIAL.
+                    hire_date_value = <hire_date_001>-value.
+                  ELSE.
+                    READ TABLE fields WITH KEY field_sap = 'MASSN' ASSIGNING <hire_date_001>.
+                    hire_date_value = <hire_date_001>-begda.
+                  ENDIF.
+                  DATA(hire_date_001) = /sew/cl_int_conversion=>convert_date( value_in = hire_date_value ).
+                  IF <s0000_001>-begda NE hire_date_001.
+                    SELECT SINGLE * FROM pa0041 INTO @DATA(s0041_001) WHERE pernr = @pernr.
+                    IF s0041_001-dar01 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat01 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ELSEIF s0041_001-dat01 NE hire_date_001.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar02 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat02 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar03 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat03 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar04 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat04 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar05 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat05 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar06 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat06 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar07 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat07 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar08 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat08 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar09 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat09 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar10 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat10 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar11 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat11 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar12 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat12 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar13 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat13 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar14 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat14 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar15 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat15 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar16 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat16 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar17 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat17 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar18 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat18 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar19 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat19 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar20 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat20 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar21 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat21 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar22 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat22 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar23 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat23 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar24 = /sew/cl_int_constants=>date_type_hire.
+                      IF s0041_001-dat24 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ENDIF.
+
+                    IF s0041_001-dar01 = '01'.
+                      IF s0041_001-dat01 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ELSEIF s0041_001-dat01 NE hire_date_001.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar02 = '01'.
+                      IF s0041_001-dat02 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar03 = '01'.
+                      IF s0041_001-dat03 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar04 = '01'.
+                      IF s0041_001-dat04 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar05 = '01'.
+                      IF s0041_001-dat05 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar06 = '01'.
+                      IF s0041_001-dat06 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar07 = '01'.
+                      IF s0041_001-dat07 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar08 = '01'.
+                      IF s0041_001-dat08 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar09 = '01'.
+                      IF s0041_001-dat09 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar10 = '01'.
+                      IF s0041_001-dat10 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar11 = '01'.
+                      IF s0041_001-dat11 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar12 = '01'.
+                      IF s0041_001-dat12 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar13 = '01'.
+                      IF s0041_001-dat13 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar14 = '01'.
+                      IF s0041_001-dat14 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar15 = '01'.
+                      IF s0041_001-dat15 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar16 = '01'.
+                      IF s0041_001-dat16 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar17 = '01'.
+                      IF s0041_001-dat17 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar18 = '01'.
+                      IF s0041_001-dat18 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar19 = '01'.
+                      IF s0041_001-dat19 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar20 = '01'.
+                      IF s0041_001-dat20 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar21 = '01'.
+                      IF s0041_001-dat21 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar22 = '01'.
+                      IF s0041_001-dat22 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar23 = '01'.
+                      IF s0041_001-dat23 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ELSEIF s0041_001-dar24 = '01'.
+                      IF s0041_001-dat24 EQ <s0000_001>-begda.
+                        value_out = /sew/cl_int_constants=>hire_date_change.
+                      ENDIF.
+                    ENDIF.
+                  ENDIF.
+                ENDIF.
+                IF value_out EQ /sew/cl_int_constants=>hire_date_change.
+                ELSE.
+                  value_out = '-'.
+                ENDIF.
+              ELSE.
+                IF <action_code>-value = 'ADD_PEN_WKR' AND <action_code>-endda LT /sew/cl_int_constants=>highdate.
+                  CLEAR: value_out.
+                ELSE.
+                  do_simple = abap_true.
+                ENDIF.
               ENDIF.
             ELSE.
               do_simple = abap_true.
@@ -1016,8 +1484,9 @@ METHOD get_num01.
       READ TABLE fields INTO DATA(field_acode) WITH KEY field_sap = 'NUM01_ACODE' seqnr = field_type-seqnr.
       READ TABLE fields INTO DATA(field_ccode) WITH KEY field_sap = 'NUM01_CCODE' seqnr = field_type-seqnr.
       READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap seqnr = field_type-seqnr.
-      CONCATENATE '+' field_ccode-value '/' field_acode-value '/' field_number-value '/' field_ext-value '/' INTO value_out.
-
+      CONCATENATE field_ccode-value field_acode-value field_number-value field_ext-value INTO value_out.
+    ELSE.
+      value_out = '-'.
     ENDIF.
 *    IF seqnr = 005.
 *      value_out = '9001'.
@@ -1148,7 +1617,7 @@ METHOD get_persk.
       "Check Jobcode first - if Jobcode has values XXXXXXXXXXXXX then persk = 1A
       "Then check if manager flag is set -> persk = 1A
       "Then check worker category -> WC means persk = 1C and BC means persk = 1B
-      IF field_persontype-value = 'Employee'.
+      IF field_persontype-value = 'Employee' OR field_persontype-value = 'Pending Worker'.
         IF field_job-value = 'GJ_SEW_0196' OR field_job-value = 'GJ_SEW_0197' OR field_job-value = 'GJ_SEW_0198'
            OR field_job-value = 'GJ_SEW_0199'.
           value_out = '0A'.
@@ -1451,9 +1920,11 @@ METHOD get_persk_assign_person_type.
             ENDIF.
 
         ENDCASE.
-
-
     ENDCASE.
+
+    CHECK value_out IS NOT INITIAL.
+*    TRANSLATE value_out TO UPPER CASE. "JMB20211213 I - JMB20220121 D
+
   ENDIF.
 ENDMETHOD.
 
@@ -1664,6 +2135,10 @@ ENDMETHOD.
           ENDCASE.
 
       ENDCASE.
+
+      CHECK value_out IS NOT INITIAL.
+*      TRANSLATE value_out TO UPPER CASE. "JMB20211213 I - JMB20220120 D - in TEST and PROD lower case
+
     ENDIF.
   ENDMETHOD.
 
@@ -1698,7 +2173,7 @@ ENDMETHOD.
               value_out = /sew/cl_int_constants=>cwk.
             WHEN '3'.
               CHECK <persk>-value IN p_persk.
-              value_out = /sew/cl_int_constants=>pen.
+              value_out = 'Retiree'. "/sew/cl_int_constants=>pen "JMB20220202 I.
             WHEN '8'.
               CHECK <persk>-value IN c_persk.
               value_out = /sew/cl_int_constants=>cwk.
@@ -1745,10 +2220,10 @@ ENDMETHOD.
             WHEN '4'.
               value_out = /sew/cl_int_constants=>emp.
             WHEN '5'.
-              value_out = /sew/cl_int_constants=>pen.
+              value_out = 'Retiree'. "/sew/cl_int_constants=>pen "JMB20220202 I.
             WHEN '9'.
               value_out = /sew/cl_int_constants=>cwk.
-          ENDCASE.
+          ENDCASE..
       ENDCASE.
     ENDIF.
   ENDMETHOD.
@@ -2051,7 +2526,7 @@ METHOD get_subty.
       ELSEIF field_subty-value = 'H1'.
         IF field_email-value IS INITIAL.
         ELSE.
-          value_out = '0010'.
+*          value_out = '0010'. "MS commented 20220404 -> home email to be ignored
         ENDIF.
       ENDIF.
       "User ID
@@ -2072,6 +2547,83 @@ METHOD get_subty.
 *        ELSEIF field_type-value = 'SEW_REFERENCE_CODE'.
 *          value_out = '9998'.
         ENDIF.
+      ELSEIF seqnr = 006.
+        value_out = '9017'.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+ENDMETHOD.
+
+
+METHOD GET_SUBTY_15.
+  IF export = abap_true.
+
+**JMB20210907 start insert - check for infty
+*
+    DATA(method) = 'GET_SUBTY_' && infty.
+    CALL METHOD /sew/cl_int_mapping=>(method)
+      EXPORTING
+        pernr        = pernr
+        begda        = begda
+        endda        = endda
+        objid        = objid
+        infty        = infty
+        seqnr        = seqnr
+        field_sap    = field_sap
+        field_oracle = field_oracle
+        import       = import
+        export       = export
+        fields       = fields
+      IMPORTING
+        value_out    = value_out
+        do_simple    = do_simple
+        message      = message.
+*JMB20210907 insert end
+
+  ELSEIF import = abap_true.
+    READ TABLE fields INTO DATA(field_subty) WITH KEY field_sap = field_sap.
+    READ TABLE fields INTO DATA(field_email) WITH KEY field_sap = 'USRID_LONG'.
+    IF seqnr = 005.
+      value_out = '9001'.
+    ELSE.
+      IF field_subty-value = 'W1'.
+        IF field_email-value IS INITIAL.
+          value_out = '9901'.
+        ELSE.
+          value_out = '0010'.
+        ENDIF.
+      ELSEIF field_subty-value = 'W2'.
+        value_out = '9906'.
+      ELSEIF field_subty-value = 'WF'.
+        value_out = '9902'.
+      ELSEIF field_subty-value = 'WM'.
+        value_out = '9905'.
+      ELSEIF field_subty-value = 'H1'.
+        IF field_email-value IS INITIAL.
+        ELSE.
+*          value_out = '0010'. "MS commented 20220404 -> home email to be ignored
+        ENDIF.
+      ENDIF.
+      "User ID
+      IF seqnr = 002.
+        value_out = '0001'.
+        "Netpass
+      ELSEIF seqnr = 003.
+        value_out = '0003'.
+        "CRM and Third party payroll system ID
+      ELSEIF seqnr = 004.
+        READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = field_sap.
+        IF field_type-value = 'Third-Party Payroll ID'.
+          value_out = '9800'.
+        ELSEIF field_type-value = 'CRM Business Partner'.
+          value_out = '9998'.
+        ELSEIF field_type-value = 'SEW_REFERENCE_CODE'.
+          value_out = '9017'.
+*        ELSEIF field_type-value = 'SEW_REFERENCE_CODE'.
+*          value_out = '9998'.
+        ENDIF.
+      ELSEIF seqnr = 006.
+        value_out = '9017'.
       ENDIF.
     ENDIF.
   ENDIF.
@@ -2149,18 +2701,20 @@ METHOD get_telnr.
   IF export = abap_true.
 
   ELSEIF import = abap_true.
-    READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'NUM01_TYPE' value = 'H1'.
+    READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'TELNR_TYPE' value = 'H1'.
 
 *    LOOP AT fields ASSIGNING FIELD-SYMBOL(<field_number>) WHERE field_sap = field_sap AND value = 'HM'.
 *      EXIT.
 *    ENDLOOP.
     IF field_type IS NOT INITIAL.
-      READ TABLE fields INTO DATA(field_ext) WITH KEY field_sap = 'NUM01_EXT' seqnr = field_type-seqnr.
-      READ TABLE fields INTO DATA(field_acode) WITH KEY field_sap = 'NUM01_ACODE' seqnr = field_type-seqnr.
-      READ TABLE fields INTO DATA(field_ccode) WITH KEY field_sap = 'NUM01_CCODE' seqnr = field_type-seqnr.
+      READ TABLE fields INTO DATA(field_ext) WITH KEY field_sap = 'TELNR_EXT' seqnr = field_type-seqnr.
+      READ TABLE fields INTO DATA(field_acode) WITH KEY field_sap = 'TELNR_ACODE' seqnr = field_type-seqnr.
+      READ TABLE fields INTO DATA(field_ccode) WITH KEY field_sap = 'TELNR_CCODE' seqnr = field_type-seqnr.
       READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap seqnr = field_type-seqnr.
-      CONCATENATE '+' field_ccode-value '/' field_acode-value '/' field_number-value '/' field_ext-value '/' INTO value_out.
-
+      CONCATENATE field_ccode-value field_acode-value field_number-value field_ext-value INTO value_out.
+*      value_out = field_number-value.
+    ELSE.
+      value_out = '-'.
     ENDIF.
   ENDIF.
 ENDMETHOD.
@@ -2176,7 +2730,7 @@ ENDMETHOD.
       READ TABLE fields INTO DATA(field_ccode) WITH KEY field_sap = 'USRID_CCODE'.
       IF seqnr = 005.
         value_out = field_number.
-      ELSE.
+      ELSEIF seqnr = 000.
         CONCATENATE '+' field_ccode-value '/' field_acode-value '/' field_number-value '/' field_ext-value '/' INTO value_out.
       ENDIF.
     ENDIF.
@@ -2204,6 +2758,11 @@ ENDMETHOD.
           value_out = '9902'.
         ELSEIF field_subty-value = 'WM'.
           value_out = '9905'.
+        ELSEIF field_subty-value = 'H1'.
+          IF field_email-value IS INITIAL.
+          ELSE.
+            value_out = '0010'.
+          ENDIF.
         ENDIF.
         IF seqnr = 002.
           value_out = '0001'.
@@ -2217,6 +2776,55 @@ ENDMETHOD.
           ELSEIF field_type-value = 'CRM Business Partner'.
             value_out = '9998'.
           ENDIF.
+        ELSEIF seqnr = 006.
+          value_out = '9017'.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD GET_USRTY_15.
+    IF export = abap_true.
+
+    ELSEIF import = abap_true.
+      READ TABLE fields INTO DATA(field_subty) WITH KEY field_sap = field_sap.
+      READ TABLE fields INTO DATA(field_email) WITH KEY field_sap = 'USRID_LONG'.
+      IF seqnr = 005.
+        value_out = '9001'.
+      ELSE.
+        IF field_subty-value = 'W1'.
+          IF field_email-value IS INITIAL.
+            value_out = '9901'.
+          ELSE.
+            value_out = '0010'.
+          ENDIF.
+        ELSEIF field_subty-value = 'W2'.
+          value_out = '9906'.
+        ELSEIF field_subty-value = 'WF'.
+          value_out = '9902'.
+        ELSEIF field_subty-value = 'WM'.
+          value_out = '9905'.
+        ELSEIF field_subty-value = 'H1'.
+          IF field_email-value IS INITIAL.
+          ELSE.
+            value_out = '0010'.
+          ENDIF.
+        ENDIF.
+        IF seqnr = 002.
+          value_out = '0001'.
+        ELSEIF seqnr = 003.
+          value_out = '0003'.
+          "CRM and Third party payroll system ID
+        ELSEIF seqnr = 004.
+          READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = field_sap.
+          IF field_type-value = 'Third-Party Payroll ID'.
+            value_out = '9800'.
+          ELSEIF field_type-value = 'CRM Business Partner'.
+            value_out = '9998'.
+          ENDIF.
+        ELSEIF seqnr = 006.
+          value_out = '9017'.
         ENDIF.
       ENDIF.
     ENDIF.
@@ -2258,8 +2866,12 @@ ENDMETHOD.
     IF export = abap_true.
 
     ELSEIF import = abap_true.
-      READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap.
-      READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'ZAUSW_TYPE'.
+*      IF value = 'Time Device Badge ID'.
+      READ TABLE fields INTO DATA(field_type) WITH KEY field_sap = 'ZAUSW_TYPE' value = 'Time Device Badge ID' begda = begda endda = endda.
+      READ TABLE fields INTO DATA(field_number) WITH KEY field_sap = field_sap value_mapped = '' seqnr = field_type-seqnr.
+      IF field_number IS INITIAL.
+        READ TABLE fields INTO field_number WITH KEY field_sap = field_sap seqnr = field_type-seqnr.
+      ENDIF.
 
 
       IF field_type-value = 'Time Device Badge ID'."/sew/cl_int_constants=>zausw.
@@ -2267,10 +2879,14 @@ ENDMETHOD.
       ELSE. "IF field_type-value = 'ORA_TCLOCK_BADGE_ID'.
         READ TABLE fields INTO DATA(field_type_cofu) WITH KEY field_sap = 'ZAUSW_TYPE' value = 'ORA_TCLOCK_BADGE_ID'.
         READ TABLE fields INTO DATA(field_number_cofu) WITH KEY field_sap = field_sap seqnr = field_type_cofu-seqnr.
-        value_out = field_number_cofu-value.
+        IF field_type_cofu IS NOT INITIAL.
+          value_out = field_number_cofu-value.
+        ELSE.
+          value_out = '-'.
+        ENDIF.
       ENDIF.
 
-
+*      ENDIF.
     ENDIF.
   ENDMETHOD.
 
@@ -2281,7 +2897,11 @@ ENDMETHOD.
     ELSEIF import = abap_true.
       READ TABLE fields INTO DATA(field_type_cofu) WITH KEY field_sap = 'ZPINC_TYPE' value = 'SEW_PERS_ACC_CODE'.
       READ TABLE fields INTO DATA(field_number_cofu) WITH KEY field_sap = field_sap seqnr = field_type_cofu-seqnr.
-      value_out = field_number_cofu-value.
+      IF field_number_cofu-value IS INITIAL.
+        value_out = '-'.
+      ELSE.
+        value_out = field_number_cofu-value.
+      ENDIF.
 
 
     ENDIF.
@@ -2289,24 +2909,49 @@ ENDMETHOD.
 
 
   METHOD process_complex_mapping.
-    DATA(method) = CONV string( 'GET_' && field_sap ).
-    CALL METHOD /sew/cl_int_mapping=>(method)
-      EXPORTING
-        pernr        = pernr
-        begda        = begda
-        endda        = endda
-        objid        = objid
-        infty        = infty
-        seqnr        = seqnr
-        field_sap    = field_sap
-        field_oracle = field_oracle
-        import       = import
-        export       = export
-        fields       = fields
-      IMPORTING
-        value_out    = value
-        do_simple    = do_simple
-        message      = message.
+    DATA: classdescr  TYPE REF TO cl_abap_classdescr.
+*   Check if molga specific method is available
+    classdescr ?= cl_abap_typedescr=>describe_by_name( '/SEW/CL_INT_MAPPING' ).
+    DATA(method) = CONV string( 'GET_' && field_sap && '_' && molga ).
+    READ TABLE classdescr->methods WITH KEY name = method TRANSPORTING NO FIELDS.
+    IF sy-subrc IS INITIAL."Molga spefic method availlable
+      CALL METHOD /sew/cl_int_mapping=>(method)
+        EXPORTING
+          pernr        = pernr
+          begda        = begda
+          endda        = endda
+          objid        = objid
+          infty        = infty
+          seqnr        = seqnr
+          field_sap    = field_sap
+          field_oracle = field_oracle
+          import       = import
+          export       = export
+          fields       = fields
+        IMPORTING
+          value_out    = value
+          do_simple    = do_simple
+          message      = message.
+    ELSE.
+      method = CONV string( 'GET_' && field_sap ).
+      CALL METHOD /sew/cl_int_mapping=>(method)
+        EXPORTING
+          pernr        = pernr
+          begda        = begda
+          endda        = endda
+          objid        = objid
+          infty        = infty
+          seqnr        = seqnr
+          field_sap    = field_sap
+          field_oracle = field_oracle
+          import       = import
+          export       = export
+          fields       = fields
+        IMPORTING
+          value_out    = value
+          do_simple    = do_simple
+          message      = message.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -2331,6 +2976,7 @@ ENDMETHOD.
             objid        = objid
             infty        = infty
             seqnr        = seqnr
+            molga        = <mapping>-molga
             field_sap    = field_sap
             field_oracle = field_oracle
             import       = import
@@ -2364,8 +3010,14 @@ ENDMETHOD.
              value = value ).
           CLEAR: value_tmp.
         ENDIF.
-        IF value IS INITIAL AND infty NE '0006'.
-          skip = abap_true.
+        IF value IS INITIAL. "AND infty NE '0006'.
+          IF infty EQ '0105' AND ( seqnr = '000' OR seqnr = '001' OR seqnr = '004' ).
+            skip = abap_true.
+          ELSEIF infty EQ '0006'.
+            skip = abap_true.
+          ELSEIF infty EQ '0000'.
+            skip = abap_true.
+          ENDIF.
         ENDIF.
       ELSE.
         /sew/cl_int_mapping=>process_simple_mapping(

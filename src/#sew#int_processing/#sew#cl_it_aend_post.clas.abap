@@ -70,8 +70,68 @@ public section.
       !OPERATION type ACTIO
     changing
       !RECORD type ANY .
-  methods HANDLE_HIRE
+  methods PROCESS_CHANGES
     importing
+      !SIMU type BOOLE_D
+      !RECORD type ANY
+      !TERM_DATE type DATS
+    exporting
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !RETURN type BAPIRETURN1
+      !PERNR type PERNR_D
+      !IT_AEND_ERROR type /SEW/TT_IT_AEND
+      !IT_AEND_POST type /SEW/TT_IT_AEND
+      !CONTINUE type BOOLE_D
+    changing
+      !IS_OK type BOOLE_D
+      !IT_AEND type /SEW/INT_IT_AEND
+      !IT_AEND_TAB type /SEW/TT_IT_AEND .
+  methods PROCESS_ACTION
+    importing
+      !RECORD type ANY
+      !SIMU type BOOLE_D
+    exporting
+      !IS_OK type BOOLE_D
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !RETURN type BAPIRETURN1
+      !PERNR type PERNR_D
+      !IT_AEND_ERROR type /SEW/TT_IT_AEND
+      !IT_AEND_POST type /SEW/TT_IT_AEND
+      !CONTINUE type BOOLE_D
+    changing
+      !IT_AEND type /SEW/INT_IT_AEND
+      !IT_AEND_TAB type /SEW/TT_IT_AEND .
+  methods HANDLE_TERMINATION
+    importing
+      !RECORD type ANY
+      !SIMU type BOOLE_D
+    exporting
+      !IS_OK type BOOLE_D
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !PERNR type PERNR_D
+      !IT_AEND_ERROR type /SEW/TT_IT_AEND
+      !IT_AEND_POST type /SEW/TT_IT_AEND
+      !CONTINUE type BOOLE_D
+    changing
+      !IT_AEND type /SEW/INT_IT_AEND
+      !IT_AEND_TAB type /SEW/TT_IT_AEND .
+  methods HANDLE_REVERSE_TERMINATION
+    importing
+      !RECORD type ANY
+      !SIMU type BOOLE_D
+    exporting
+      !IS_OK type BOOLE_D
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !PERNR type PERNR_D
+      !IT_AEND_ERROR type /SEW/TT_IT_AEND
+      !IT_AEND_POST type /SEW/TT_IT_AEND
+      !CONTINUE type BOOLE_D
+    changing
+      !IT_AEND type /SEW/INT_IT_AEND
+      !IT_AEND_TAB type /SEW/TT_IT_AEND .
+  methods HANDLE_REHIRE
+    importing
+      !RECORD type ANY
       !SIMU type BOOLE_D
     exporting
       !IS_OK type BOOLE_D
@@ -97,8 +157,9 @@ public section.
     changing
       !IT_AEND type /SEW/INT_IT_AEND
       !IT_AEND_TAB type /SEW/TT_IT_AEND .
-  methods HANDLE_TERMINATION
+  methods HANDLE_NOSHOW
     importing
+      !RECORD type ANY
       !SIMU type BOOLE_D
     exporting
       !IS_OK type BOOLE_D
@@ -110,34 +171,17 @@ public section.
     changing
       !IT_AEND type /SEW/INT_IT_AEND
       !IT_AEND_TAB type /SEW/TT_IT_AEND .
-  methods PROCESS_ACTION
+  methods HANDLE_HIRE
     importing
-      !RECORD type ANY
       !SIMU type BOOLE_D
     exporting
       !IS_OK type BOOLE_D
       !RETURN_TAB type HRPAD_RETURN_TAB
-      !RETURN type BAPIRETURN1
       !PERNR type PERNR_D
       !IT_AEND_ERROR type /SEW/TT_IT_AEND
       !IT_AEND_POST type /SEW/TT_IT_AEND
       !CONTINUE type BOOLE_D
     changing
-      !IT_AEND type /SEW/INT_IT_AEND
-      !IT_AEND_TAB type /SEW/TT_IT_AEND .
-  methods PROCESS_CHANGES
-    importing
-      !SIMU type BOOLE_D
-      !RECORD type ANY
-    exporting
-      !RETURN_TAB type HRPAD_RETURN_TAB
-      !RETURN type BAPIRETURN1
-      !PERNR type PERNR_D
-      !IT_AEND_ERROR type /SEW/TT_IT_AEND
-      !IT_AEND_POST type /SEW/TT_IT_AEND
-      !CONTINUE type BOOLE_D
-    changing
-      !IS_OK type BOOLE_D
       !IT_AEND type /SEW/INT_IT_AEND
       !IT_AEND_TAB type /SEW/TT_IT_AEND .
   methods IT_SPECIFIC_LOGIC
@@ -192,6 +236,15 @@ public section.
       !IT_AEND_NOCHANGE type /SEW/TT_IT_AEND
     changing
       !MESSAGE_HANDLER type ref to CL_HRPAY00_MESSAGE_HANDLER .
+  methods HANDLE_HIREDATE_CHANGE
+    importing
+      !SIMU type BOOLE_D
+      !RECORD type ANY
+    exporting
+      !RETURN_TAB type HRPAD_RETURN_TAB
+    changing
+      !IT_AEND type /SEW/INT_IT_AEND
+      !IT_AEND_TAB type /SEW/TT_IT_AEND optional .
   PROTECTED SECTION.
 private section.
 ENDCLASS.
@@ -710,7 +763,356 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD handle_hiredate_change.
+
+    DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
+          record_old     TYPE REF TO data,
+          lr_tabledescr  TYPE REF TO cl_abap_tabledescr,
+          lr_table_old   TYPE REF TO data,
+          lr_table       TYPE REF TO data,
+          record_new     TYPE REF TO data,
+          ret            LIKE LINE OF return_tab,
+          return         TYPE bapiret1,
+          tab_0302       TYPE STANDARD TABLE OF p0302,
+          tab_0001       TYPE STANDARD TABLE OF p0001,
+          action         TYPE actio,
+          messages       TYPE hrpad_message_tab,
+          hiredate       TYPE dats.
+
+    FIELD-SYMBOLS: <record_new_tab> TYPE STANDARD TABLE,
+*                   <record_old>     TYPE any,
+                   <record_new>     TYPE any,
+                   <record_old_tab> TYPE STANDARD TABLE,
+                   <record_old>     TYPE any,
+                   <record_tab>     TYPE STANDARD TABLE,
+                   <hiredate>       TYPE dats.
+*    ASSIGN record TO <record_new>.
+    DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
+    DATA(molga) = /sew/cl_int_utility=>get_molga( pernr = it_aend-pernr begda = it_aend-begda endda = it_aend-endda ).
+
+**JMB20210617 delete start
+*    SELECT * FROM /sew/int_infotyp INTO TABLE @DATA(it_cust) WHERE object = @/sew/cl_int_constants=>person AND molga = @molga.
+*    DATA(infotypes) = it_cust.
+*    SELECT * FROM /sew/int_infotyp INTO TABLE @it_cust WHERE object = @/sew/cl_int_constants=>person AND molga = '*'.
+*    APPEND LINES OF it_cust TO infotypes.
+*JMB20210617 delete end, insert start
+    DATA(molga_r) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = molga )
+                                        ( sign = 'I' option = 'EQ' low = '*'   ) ).
+    SELECT * FROM /sew/int_infotyp INTO TABLE @DATA(infotypes) WHERE object EQ @/sew/cl_int_constants=>person AND
+                                                                     molga  IN @molga_r.
+*JMB20210617 insert end
+
+    SORT infotypes ASCENDING BY infty.
+    DELETE ADJACENT DUPLICATES FROM infotypes COMPARING infty.
+    lr_structdescr ?= cl_abap_typedescr=>describe_by_name( CONV #( 'P' && /sew/cl_int_constants=>it0041 ) ).
+    lr_tabledescr ?= cl_abap_tabledescr=>create( p_line_type = lr_structdescr ).
+    CREATE DATA lr_table_old TYPE HANDLE lr_tabledescr.
+    ASSIGN lr_table_old->* TO <record_old_tab>.
+    infty_operation->read_paxxxx(
+      EXPORTING
+        infty        = CONV #( /sew/cl_int_constants=>it0041 )
+        endda       = it_aend-begda
+        begda       = it_aend-begda
+        pernr        = it_aend-pernr
+        simu        = simu
+      IMPORTING
+        return_tab = return_tab
+        record_tab = <record_old_tab> ).
+    IF <record_old_tab> IS ASSIGNED AND <record_old_tab> IS NOT INITIAL.
+      READ TABLE <record_old_tab> ASSIGNING <record_old> INDEX 1.
+      ASSIGN COMPONENT 'DAT01' OF STRUCTURE <record_old> TO <hiredate>.
+    ELSE.
+      infty_operation->read_paxxxx(
+        EXPORTING
+          infty        = CONV #( /sew/cl_int_constants=>it0041 )
+          endda       = it_aend-endda
+          begda       = it_aend-begda
+          pernr        = it_aend-pernr
+          simu        = simu
+        IMPORTING
+          return_tab = return_tab
+          record_tab = <record_old_tab> ).
+      IF <record_old_tab> IS ASSIGNED AND <record_old_tab> IS NOT INITIAL.
+        READ TABLE <record_old_tab> ASSIGNING <record_old> INDEX 1.
+        ASSIGN COMPONENT 'DAT01' OF STRUCTURE <record_old> TO <hiredate>.
+      ENDIF.
+    ENDIF.
+
+    IF <record_old_tab> IS ASSIGNED AND <record_old_tab> IS NOT INITIAL.
+      LOOP AT infotypes ASSIGNING FIELD-SYMBOL(<infotype>).
+        IF <infotype>-infty = /sew/cl_int_constants=>it0002.
+          CONTINUE.
+        ENDIF.
+
+        LOOP AT it_aend_tab ASSIGNING FIELD-SYMBOL(<subtype>) WHERE infty = <infotype>-infty.
+          lr_structdescr ?= cl_abap_typedescr=>describe_by_name( CONV #( 'P' && <infotype>-infty ) ).
+
+
+          CREATE DATA record_old TYPE HANDLE lr_structdescr.
+
+*    ASSIGN record_old->* TO <record_old>.
+          lr_tabledescr ?= cl_abap_tabledescr=>create( p_line_type = lr_structdescr ).
+          CREATE DATA lr_table_old TYPE HANDLE lr_tabledescr.
+          CREATE DATA lr_table TYPE HANDLE lr_tabledescr.
+          ASSIGN lr_table_old->* TO <record_old_tab>.
+          ASSIGN lr_table->* TO <record_tab>.
+          infty_operation->read_paxxxx( EXPORTING begda = <hiredate>
+                                     endda = <hiredate>
+                                     infty = <infotype>-infty
+                                     pernr = it_aend-pernr
+                                     subty = <subtype>-subty
+                                     simu  = simu
+                           IMPORTING return_tab = return_tab
+                                     record_tab = <record_old_tab> ).
+*        infty_operation->read_paxxxx_dcif(
+*          EXPORTING
+*            iv_infty        = <infotype>-infty
+*            iv_stidat       = <hiredate>
+*            iv_subty        = <subtype>-subty
+*            iv_pernr        = it_aend-pernr
+*
+*          IMPORTING
+*            record_tab      = <record_old_tab> ).
+          IF <record_old_tab> IS NOT INITIAL.
+*        READ TABLE <record_old_tab> ASSIGNING FIELD-SYMBOL(<record_old>) INDEX 1.
+            LOOP AT <record_old_tab> ASSIGNING <record_old>.
+              "Build new IT
+              CREATE DATA record_new TYPE HANDLE lr_structdescr.
+              ASSIGN record_new->* TO <record_new>.
+              <record_new> = CORRESPONDING #( <record_old> ).
+
+              "Get relevant data from old record
+              ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <record_old> TO FIELD-SYMBOL(<begda_old>).
+              ASSIGN COMPONENT /sew/cl_int_constants=>endda OF STRUCTURE <record_old> TO FIELD-SYMBOL(<endda_old>).
+              ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <record_new> TO FIELD-SYMBOL(<begda_new>).
+*      ASSIGN COMPONENT 'STAT2' OF STRUCTURE <record_new> TO FIELD-SYMBOL(<stat_new>).
+*      ASSIGN COMPONENT /sew/cl_int_constants=>massn OF STRUCTURE <record_new> TO FIELD-SYMBOL(<massn_new>).
+*      <massn_new> = /sew/cl_int_constants=>termination.
+*      <stat_new> = '0'.
+              DATA dat TYPE begda.
+              dat = <begda_new>.
+              <begda_new> = it_aend-begda.
+*      <endda_new> = begda - 1.
+              "old pernr needs to be terminated
+
+**JMB20210617 start insert - in case of hire date change, IT0302 needs to be updated before IT0000
+*
+*          IF <infotype>-infty EQ /sew/cl_int_constants=>it0000.
+*            infty_operation->read_paxxxx( EXPORTING begda = <begda_old>
+*                                       endda = <begda_old>
+*                                       infty = /sew/cl_int_constants=>it0302
+*                                       pernr = it_aend-pernr
+*                                       simu  = simu
+*                             IMPORTING return_tab = return_tab
+*                                       record_tab = tab_0302 ).
+*
+*            LOOP AT tab_0302 ASSIGNING FIELD-SYMBOL(<0302_entry>) WHERE massn IN /sew/cl_int_constants=>hire_range.
+*
+*              <0302_entry>-begda   = <begda_new>.
+*              DATA(endda_old_0302) = <0302_entry>-endda.
+*
+**              IF <0302_entry>-endda LT <begda_new>.
+**                <0302_entry>-endda = <begda_new>.
+**              ENDIF.
+*              <0302_entry>-endda = <begda_new>.
+*
+*              infty_operation->update_paxxxx_dcif(
+*              EXPORTING
+*                begda = <begda_old>
+*                endda = endda_old_0302
+*                data = <0302_entry>
+*                infty = /sew/cl_int_constants=>it0302
+*                IMPORTING
+*                  is_ok = DATA(is_ok)
+*                  messages = messages
+*              ).
+*              return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
+*
+*            ENDLOOP.
+*            CLEAR: tab_0302.
+*          ENDIF.
+*JMB20210617 end insert
+
+              IF <infotype>-infty EQ /sew/cl_int_constants=>it0000.
+                "Read current position
+                infty_operation->read_paxxxx( EXPORTING begda = <begda_old>
+                                           endda = <begda_old>
+                                           infty = CONV #( /sew/cl_int_constants=>it0001 )
+                                           pernr = it_aend-pernr
+                                           simu  = simu
+                                 IMPORTING return_tab = return_tab
+                                           record_tab = tab_0001 ).
+
+                READ TABLE tab_0001 INTO DATA(p0001) INDEX 1.
+
+                "Adjust begda of corresponding records regarding position
+                SUBMIT rhbegda0 AND RETURN
+                WITH pchplvar = /sew/cl_int_constants=>plvar
+                WITH pchotype = /sew/cl_int_constants=>position
+                WITH pchobjid-low = p0001-plans
+                WITH old_beg = <begda_old>
+                WITH new_beg = <begda_new>
+                WITH enq EQ abap_true
+                WITH anzeige EQ abap_false
+                WITH test EQ abap_true.
+
+                IF sy-subrc IS INITIAL.
+                  SUBMIT rhbegda0 AND RETURN
+                  WITH pchplvar = /sew/cl_int_constants=>plvar
+                  WITH pchotype = /sew/cl_int_constants=>position
+                  WITH pchobjid-low = p0001-plans
+                  WITH old_beg = <begda_old>
+                  WITH new_beg = <begda_new>
+                  WITH enq EQ abap_true
+                  WITH anzeige EQ abap_false
+                  WITH test EQ simu.
+                  IF sy-subrc IS INITIAL.
+*              ASSIGN COMPONENT /sew/cl_int_constants=>plans OF STRUCTURE <record_new> TO FIELD-SYMBOL(<plans>).
+                    SELECT SINGLE * FROM t528b INTO @DATA(t528b) WHERE begda = @<begda_old> AND endda = @<endda_old> AND plans = @p0001-plans AND otype = @/sew/cl_int_constants=>position.
+                    IF sy-subrc IS INITIAL.
+                      t528b-begda = <begda_new>.
+                      MODIFY t528b FROM t528b.
+                    ENDIF.
+                  ENDIF.
+                ENDIF.
+*            ELSEIF <infotype>-infty EQ /sew/cl_int_constants=>it0001.
+*              IF <hiredate> IS ASSIGNED AND <hiredate> LT it_aend-begda.
+*              ENDIF.
+              ENDIF.
+
+              infty_operation->update_paxxxx_dcif(
+              EXPORTING
+                begda = <begda_old>
+                endda = <endda_old>
+                data = <record_new>
+                infty = <infotype>-infty
+                subty = <subtype>-subty
+                IMPORTING
+                  is_ok = DATA(is_ok)
+                  messages = messages
+              ).
+              return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
+              READ TABLE return_tab ASSIGNING FIELD-SYMBOL(<return_msg>) WITH KEY type = /sew/cl_int_constants=>error.
+*          IF return-type NE /sew/cl_int_constants=>error.
+              IF sy-subrc <> 0.
+
+                /sew/cl_int_utility=>get_spras_by_molga( EXPORTING molga = molga
+                IMPORTING spras = DATA(spras) langu = DATA(langu) ).
+                ret = VALUE hrpad_return( type       = /sew/cl_int_constants=>success
+                                          id         = /sew/cl_int_constants=>msg_class_int
+                                          number     = /sew/cl_int_constants=>msg_no-m22
+                                          message_v1 = it_aend-pernr
+                                          message_v2 = <infotype>-infty
+*                                   message_v3 = /sew/cl_int_utility=>read_massn_txt( massn = CONV #( /sew/cl_int_constants=>hire ) sprsl = spras )
+*                                   message_v4 = delimit_date
+                                         ).
+              ELSE.
+*            ret = CORRESPONDING #( return ).
+              ENDIF.
+
+*          APPEND ret TO return_tab.
+              CLEAR: ret, return, messages.
+            ENDLOOP.
+          ENDIF.
+          CLEAR: ret, return, messages.
+        ENDLOOP.
+      ENDLOOP.
+    ENDIF.
+
+    "If record tab is not initial then it is not an initial hire - hire was changed
+
+  ENDMETHOD.
+
+
+  METHOD HANDLE_NOSHOW.
+    DATA: exception TYPE REF TO cx_root.
+    FIELD-SYMBOLS: <fs_it>         TYPE any,
+                   <fs_it_upd>     TYPE any,
+                   <fs_it_old_upd> TYPE any,
+                   <ft_it_old>     TYPE STANDARD TABLE.
+    DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
+    ASSIGN record TO <fs_it>.
+
+*    infty_operation->perform_future_action(
+*    EXPORTING
+*          begda = it_aend-begda
+*          endda = it_aend-endda
+*          pernr = it_aend-pernr
+*          infty = it_aend-infty
+*          subty = it_aend-subty
+*          int_run = it_aend-int_run
+*          record = <fs_it>
+*          action = CONV #( it_aend-action )
+*          simu = simu
+*    IMPORTING
+*          return_tab = return_tab
+*          is_fut_action = DATA(is_fut_action)
+*    ).
+
+    infty_operation->create_action_dcif(
+    EXPORTING
+      begda = it_aend-begda
+      endda = it_aend-endda
+      data = <fs_it>
+      infty = it_aend-infty
+      pernr = it_aend-pernr
+      IMPORTING
+        is_ok = is_ok
+        messages = DATA(messages)
+    ).
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
+  ENDMETHOD.
+
+
   METHOD handle_org_change.
+    DATA: exception TYPE REF TO cx_root,
+          messages  TYPE hrpad_message_tab,
+          tab_0000  TYPE STANDARD TABLE OF p0000.
+    FIELD-SYMBOLS: <fs_it>         TYPE any,
+                   <fs_it_upd>     TYPE any,
+                   <fs_it_old_upd> TYPE any,
+                   <ft_it_old>     TYPE STANDARD TABLE.
+    DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
+    ASSIGN record TO <fs_it>.
+*    ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <fs_it> TO FIELD-SYMBOL(<begda>).
+    infty_operation->read_paxxxx( EXPORTING begda = it_aend-begda
+                               endda = it_aend-begda
+                               infty = CONV #( /sew/cl_int_constants=>it0000 )
+                               pernr = it_aend-pernr
+                               simu  = simu
+                     IMPORTING return_tab = return_tab
+                               record_tab = tab_0000 ).
+    READ TABLE tab_0000 ASSIGNING FIELD-SYMBOL(<record_0000>) INDEX 1.
+    IF <record_0000>-begda NE it_aend-begda OR ( it_aend-endda NE /sew/cl_int_constants=>highdate AND <record_0000>-endda = /sew/cl_int_constants=>highdate ).
+      infty_operation->create_action_dcif(
+      EXPORTING
+        begda = it_aend-begda
+        endda = it_aend-endda
+        data = <fs_it>
+        infty = it_aend-infty
+        pernr = it_aend-pernr
+        IMPORTING
+          is_ok = is_ok
+          messages = messages
+      ).
+    ELSE.
+      infty_operation->update_action_dcif(
+      EXPORTING
+        begda = it_aend-begda
+        endda = it_aend-begda
+        data = <fs_it>
+        infty = it_aend-infty
+        pernr = it_aend-pernr
+        IMPORTING
+          is_ok = is_ok
+          messages = messages
+      ).
+    ENDIF.
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
+  ENDMETHOD.
+
+
+  METHOD handle_rehire.
     DATA: exception TYPE REF TO cx_root.
     FIELD-SYMBOLS: <fs_it>         TYPE any,
                    <fs_it_upd>     TYPE any,
@@ -730,11 +1132,71 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
         is_ok = is_ok
         messages = DATA(messages)
     ).
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
   ENDMETHOD.
 
 
-  METHOD HANDLE_TERMINATION.
-"Not needed?
+  METHOD handle_reverse_termination.
+    DATA: exception TYPE REF TO cx_root.
+    FIELD-SYMBOLS: <fs_it>         TYPE any,
+                   <fs_it_upd>     TYPE any,
+                   <fs_it_old_upd> TYPE any,
+                   <ft_it_old>     TYPE STANDARD TABLE.
+    DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
+    ASSIGN record TO <fs_it>.
+
+    infty_operation->delete_action_dcif(
+    EXPORTING
+      begda = it_aend-begda
+      endda = it_aend-endda
+      data = <fs_it>
+      infty = it_aend-infty
+      pernr = it_aend-pernr
+      IMPORTING
+        is_ok = is_ok
+        messages = DATA(messages)
+    ).
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
+  ENDMETHOD.
+
+
+  METHOD handle_termination.
+    DATA: exception TYPE REF TO cx_root.
+    FIELD-SYMBOLS: <fs_it>         TYPE any,
+                   <fs_it_upd>     TYPE any,
+                   <fs_it_old_upd> TYPE any,
+                   <ft_it_old>     TYPE STANDARD TABLE.
+    DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
+    ASSIGN record TO <fs_it>.
+
+    infty_operation->perform_future_action(
+    EXPORTING
+          begda = it_aend-begda
+          endda = it_aend-endda
+          pernr = it_aend-pernr
+          infty = it_aend-infty
+          subty = it_aend-subty
+          int_run = it_aend-int_run
+          record = <fs_it>
+          action = CONV #( it_aend-action )
+          simu = simu
+    IMPORTING
+          return_tab = return_tab
+          is_fut_action = DATA(is_fut_action)
+    ).
+
+    infty_operation->create_action_dcif(
+    EXPORTING
+      begda = it_aend-begda
+      endda = it_aend-endda
+      data = <fs_it>
+      infty = it_aend-infty
+      pernr = it_aend-pernr
+      IMPORTING
+        is_ok = is_ok
+        messages = DATA(messages)
+    ).
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
   ENDMETHOD.
 
 
@@ -837,6 +1299,9 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
           exception               TYPE REF TO cx_root,
           has_error               TYPE boole_d,
           is_ok                   TYPE boole_d,
+          action_buf              TYPE massn,
+          last_act_dat            TYPE dats,
+          skip_it0001             TYPE boole_d,
           masterdata_bl           TYPE REF TO  if_hrpa_masterdata_bl.
 
     FIELD-SYMBOLS: <struc>       TYPE any,
@@ -888,6 +1353,8 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 
       "Get project
       DATA(project) = /sew/cl_int_utility=>check_project( <it_aend>-molga ).
+      "COGL test
+      project = 'COFU'.
 
       IF <it_aend>-endda = '00000000'.
         <it_aend>-endda = /sew/cl_int_constants=>highdate.
@@ -908,6 +1375,13 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
       IF <it_aend>-cloud_id   IN pernr_error AND
          pernr_error        IS NOT INITIAL.
         count = count + 1.
+        IF max = count.
+          IF action_buf IN /sew/cl_int_constants=>hire_range.
+            /sew/cl_int_it_aendup=>delete_entries( pernr = pernr cloud_id = CONV #( <it_aend>-cloud_id ) ).
+          ENDIF.
+          CLEAR: action_buf.
+        ENDIF.
+
         CONTINUE.
       ENDIF.
 
@@ -1722,7 +2196,20 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 
         "COFU logic
       ELSE.
-
+        DATA(global_hc) = abap_false.
+        IF <it_aend>-action = 'HC' OR <it_aend>-action IN /sew/cl_int_constants=>rehire_range.
+*        IF <it_aend>-action IS NOT INITIAL AND ( <it_aend>-infty = /sew/cl_int_constants=>it0000 OR <it_aend>-infty = /sew/cl_int_constants=>it0001 ).
+          IF sy-mandt NE '400'.
+            global_hc = abap_true.
+          ENDIF.
+        ELSEIF  <it_aend>-action IN /sew/cl_int_constants=>termination_range.
+          IF <it_aend>-infty = /sew/cl_int_constants=>it0000 OR <it_aend>-infty = /sew/cl_int_constants=>it0001.
+            global_hc = abap_true.
+          ENDIF.
+        ELSEIF <it_aend>-action IN /sew/cl_int_constants=>hire_range AND <it_aend>-pernr IS INITIAL.
+          global_hc = abap_true.
+        ENDIF.
+        SET PARAMETER ID 'HC' FIELD global_hc.
         "check for new content
         IF max EQ count.
           count = 0.
@@ -1764,15 +2251,15 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
           ENDIF.
         ENDIF.
         IF <it_aend>-infty  = /sew/cl_int_constants=>it0001      AND
-           <it_aend>-action = /sew/cl_int_constants=>termination AND
+           <it_aend>-action IN /sew/cl_int_constants=>termination_range AND
            <it_aend>-endda  = /sew/cl_int_constants=>highdate.
           CLEAR: <it_aend>-active.
         ENDIF.
-        IF <it_aend>-active NE 'I'.
+        IF <it_aend>-active NE 'I' OR ( <it_aend>-infty = /sew/cl_int_constants=>it0000 AND <it_aend>-action = 'ZZ' AND <it_aend>-active = 'I' ).
           "check if hire
 *        IF <it_aend>-action NE /sew/cl_int_constants=>hire.
           "if termination buffer termination date and pernr
-          IF <it_aend>-action = /sew/cl_int_constants=>termination AND <it_aend>-infty = /sew/cl_int_constants=>it0000.
+          IF ( <it_aend>-action IN /sew/cl_int_constants=>termination_range OR <it_aend>-action = 'ZZ' ) AND <it_aend>-infty = /sew/cl_int_constants=>it0000.
             IF <it_aend>-endda NE /sew/cl_int_constants=>highdate.
               <it_aend>-begda = <it_aend>-endda + 1.
             ENDIF.
@@ -1816,10 +2303,15 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 *--------------------------------------------------------------------*
 *   Hire logic as special case seperated from normal processing logic
 *--------------------------------------------------------------------*
-            IF <it_aend>-action NOT IN /sew/cl_int_constants=>hire_range AND <it_aend>-infty NE /sew/cl_int_constants=>it0000.
+            IF <it_aend>-action IS NOT INITIAL AND <it_aend>-infty NE /sew/cl_int_constants=>it0000. "NOT IN /sew/cl_int_constants=>hire_range AND <it_aend>-infty NE /sew/cl_int_constants=>it0000.
+*              IF <it_aend>-action IN /sew/cl_int_constants=>hire_range.
+*                <it_aend>-status = /sew/cl_int_constants=>success.
+*                CONTINUE.
+*              ENDIF.
               CLEAR: <it_aend>-action.
             ENDIF.
             IF <it_aend>-action IS NOT INITIAL.
+              action_buf = <it_aend>-action.
               count = count + 1.
               "PROCESS_ACTION
               "check for IT change
@@ -1840,7 +2332,8 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
               DATA(it_aend_tmp_action) = COND /sew/tt_it_aend( WHEN <it_aend>-action IS NOT INITIAL
                                                   THEN VALUE /sew/tt_it_aend( FOR ls_it_aend IN me->status_handler->it_aend WHERE ( cloud_id = <it_aend>-cloud_id AND
                                                                                                                                     int_run  = <it_aend>-int_run AND
-                                                                                                                                    action   = <it_aend>-action )
+                                                                                                                                    action   = <it_aend>-action AND
+                                                                                                                                    active NE 'I' )
                                                                               ( ls_it_aend ) ) ) .
               TRY.
                   me->process_action( EXPORTING simu          = simu
@@ -1868,10 +2361,13 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 *                  APPEND VALUE #( sign = 'I' option = 'EQ' low = <it_aend>-cloud_id ) TO pernr_error.
 *                  APPEND LINES OF it_aend_error_tmp_cof TO it_aend_error.
 *                ENDIF.
-                MODIFY me->status_handler->it_aend FROM <it_aend> TRANSPORTING pernr WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
-                DATA(cloud_id_tmp) = <it_aend>-cloud_id.
-                DELETE me->status_handler->it_aend WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id AND pernr IS INITIAL.
                 IF it_aend_error_tmp_cof IS INITIAL.
+                  MODIFY me->status_handler->it_aend FROM <it_aend> TRANSPORTING pernr WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+                ENDIF.
+                DATA(cloud_id_tmp) = <it_aend>-cloud_id.
+
+                IF it_aend_error_tmp_cof IS INITIAL.
+                  DELETE me->status_handler->it_aend WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id AND pernr IS INITIAL.
                   APPEND LINES OF it_aend_post_tmp_cof TO it_aend_post.
                   APPEND LINES OF it_aend_tmp TO me->status_handler->del_it_aend.
                   DATA(lines_hire) = lines( it_aend_tmp_action ).
@@ -1907,9 +2403,104 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                   IF it_aend_error_tmp_cof IS NOT INITIAL.
                     ROLLBACK WORK.
                     APPEND VALUE #( sign = 'I' option = 'EQ' low = cloud_id_tmp ) TO pernr_error.
-                    APPEND LINES OF it_aend_error_tmp_cof TO it_aend_error.
+                    MODIFY me->status_handler->it_aend FROM <it_aend> TRANSPORTING status WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+                    APPEND LINES OF it_aend_error_tmp_cof TO it_aend_error. "me->status_handler->it_aend TO it_aend_error.
                   ENDIF.
                 ENDIF.
+                "Any other action
+              ELSE.
+                READ TABLE return_tab ASSIGNING FIELD-SYMBOL(<return_check_action>) WITH KEY type = 'E'.
+                IF sy-subrc = 0.
+
+                  error_hrpad = CORRESPONDING #( return ).
+                  IF error_hrpad IS NOT INITIAL.
+                    APPEND error_hrpad TO error_tab.
+                  ENDIF.
+                  APPEND LINES OF return_tab TO error_tab.
+
+                  CLEAR: return.
+                  me->status_handler->add_log_message( aend_id = <it_aend>-aend_id bapiret1 = return hrpad_return = error_tab ).
+
+                  CLEAR: key, return, error_hrpad, error_tab.
+
+                  "set error status
+                  <it_aend>-status = /sew/cl_int_constants=>booking_status-error.
+
+                  MODIFY it_aend_tmp FROM <it_aend> TRANSPORTING status WHERE status NE /sew/cl_int_constants=>booking_status-error.
+
+                  APPEND VALUE #( sign = 'I' option = 'EQ' low = <it_aend>-cloud_id ) TO pernr_error.
+                  "COMMENTED
+                  it_aend_tmp_err = COND /sew/tt_it_aend( WHEN <it_aend>-action = /sew/cl_int_constants=>hire THEN VALUE /sew/tt_it_aend( FOR ls_it_aend IN me->status_handler->it_aend WHERE ( cloud_id = <it_aend>-cloud_id AND
+                                                                                         int_run = <it_aend>-int_run ) ( ls_it_aend ) ) ELSE
+                                                                                       VALUE /sew/tt_it_aend( FOR ls_it_aend IN me->status_handler->it_aend WHERE ( pernr EQ <it_aend>-pernr AND int_run = <it_aend>-int_run ) ( ls_it_aend ) ) ).
+                  DELETE it_aend_nochange WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+                  DELETE it_aend_post WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+                  APPEND LINES OF it_aend_tmp_err TO it_aend_error.
+                  "COMMENTED
+*                    APPEND LINES OF it_aend_tmp TO it_aend_error.
+
+                  "in case several it_aend entries belong to same int_run, rollback for all infotype operations of int_run is needed
+                  IF max GT 1.
+*                      count = max.
+*                      IF <it_aend>-action IS INITIAL.
+                    ROLLBACK WORK.
+*                      ENDIF.
+                  ENDIF.
+                  CLEAR: changed_fields, return, return_tab, error_tab, error_hrpad, spras, langu.
+                  CONTINUE.
+                  "Success in IT Update
+                ELSE.
+                  begda_ext = /sew/cl_int_utility=>get_external_date( date = <it_aend>-begda ).
+                  endda_ext = /sew/cl_int_utility=>get_external_date( date = <it_aend>-endda ).
+                  IF <it_aend>-action IS NOT INITIAL.
+                    IF <it_aend>-infty = /sew/cl_int_constants=>it0000.
+                      massn_txt = /sew/cl_int_utility=>read_massn_txt( sprsl = spras massn = <it_aend>-action ).
+                      return = VALUE bapiret1( type = /sew/cl_int_constants=>success
+                                               id = /sew/cl_int_constants=>msg_class_int
+                                               number = /sew/cl_int_constants=>msg_no-m20
+                                               message_v1 = <it_aend>-pernr
+                                               message_v2 =  begda_ext
+                                               message_v3 = endda_ext
+                                               message_v4 = massn_txt
+                                             ).
+                      CLEAR: massn_txt.
+                    ENDIF.
+                  ENDIF.
+                  IF return-type IS INITIAL.
+                    return = VALUE bapiret1( type = /sew/cl_int_constants=>success
+                                              id = /sew/cl_int_constants=>msg_class_int
+                                              number = /sew/cl_int_constants=>msg_no-m16
+                                              message_v1 = <it_aend>-pernr
+                                              message_v2 = begda_ext
+                                              message_v3 = endda_ext
+                                              message_v4 = <it_aend>-infty
+                                            ).
+                  ENDIF.
+
+                  error_hrpad = CORRESPONDING #( return ).
+                  APPEND error_hrpad TO error_tab.
+                  APPEND LINES OF return_tab TO error_tab.
+                  CLEAR: return, error_hrpad, return_tab.
+
+                  "execute it specific logic after operation
+*                me->it_specific_logic( EXPORTING exec_option = zmhp_cl_int_constants=>after infty = <it_aend>-infty subty = <it_aend>-subty
+*                                                 massn = <it_aend>-action changed_fields = changed_fields molga = <it_aend>-molga simu = simu
+*                                        IMPORTING return = return return_tab = return_tab
+*                                          CHANGING record = <struc> ).
+                  APPEND LINES OF return_tab TO error_tab.
+                  CLEAR: return_tab, return.
+
+                  IF <it_aend_tmp> IS ASSIGNED.
+                    CLEAR: <it_aend_tmp>.
+                  ENDIF.
+                  READ TABLE it_aend_tmp ASSIGNING <it_aend_tmp> WITH KEY int_run = <it_aend>-int_run cloud_id = <it_aend>-cloud_id aend_id = <it_aend>-aend_id.
+                  <it_aend>-status = /sew/cl_int_constants=>booking_status-success.
+                  APPEND <it_aend> TO it_aend_post.
+*                  APPEND <it_aend> TO me->status_handler->del_it_aend.
+                  DELETE it_aend_tmp WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id AND aend_id = <it_aend>-aend_id.
+
+                ENDIF.
+
               ENDIF.
 
 
@@ -1917,7 +2508,10 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 *   Other then hire logic
 *--------------------------------------------------------------------*
             ELSE.
-
+              IF ( <it_aend>-infty = /sew/cl_int_constants=>it0001 ) OR ( <it_aend>-infty = /sew/cl_int_constants=>it0105 AND ( action_buf IN /sew/cl_int_constants=>termination_range OR action_buf = 'ZZ' ) )
+                OR ( <it_aend>-infty = /sew/cl_int_constants=>it0050 AND ( action_buf IN /sew/cl_int_constants=>termination_range OR action_buf = 'ZZ' ) ).
+                <it_aend>-action = action_buf.
+              ENDIF.
               "in case more entries belong to actual integration run id
               IF max GT 1.
                 simu_tmp_cof = abap_true.
@@ -1973,7 +2567,7 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
               count = count + 1.
 
               "check for IT change
-              infty_delta->check_infty_change( EXPORTING it_record = <struc> action = <it_aend>-action action_date = term_date
+              infty_delta->check_infty_change( EXPORTING it_record = <struc> action = action_buf action_date = term_date
                                                IMPORTING it_record_upd = <struc> it_create = it_create
                                                          it_change = it_change fields = changed_fields ).
               DATA(changed_fields_tmp_cof) = changed_fields.
@@ -1982,10 +2576,10 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 
               "execute it specific logic before operation
               TRY.
-*                  me->it_specific_logic( EXPORTING exec_option = /sew/cl_int_constants=>before infty = <it_aend>-infty subty = <it_aend>-subty
-*                                                   massn = <it_aend>-action changed_fields = changed_fields molga = <it_aend>-molga simu = simu
-*                                          IMPORTING return = return return_tab = return_tab
-*                                            CHANGING record = <struc> ).
+                  me->it_specific_logic( EXPORTING exec_option = /sew/cl_int_constants=>before infty = <it_aend>-infty subty = <it_aend>-subty
+                                                   massn = <it_aend>-action changed_fields = changed_fields molga = <it_aend>-molga simu = simu
+                                          IMPORTING return = return return_tab = return_tab
+                                            CHANGING record = <struc> ).
                 CATCH cx_hrpa_invalid_parameter.
                   return = /sew/cl_int_utility=>map_sy_msg( msgid = sy-msgid msgty = sy-msgty msgno = sy-msgno msgv1 = sy-msgv1 msgv2 = sy-msgv2 msgv3 = sy-msgv3 msgv4 = sy-msgv4 ).
                   error_hrpad = CORRESPONDING #( return ).
@@ -1995,7 +2589,7 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
               CLEAR: return_tab, return, error_hrpad, changed_fields.
 
               "check for IT change
-              infty_delta->check_infty_change( EXPORTING it_record = <struc> action = <it_aend>-action action_date = term_date
+              infty_delta->check_infty_change( EXPORTING it_record = <struc> action = action_buf action_date = term_date
                                                IMPORTING it_record_upd = <struc> it_create = it_create
                                                          it_change = it_change fields = changed_fields ).
 
@@ -2038,6 +2632,30 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                 ENDIF.
               ENDIF.
 
+              "Set IT entries which should be delimited to it_change = true
+              IF <it_aend>-action = 'ZZ'.
+                last_act_dat = term_date.
+              ELSE.
+                last_act_dat = term_date - 1.
+              ENDIF.
+              IF ( <it_aend>-action IN /sew/cl_int_constants=>termination_range OR <it_aend>-action = 'ZZ' ) AND <it_aend>-infty NE /sew/cl_int_constants=>it0001 AND ( <it_aend>-begda GE term_date  OR <it_aend>-endda = last_act_dat ).
+                it_change = abap_true.
+              ENDIF.
+*              IF ( <it_aend>-action = 'ZZ' ) AND <it_aend>-infty NE /sew/cl_int_constants=>it0001 AND ( <it_aend>-begda GE term_date  OR <it_aend>-endda = last_act_dat ).
+*                it_change = abap_true.
+*              ENDIF.
+              IF <it_aend>-action IN /sew/cl_int_constants=>termination_range AND <it_aend>-infty = /sew/cl_int_constants=>it0001 AND <it_aend>-endda = /sew/cl_int_constants=>highdate.
+                it_change = abap_false.
+              ENDIF.
+
+              IF <it_aend>-infty = /sew/cl_int_constants=>it0001 AND <it_aend>-action = /sew/cl_int_constants=>hire_date_change.
+                it_change = abap_true.
+                CLEAR: <it_aend>-action.
+              ENDIF.
+
+              IF <it_aend>-infty = /sew/cl_int_constants=>it0001 AND <it_aend>-action IN /sew/cl_int_constants=>hire_range.
+                skip_it0001 = abap_true.
+              ENDIF.
 
               IF it_change = abap_true OR it_create = abap_true.
 
@@ -2049,28 +2667,44 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                   ENDIF.
                 ENDIF.
                 "PROCESS CHANGES
-                TRY.
+                IF skip_it0001 = abap_false.
+                  TRY.
 
-                    me->process_changes( EXPORTING simu          = simu
-                                                  record = <struc>
-                                     IMPORTING return    = return
-                                               return_tab = return_tab
-                                     CHANGING  it_aend       = <it_aend>
-                                               it_aend_tab   = it_aend_tmp
-                                               is_ok = is_ok ).
-                  CATCH cx_hrpa_invalid_buffer_access INTO exception.
-                  CATCH cx_hrpa_invalid_parameter INTO exception.
-                    return-type = /sew/cl_int_constants=>error.
-                    return-id = '/SEW/HCM_INTEGRATION'.
-                    return-message_v1 = exception->get_text( ).
-                    return-number = /sew/cl_int_constants=>msg_no-m35.
+                      me->process_changes( EXPORTING simu          = simu
+                                                    record = <struc>
+                                                    term_date = term_date
+                                       IMPORTING return    = return
+                                                 return_tab = return_tab
+                                       CHANGING  it_aend       = <it_aend>
+                                                 it_aend_tab   = it_aend_tmp
+                                                 is_ok = is_ok ).
+                    CATCH cx_hrpa_invalid_buffer_access INTO exception.
+                    CATCH cx_hrpa_invalid_parameter INTO exception.
+                      return-type = /sew/cl_int_constants=>error.
+                      return-id = '/SEW/HCM_INTEGRATION'.
+                      return-message_v1 = exception->get_text( ).
+                      return-number = /sew/cl_int_constants=>msg_no-m35.
 
-                ENDTRY.
+                  ENDTRY.
+                ENDIF.
 
                 "check for operation errors
-                IF return-type EQ 'E'.
+                READ TABLE return_tab ASSIGNING FIELD-SYMBOL(<return_check>) WITH KEY type = 'E'.
+                IF sy-subrc = 0.
+
+
+*                IF return-type EQ 'E'.
+*                  READ TABLE it_aend_post ASSIGNING FIELD-SYMBOL(<hire_check>) WITH KEY infty = /sew/cl_int_constants=>it0000.
+*                  IF <hire_check> IS ASSIGNED.
+*                    IF <hire_check>-action IN /sew/cl_int_constants=>hire_range.
+*                      CLEAR: <it_aend>-pernr.
+**                      MODIFY me->it_aend FROM <it_aend> TRANSPORTING pernr WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+*                      MODIFY it_aend_post FROM <it_aend> TRANSPORTING pernr WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+*                    ENDIF.
+*                  ENDIF.
                   error_hrpad = CORRESPONDING #( return ).
                   APPEND error_hrpad TO error_tab.
+                  APPEND LINES OF return_tab TO error_tab.
                   CLEAR: return.
                   me->status_handler->add_log_message( aend_id = <it_aend>-aend_id bapiret1 = return hrpad_return = error_tab ).
 
@@ -2089,6 +2723,10 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                   DELETE it_aend_nochange WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
                   DELETE it_aend_post WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
                   APPEND LINES OF it_aend_tmp_err TO it_aend_error.
+                  IF action_buf IS NOT INITIAL AND action_buf IN /sew/cl_int_constants=>hire_range.
+                    CLEAR: <it_aend>-pernr.
+                    MODIFY me->status_handler->it_aend FROM <it_aend> TRANSPORTING pernr WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id.
+                  ENDIF.
                   "COMMENTED
 *                    APPEND LINES OF it_aend_tmp TO it_aend_error.
 
@@ -2135,12 +2773,36 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                   CLEAR: return, error_hrpad.
 
                   "execute it specific logic before operation
-*                  me->it_specific_logic( EXPORTING exec_option = /sew/cl_int_constants=>after infty = <it_aend>-infty subty = <it_aend>-subty
-*                                                   massn = <it_aend>-action changed_fields = changed_fields molga = <it_aend>-molga simu = simu
-*                                          IMPORTING return = return return_tab = return_tab
-*                                            CHANGING record = <struc> ).
+                  me->it_specific_logic( EXPORTING exec_option = /sew/cl_int_constants=>after infty = <it_aend>-infty subty = <it_aend>-subty
+                                                   massn = <it_aend>-action changed_fields = changed_fields molga = <it_aend>-molga simu = simu
+                                          IMPORTING return = return return_tab = return_tab
+                                            CHANGING record = <struc> ).
                   APPEND LINES OF return_tab TO error_tab.
                   CLEAR: return_tab, return.
+
+*                  IF <it_aend>-action IN /sew/cl_int_constants=>rehire_range.
+                  IF ( <it_aend>-action NOT IN /sew/cl_int_constants=>termination_range AND <it_aend>-action NE 'ZZ' ) AND <it_aend>-infty = /sew/cl_int_constants=>it0001 AND ( <it_aend>-action IS NOT INITIAL OR changed_fields IS NOT INITIAL ).
+                    TRY.
+
+                        me->process_changes( EXPORTING simu          = simu
+                                                      record = <struc>
+                                                      term_date = term_date
+                                         IMPORTING return    = return
+                                                   return_tab = return_tab
+                                         CHANGING  it_aend       = <it_aend>
+                                                   it_aend_tab   = it_aend_tmp
+                                                   is_ok = is_ok ).
+                      CATCH cx_hrpa_invalid_buffer_access INTO exception.
+                      CATCH cx_hrpa_invalid_parameter INTO exception.
+                        return-type = /sew/cl_int_constants=>error.
+                        return-id = '/SEW/HCM_INTEGRATION'.
+                        return-message_v1 = exception->get_text( ).
+                        return-number = /sew/cl_int_constants=>msg_no-m35.
+
+                    ENDTRY.
+                  ENDIF.
+
+
                 ENDIF.
                 "No change to be booked
               ELSE.
@@ -2151,13 +2813,14 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
               "in case several it_aend entries belong to same int_run, commit for all infotype operations of int_run is needed
 
               IF max EQ count.
+                CLEAR: action_buf.
                 IF no_change NE abap_true.
                   IF <it_aend_tmp> IS ASSIGNED.
                     CLEAR: <it_aend_tmp>.
                   ENDIF.
                   READ TABLE it_aend_tmp ASSIGNING <it_aend_tmp> WITH KEY int_run = <it_aend>-int_run cloud_id = <it_aend>-cloud_id aend_id = <it_aend>-aend_id.
-                  APPEND <it_aend> TO it_aend_post.
                   <it_aend>-status = /sew/cl_int_constants=>booking_status-success.
+                  APPEND <it_aend> TO it_aend_post.
                   DELETE it_aend_tmp WHERE int_run = <it_aend>-int_run AND cloud_id = <it_aend>-cloud_id AND aend_id = <it_aend>-aend_id.
                 ELSE.
                   APPEND <it_aend> TO it_aend_nochange.
@@ -2222,7 +2885,7 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
             count = count + 1.
           ENDIF.
         ENDIF.
-        CLEAR: changed_fields, return, return_tab, error_tab, error_hrpad, spras, langu, add_action, it_aend_post_tmp_cof.
+        CLEAR: changed_fields, return, return_tab, error_tab, error_hrpad, spras, langu, add_action, it_aend_error_tmp_cof, it_aend_post_tmp_cof, last_act_dat, skip_it0001.
 
       ENDIF.
     ENDLOOP.
@@ -2383,9 +3046,54 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
                        CHANGING  it_aend       = it_aend
                                  it_aend_tab   = it_aend_tab ).
     ELSEIF it_aend-action IN /sew/cl_int_constants=>termination_range.
-
+      me->handle_termination( EXPORTING simu          = simu
+                                        record = record
+                       IMPORTING continue      = continue
+                                 it_aend_error = it_aend_error
+                                 it_aend_post  = it_aend_post
+*                                            is_ok         = is_ok
+                                 return_tab    = return_tab
+                       CHANGING  it_aend       = it_aend
+                                 it_aend_tab   = it_aend_tab ).
     ELSEIF it_aend-action IN /sew/cl_int_constants=>orgchange_range.
       me->handle_org_change( EXPORTING simu          = simu
+                                        record = record
+                       IMPORTING continue      = continue
+                                 it_aend_error = it_aend_error
+                                 it_aend_post  = it_aend_post
+*                                            is_ok         = is_ok
+                                 return_tab    = return_tab
+                       CHANGING  it_aend       = it_aend
+                                 it_aend_tab   = it_aend_tab ).
+    ELSEIF it_aend-action IN /sew/cl_int_constants=>rehire_range.
+      me->handle_rehire( EXPORTING simu          = simu
+                                        record = record
+                       IMPORTING continue      = continue
+                                 it_aend_error = it_aend_error
+                                 it_aend_post  = it_aend_post
+*                                            is_ok         = is_ok
+                                 return_tab    = return_tab
+                       CHANGING  it_aend       = it_aend
+                                 it_aend_tab   = it_aend_tab ).
+    ELSEIF it_aend-action = 'RT'.
+      me->handle_reverse_termination( EXPORTING simu          = simu
+                                       record = record
+                      IMPORTING continue      = continue
+                                it_aend_error = it_aend_error
+                                it_aend_post  = it_aend_post
+*                                            is_ok         = is_ok
+                                return_tab    = return_tab
+                      CHANGING  it_aend       = it_aend
+                                it_aend_tab   = it_aend_tab ).
+    ELSEIF it_aend-action = 'HC'.
+      me->handle_hiredate_change( EXPORTING simu          = simu
+                                      record = record
+                     IMPORTING
+                               return_tab    = return_tab
+                     CHANGING  it_aend       = it_aend
+                               it_aend_tab   = it_aend_tab ).
+    ELSEIF it_aend-action = 'ZZ'.
+      me->handle_noshow( EXPORTING simu          = simu
                                         record = record
                        IMPORTING continue      = continue
                                  it_aend_error = it_aend_error
@@ -2399,25 +3107,142 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 
 
   METHOD process_changes.
-    DATA: exception TYPE REF TO cx_root.
-    FIELD-SYMBOLS: <fs_it>         TYPE any,
-                   <fs_it_upd>     TYPE any,
-                   <fs_it_old_upd> TYPE any,
-                   <ft_it_old>     TYPE STANDARD TABLE.
+    DATA: exception      TYPE REF TO cx_root,
+          messages       TYPE hrpad_message_tab,
+          lr_structdescr TYPE REF TO cl_abap_structdescr,
+          lr_tabledescr  TYPE REF TO cl_abap_tabledescr,
+          lr_table_old   TYPE REF TO data,
+          endda_buff     TYPE dats.
+    FIELD-SYMBOLS: <fs_it>          TYPE any,
+                   <fs_it_upd>      TYPE any,
+                   <fs_it_old_upd>  TYPE any,
+                   <ft_it_old>      TYPE STANDARD TABLE,
+                   <record_old_tab> TYPE STANDARD TABLE.
+
+    lr_structdescr ?= cl_abap_typedescr=>describe_by_name( CONV #( 'P' && it_aend-infty ) ).
+    lr_tabledescr ?= cl_abap_tabledescr=>create( p_line_type = lr_structdescr ).
+    CREATE DATA lr_table_old TYPE HANDLE lr_tabledescr.
+*    CREATE DATA lr_table_new TYPE HANDLE lr_tabledescr.
+    ASSIGN lr_table_old->* TO <record_old_tab>.
+
+
     DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = it_aend-int_run molga = it_aend-molga pernr = it_aend-pernr ).
     ASSIGN record TO <fs_it>.
 
+    IF it_aend-action IS NOT INITIAL AND it_aend-action IN /sew/cl_int_constants=>termination_range AND ( it_aend-begda GE term_date ).
+      infty_operation->delete_paxxxx_dcif(
+      EXPORTING
+        begda = term_date
+        endda = it_aend-endda
+        data = <fs_it>
+        infty = it_aend-infty
+        pernr = it_aend-pernr
+        IMPORTING
+*          is_ok = is_ok
+          messages = messages
+      ).
 
-    infty_operation->update_paxxxx_dcif(
-    EXPORTING
-      begda = it_aend-begda
-      endda = it_aend-endda
-      data = <fs_it>
-      infty = it_aend-infty
-      IMPORTING
-        is_ok = is_ok
-        messages = DATA(messages)
-    ).
+    ELSE.
+      infty_operation->read_paxxxx( EXPORTING begda = it_aend-begda
+                                 endda = it_aend-begda
+                                 infty = CONV #( it_aend-infty )
+                                 subty = it_aend-subty
+                                 pernr = it_aend-pernr
+                                 simu  = simu
+                       IMPORTING return_tab = return_tab
+                                 record_tab = <record_old_tab> ).
+      READ TABLE <record_old_tab> ASSIGNING FIELD-SYMBOL(<record_old>) INDEX 1.
+      ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <record_old> TO FIELD-SYMBOL(<begda>).
+
+      "Get time constraint for infty/subty
+      DATA(time_constraint) = /sew/cl_int_utility=>get_time_constraint( mv_infty = it_aend-infty mv_subty = it_aend-subty ).
+
+      IF <begda> IS ASSIGNED AND <begda> = it_aend-begda AND time_constraint NE '1'.
+        ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <record_old> TO FIELD-SYMBOL(<endda>).
+        infty_operation->update_paxxxx_dcif(
+        EXPORTING
+          begda = <begda>
+          endda = <endda>
+          data = <fs_it>
+          massn = it_aend-action
+          infty = it_aend-infty
+          subty = it_aend-subty
+          IMPORTING
+            is_ok = is_ok
+            messages = messages
+        ).
+
+        "If <endda>  < highdate -> read future entries and delete
+        IF <endda> LT /sew/cl_int_constants=>highdate AND it_aend-action IN /sew/cl_int_constants=>termination_range.
+          infty_operation->read_paxxxx( EXPORTING begda = term_date
+                                     endda = /sew/cl_int_constants=>highdate
+                                     infty = CONV #( it_aend-infty )
+                                     pernr = it_aend-pernr
+                                     simu  = simu
+                           IMPORTING return_tab = return_tab
+                                     record_tab = <record_old_tab> ).
+          LOOP AT <record_old_tab> ASSIGNING <record_old>.
+            ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <record_old> TO <begda>.
+            ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <record_old> TO <endda>.
+            infty_operation->delete_paxxxx_dcif(
+           EXPORTING
+             begda = <begda>
+             endda = <endda>
+             data = <record_old>
+             infty = it_aend-infty
+             pernr = it_aend-pernr
+             IMPORTING
+*          is_ok = is_ok
+               messages = messages
+           ).
+          ENDLOOP.
+        ENDIF.
+      ELSE.
+        IF it_aend-action IS NOT INITIAL AND it_aend-action IN /sew/cl_int_constants=>termination_range AND time_constraint NE '1'.
+          infty_operation->read_paxxxx( EXPORTING begda = term_date
+                                     endda = /sew/cl_int_constants=>highdate
+                                     infty = CONV #( it_aend-infty )
+                                     pernr = it_aend-pernr
+                                     simu  = simu
+                           IMPORTING return_tab = return_tab
+                                     record_tab = <record_old_tab> ).
+          LOOP AT <record_old_tab> ASSIGNING <record_old>.
+            ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <record_old> TO <begda>.
+            ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <record_old> TO <endda>.
+            endda_buff = <endda>.
+            <endda> = it_aend-begda - 1.
+            infty_operation->update_paxxxx_dcif(
+            EXPORTING
+              begda = <begda>
+              endda = endda_buff
+              data = <record_old>
+              massn = it_aend-action
+              infty = it_aend-infty
+              subty = it_aend-subty
+              IMPORTING
+                is_ok = is_ok
+                messages = messages
+            ).
+          ENDLOOP.
+        ENDIF.
+        infty_operation->insert_paxxxx_dcif(
+        EXPORTING
+          begda = it_aend-begda
+          endda = it_aend-endda
+          data = <fs_it>
+          massn = it_aend-action
+          infty = it_aend-infty
+*          subty = it_aend-subty
+          IMPORTING
+            is_ok = is_ok
+            messages = messages
+        ).
+        IF is_ok = abap_true.
+
+        ENDIF.
+      ENDIF.
+    ENDIF.
+    return_tab = /sew/cl_int_utility=>map_msg_tab( messages ).
   ENDMETHOD.
 
 
@@ -2455,7 +3280,8 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
 
 
   METHOD update_status.
-
+    DATA: cloud_id_rtab   TYPE /sdf/calm_range_tt,
+          cloud_id_single LIKE LINE OF cloud_id_rtab.
     "Update Success
     LOOP AT me->it_aend_post ASSIGNING FIELD-SYMBOL(<it_aend_post>).
       me->status_handler->set_status( aend_id = <it_aend_post>-aend_id status = /sew/cl_int_constants=>booking_status-success ).
@@ -2477,8 +3303,19 @@ CLASS /SEW/CL_IT_AEND_POST IMPLEMENTATION.
     IF simu = abap_true.
       me->status_handler->simu_it_aend = me->status_handler->new_it_aend.
       LOOP AT me->status_handler->simu_it_aend ASSIGNING FIELD-SYMBOL(<simu_it_aend>).
-        IF <simu_it_aend>-action IN /sew/cl_int_constants=>hire_range.
-          CLEAR <simu_it_aend>-pernr.
+        IF <simu_it_aend>-action IS NOT INITIAL AND <simu_it_aend>-action IN /sew/cl_int_constants=>hire_range.
+          cloud_id_single-sign = 'I'.
+          cloud_id_single-option = 'EQ'.
+          cloud_id_single-low = <simu_it_aend>-cloud_pernr.
+          IF line_exists( cloud_id_rtab[ table_line = cloud_id_single-low ] ).
+          ELSE.
+            APPEND cloud_id_single TO cloud_id_rtab.
+          ENDIF.
+          CLEAR: <simu_it_aend>-pernr, cloud_id_single.
+        ELSEIF cloud_id_rtab IS NOT INITIAL. "<simu_it_aend>-cloud_pernr IN cloud_id_rtab.
+          IF <simu_it_aend>-cloud_pernr IN cloud_id_rtab.
+            CLEAR: <simu_it_aend>-pernr.
+          ENDIF.
         ENDIF.
         <simu_it_aend>-status = /sew/cl_int_constants=>booking_status-simulated.
       ENDLOOP.

@@ -105,6 +105,7 @@ CLASS /SEW/CL_MIG_PERSON_DIS_ATTACH IMPLEMENTATION.
 
 
   METHOD get_cofu_data.
+
     " read infotype 0002
     SELECT pernr,
            begda,
@@ -121,8 +122,6 @@ CLASS /SEW/CL_MIG_PERSON_DIS_ATTACH IMPLEMENTATION.
            INTO CORRESPONDING FIELDS OF TABLE @p0004 FROM pa0004 WHERE pernr IN @pernr
                                                                    AND begda LE @endda
                                                                    AND endda GE @begda.
-
-
 
   ENDMETHOD.
 
@@ -149,16 +148,14 @@ CLASS /SEW/CL_MIG_PERSON_DIS_ATTACH IMPLEMENTATION.
 
       DATA(disability_code) = 'PER_DIS_' && <p0004>-pernr && '_' && counter_str. "IFT20211130 I
 
-*   MIGRATION TODO Disability attachment
-
       CONCATENATE /sew/cl_mig_utils=>merge " MERGE
-                  person_dis_attachment    "PersonDisabilityAttachment'
-                  disability_code          "DisabilityCode
-                  ''                       "Title
-                  ''                       "DataTypeCode
-                  ''                       "File
-                  ''                       "FileName
-                  ''                       "URLorTextorFileName
+                  person_dis_attachment    " PersonDisabilityAttachment'
+                  disability_code          " DisabilityCode
+                  ''                       " Title
+                  ''                       " DataTypeCode
+                  ''                       " File
+                  ''                       " FileName
+                  ''                       " URLorTextorFileName
        INTO DATA(data_tmp).
 
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
@@ -171,5 +168,6 @@ CLASS /SEW/CL_MIG_PERSON_DIS_ATTACH IMPLEMENTATION.
 
     get_cofu_data( ).
     data = map_cofu_data( vp_src_id ).
+
   ENDMETHOD.
 ENDCLASS.

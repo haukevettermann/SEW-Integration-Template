@@ -17,6 +17,7 @@ DATA: pernrs     TYPE rsdsselopt_t,
       account    TYPE string,
       allocation TYPE string,
       pay        TYPE string,
+      bank       TYPE string,
       salary     TYPE string,
       external   TYPE string,
       disability TYPE string, " IFT20211105 I
@@ -31,26 +32,32 @@ INITIALIZATION.
 **---------------------------------------------------------------------*
   "selection of status
   SELECTION-SCREEN BEGIN OF BLOCK sel_stat WITH FRAME TITLE TEXT-001.
-  PARAMETERS: cogl RADIOBUTTON GROUP r01 DEFAULT 'X' USER-COMMAND stat,
-              cofu RADIOBUTTON GROUP r01,
-              cogu RADIOBUTTON GROUP r01,
-              al11 TYPE boolean AS CHECKBOX MODIF ID cog.
+  PARAMETERS: cogl    RADIOBUTTON GROUP r01 DEFAULT 'X' USER-COMMAND stat,
+              cofu    RADIOBUTTON GROUP r01,
+              cogu    RADIOBUTTON GROUP r01,
+              zipfile TYPE boolean AS CHECKBOX USER-COMMAND us,
+              al11    TYPE boolean AS CHECKBOX MODIF ID cog.
   SELECTION-SCREEN END OF BLOCK sel_stat.
 
   "additional options
   SELECTION-SCREEN BEGIN OF BLOCK sel_file WITH FRAME TITLE TEXT-002.
-  PARAMETERS: file    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker.dat'.
-  PARAMETERS: file_sa LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_Supervisor.dat'         MODIF ID cou.
-  PARAMETERS: file_tm LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_Termination.dat'        MODIF ID cou.
-  PARAMETERS: file_ur LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\User.dat'.
-  PARAMETERS: file_ei LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_ExternalIdentifier.dat' MODIF ID cou.
-  PARAMETERS: file_al LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\CostAllocationV3.dat'.
-  PARAMETERS: file_ac LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\CostAllocationAccountV3.dat'.
-  PARAMETERS: file_ft TYPE string                     DEFAULT 'C:\Foto'                          MODIF ID cou.
-  PARAMETERS: file_bd LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\PersonalPaymentMethod.dat'     MODIF ID cof.
-  PARAMETERS: file_pd LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\PersonDisability.dat'          MODIF ID cof. " IFT20211105
-  PARAMETERS: file_ct LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Contact.dat'                   MODIF ID cof. " IFT20211109
-  PARAMETERS: file_sl LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Salary.dat'                    MODIF ID cof.
+  PARAMETERS: file_zip   LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker.zip'                    MODIF ID zpf. "IFT20211207 I
+  PARAMETERS: file_zp2   LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_2.zip'                  MODIF ID zpf. "IFT20211207 I
+  PARAMETERS: file_zp3   LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_3.zip'                  MODIF ID zpf. "IFT20211207 I
+  PARAMETERS: file       LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker.dat'                    MODIF ID els. "IFT20211210 I - ID needed to hide if zip is wanted
+  PARAMETERS: file_sa    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_Supervisor.dat'         MODIF ID cou.
+  PARAMETERS: file_tm    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_Termination.dat'        MODIF ID cou.
+  PARAMETERS: file_ur    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\User.dat'                      MODIF ID els. "IFT20211210 I - ID needed to hide if zip is wanted
+  PARAMETERS: file_ei    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Worker_ExternalIdentifier.dat' MODIF ID cou.
+  PARAMETERS: file_al    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\CostAllocationV3.dat'          MODIF ID els. "IFT20211210 I - ID needed to hide if zip is wanted
+  PARAMETERS: file_ac    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\CostAllocationAccountV3.dat'   MODIF ID els. "IFT20211210 I - ID needed to hide if zip is wanted
+  PARAMETERS: file_ft    TYPE string                     DEFAULT 'C:\Foto'                          MODIF ID cou.
+  PARAMETERS: file_bd    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\PersonalPaymentMethod.dat'     MODIF ID cof.
+  PARAMETERS: file_pd    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\PersonDisability.dat'          MODIF ID cof. " IFT20211105
+  PARAMETERS: file_ct    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Contact.dat'                   MODIF ID cof. " IFT20211109
+  PARAMETERS: file_sl    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\Salary.dat'                    MODIF ID cof.
+  PARAMETERS: file_bk    LIKE rlgrap-filename OBLIGATORY DEFAULT 'C:\ExternalBankAccount.dat'       MODIF ID cof.
+
   SELECTION-SCREEN END OF BLOCK sel_file.
 
 AT SELECTION-SCREEN.
@@ -59,47 +66,82 @@ AT SELECTION-SCREEN.
   "bank details only for CoFu/CoGu relevant
 
 AT SELECTION-SCREEN OUTPUT.
-  CASE ucomm.
-    WHEN 'STAT'.
-      LOOP AT SCREEN.
-        screen-active = 0.
-        CASE screen-group1.
-          WHEN 'COF'.
-            IF cofu EQ abap_true OR
-               cogu EQ abap_true.
+
+  IF zipfile EQ abap_true.
+    LOOP AT SCREEN.
+      screen-active = 1.
+      CASE screen-group1.
+        WHEN 'ZPF'.
+          screen-active = 1.
+        WHEN 'COF'.
+          screen-active = 0.
+        WHEN 'COG'.
+          screen-active = 0.
+        WHEN 'COU'.
+          screen-active = 0.
+        WHEN 'ELS'.
+          screen-active = 0.
+        WHEN OTHERS.
+          screen-active = 1.
+      ENDCASE.
+      MODIFY SCREEN.
+    ENDLOOP.
+  ELSE.
+    CASE ucomm.
+      WHEN 'STAT'.
+        LOOP AT SCREEN.
+          screen-active = 0.
+          CASE screen-group1.
+            WHEN 'COF'.
+              IF cofu EQ abap_true OR
+                 cogu EQ abap_true.
+                screen-active = 1.
+              ENDIF.
+            WHEN 'COG'.
+              "AL11 output only for COGU
+              IF cogu EQ abap_true.
+                screen-active = 1.
+              ENDIF.
+            WHEN 'COU'.
+              IF cofu EQ abap_true OR
+                 cogl EQ abap_true.
+                screen-active = 1.
+              ENDIF.
+            WHEN 'ZPF'.
+              IF zipfile NE abap_true.
+                screen-active = 0.
+              ELSE.
+                screen-active = 1.
+              ENDIF.
+            WHEN OTHERS.
+              CONTINUE.
+          ENDCASE.
+          MODIFY SCREEN.
+        ENDLOOP.
+      WHEN OTHERS.
+        LOOP AT SCREEN.
+          screen-active = 1.
+          CASE screen-group1.
+            WHEN 'COF' OR
+                 'COG'.
+              CHECK cofu IS INITIAL AND
+                    cogu IS INITIAL.
+              screen-active = 0.
+            WHEN 'COU'.
+              CHECK cogu EQ abap_false.
               screen-active = 1.
-            ENDIF.
-          WHEN 'COG'.
-            "AL11 output only for COGU
-            IF cogu EQ abap_true.
-              screen-active = 1.
-            ENDIF.
-          WHEN 'COU'.
-            IF cofu EQ abap_true OR
-               cogl EQ abap_true.
-              screen-active = 1.
-            ENDIF.
-          WHEN OTHERS.
-            CONTINUE.
-        ENDCASE.
-        MODIFY SCREEN.
-      ENDLOOP.
-    WHEN OTHERS.
-      LOOP AT SCREEN.
-        screen-active = 1.
-        CASE screen-group1.
-          WHEN 'COF' OR
-               'COG'.
-            CHECK cofu IS INITIAL AND
-                  cogu IS INITIAL.
-            screen-active = 0.
-          WHEN 'COU'.
-            CHECK cogu EQ abap_false.
-            screen-active = 1.
-        ENDCASE.
-        MODIFY SCREEN.
-      ENDLOOP.
-  ENDCASE.
+            WHEN 'ZPF'.
+              IF zipfile NE abap_true.
+                screen-active = 0.
+              ELSE.
+                screen-active = 1.
+              ENDIF.
+          ENDCASE.
+          MODIFY SCREEN.
+        ENDLOOP.
+
+    ENDCASE.
+  ENDIF.
 
   "F4 help for all files
 
@@ -193,6 +235,17 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_ei.
       field_name    = ' '
     IMPORTING
       file_name     = file_ei.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_bk.
+
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      program_name  = syst-cprog
+      dynpro_number = syst-dynnr
+      field_name    = ' '
+    IMPORTING
+      file_name     = file_bk.
+
 **IFT20211105 Insert Start - add PersonDisability.dat file
 *
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_pd.
@@ -227,6 +280,36 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_sl.
       field_name    = ' '
     IMPORTING
       file_name     = file_sl.
+**IFT20211207 Start Insert - add zip fiel
+*
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_zip.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      program_name  = syst-cprog
+      dynpro_number = syst-dynnr
+      field_name    = ' '
+    IMPORTING
+      file_name     = file_zip.
+
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_zp2.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      program_name  = syst-cprog
+      dynpro_number = syst-dynnr
+      field_name    = ' '
+    IMPORTING
+      file_name     = file_zp2.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR file_zp3.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+      program_name  = syst-cprog
+      dynpro_number = syst-dynnr
+      field_name    = ' '
+    IMPORTING
+      file_name     = file_zp3.
+*IFT20211207 End Insert
 
 START-OF-SELECTION.
 
@@ -255,6 +338,7 @@ END-of-SELECTION.
                                                                        account    = account
                                                                        allocation = allocation
                                                                        pay        = pay
+                                                                       bank       = bank
                                                                        external   = external
                                                                        salary     = salary
                                                                        disability = disability "IFT20211105 I
@@ -270,7 +354,6 @@ END-of-SELECTION.
       APPEND LINES OF VALUE /iwbep/t_mgw_name_value_pair( ( name = file_sa value = supervisor )
                                                           ( name = file_tm value = term       )
                                                           ( name = file_ei value = external   ) ) TO files.
-
     ENDIF.
 
     IF pay  IS NOT INITIAL AND
@@ -281,9 +364,18 @@ END-of-SELECTION.
     IF cofu EQ abap_true.
       APPEND LINES OF VALUE /iwbep/t_mgw_name_value_pair( ( name = file_sl value = salary     )
                                                           ( name = file_pd value = disability )
-                                                          ( name = file_ct value = contact    ) ) TO files.
+                                                          ( name = file_ct value = contact    )
+                                                          ( name = file_bk value = bank       ) ) TO files.
     ENDIF.
+**IFT20211207 Start Insert - add zip download
+*
+    IF zipfile EQ abap_true.
+      DATA(zip_files) = VALUE /iwbep/t_mgw_name_value_pair( ( name = 1 value = file_zip )
+                                                            ( name = 2 value = file_zp2 )
+                                                            ( name = 3 value = file_zp3 ) ).
+    ENDIF.
+*IFT20211207 End Insert
 
-    mig_pa_file->download_files( files ).
+    mig_pa_file->download_files( files = files zip_files = zip_files ).
 
   ENDIF.

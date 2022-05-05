@@ -798,13 +798,24 @@ CLASS /SEW/CL_HCM_INTCENTER_DPC_EXT IMPLEMENTATION.
               lo_elem ?= lo_tmp_om.
             ENDIF.
           ENDIF.
-
+          DATA dom_txt type dd07v.
           IF lo_elem IS NOT INITIAL.
             lo_elem->get_ddic_field( RECEIVING p_flddescr = DATA(lo_ddic_type)
               EXCEPTIONS no_ddic_type = 1 not_found = 2 OTHERS = 3 ).
             IF sy-subrc = 0.
               <ls_entity>-title = lo_ddic_type-fieldtext.
             ENDIF.
+*            CALL FUNCTION 'DD_DOMVALUE_TEXT_GET'
+*              EXPORTING
+*                domname  = lo_elem->help_id
+*                value    = <ls_entity>-new_val
+*                langu    = sy-langu
+**               BYPASS_BUFFER       = ' '
+*              IMPORTING
+*                dd07v_wa = dom_txt
+**               RC       =
+*              .
+
           ENDIF.
         CATCH cx_root.
           "NOOP
@@ -1179,7 +1190,10 @@ CLASS /SEW/CL_HCM_INTCENTER_DPC_EXT IMPLEMENTATION.
 
 * daten lesen
     SELECT * FROM /sew/int_msg_f INTO CORRESPONDING FIELDS OF TABLE @et_entityset WHERE aend_id = @ls_full_key-aend_id.
-
+    LOOP AT et_entityset ASSIGNING FIELD-SYMBOL(<entity>).
+      SHIFT <entity>-old_val LEFT DELETING LEADING space.
+      SHIFT <entity>-new_val LEFT DELETING LEADING space.
+    ENDLOOP.
 
 * daten vervollständigen
     enhance_entity_fieldchange( CHANGING ct_entity = et_entityset ).

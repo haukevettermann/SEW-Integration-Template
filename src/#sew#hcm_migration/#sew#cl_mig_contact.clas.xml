@@ -74,12 +74,6 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_MIG_CONTACT</CLSNAME>
-     <CMPNAME>P0002</CMPNAME>
-     <LANGU>D</LANGU>
-     <DESCRIPT>Personal-Stammsatz Infotyp 0002 (Daten zur Person)</DESCRIPT>
-    </SEOCOMPOTX>
-    <SEOCOMPOTX>
-     <CLSNAME>/SEW/CL_MIG_CONTACT</CLSNAME>
      <CMPNAME>P0021</CMPNAME>
      <LANGU>D</LANGU>
      <DESCRIPT>Personal-Stammsatz Infotyp 0021 (Familie)</DESCRIPT>

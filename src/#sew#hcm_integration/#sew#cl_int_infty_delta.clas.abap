@@ -99,6 +99,13 @@ public section.
       !IS_PRELP_OLD type PRELP
     returning
       value(RS_IT_AENDUP) type /SEW/INT_IT_AEUP .
+  class-methods CHECK_INFTY_CHANGE_ZXPADU02_KP
+    importing
+      !IS_PRELP_NEW type PRELP
+      !IS_PRELP_OLD type PRELP
+      !IS_I001P type T001P
+    returning
+      value(RS_IT_AENDUP) type /SEW/INT_IT_AEUP .
   methods TRANSFER_INFTY_DATA
     importing
       !INFTY type INFTY
@@ -159,10 +166,15 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
 
 
   METHOD check_fields.
-    DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
-          lr_struc_new   TYPE REF TO data,
-          lr_struc_old   TYPE REF TO data,
-          ls_fields      LIKE LINE OF fields.
+    DATA: lr_structdescr    TYPE REF TO cl_abap_structdescr,
+          lr_struc_new      TYPE REF TO data,
+          lr_struc_old      TYPE REF TO data,
+          lr_struc_new_buff TYPE REF TO data,
+          lr_struc_old_buff TYPE REF TO data,
+          ls_fields         LIKE LINE OF fields.
+
+*    FIELD-SYMBOLS: <fs_old_rec_buff> TYPE any,
+*                   <fs_new_rec_buff> TYPE any.
 *    ASSIGN it_record_new TO FIELD-SYMBOL(<fs_it_new>).
 *    ASSIGN it_record_old TO FIELD-SYMBOL(<fs_it_old>).
     CLEAR: has_change.
@@ -171,44 +183,72 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
     ASSIGN lr_struc_new->* TO FIELD-SYMBOL(<fs_it_new>).
     CREATE DATA lr_struc_old TYPE HANDLE lr_structdescr.
     ASSIGN lr_struc_old->* TO FIELD-SYMBOL(<fs_it_old>).
+
+    CREATE DATA lr_struc_new_buff TYPE HANDLE lr_structdescr.
+    CREATE DATA lr_struc_old_buff TYPE HANDLE lr_structdescr.
+    ASSIGN lr_struc_old_buff->* TO FIELD-SYMBOL(<fs_it_old_buff>).
+    ASSIGN lr_struc_new_buff->* TO FIELD-SYMBOL(<fs_it_new_buff>).
+
+    <fs_it_new_buff> = it_record_new.
+    <fs_it_old_buff> = it_record_old.
+
     <fs_it_new> = it_record_new.
     <fs_it_old> = it_record_old.
+    ASSIGN COMPONENT 'subty' OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<subty>).
     "Processing relevant data
     DATA(rel_fields) = me->build_rel_fields( ).
     IF rel_fields IS NOT INITIAL.
       LOOP AT comp INTO DATA(ls_comp) WHERE fieldname IN rel_fields.
 *   clear not needed fields and
         ASSIGN COMPONENT ls_comp-fieldname OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<fs_field_new>).
+        ASSIGN COMPONENT ls_comp-fieldname OF STRUCTURE <fs_it_new_buff> TO FIELD-SYMBOL(<fs_new_buff>).
         IF sy-subrc IS NOT INITIAL.
 *            is_ok = abap_false.
         ENDIF.
         IF ( <fs_field_new> IS ASSIGNED )  AND ( <fs_field_new> IS NOT INITIAL ).
           ASSIGN COMPONENT ls_comp-fieldname OF STRUCTURE <fs_it_old> TO FIELD-SYMBOL(<fs_field_old>).
+          ASSIGN COMPONENT ls_comp-fieldname OF STRUCTURE <fs_it_old_buff> TO FIELD-SYMBOL(<fs_old_buff>).
           IF sy-subrc IS NOT INITIAL.
 *            is_ok = abap_false.
           ENDIF.
           IF <fs_field_old> IS ASSIGNED AND <fs_field_new> IS ASSIGNED.
-            TRANSLATE <fs_field_old> TO UPPER CASE.
-            TRANSLATE <fs_field_new> TO UPPER CASE.
+            IF ls_comp-datatype NE 'DEC' AND ls_comp-datatype NE 'CURR'.
+              TRANSLATE <fs_field_old> TO UPPER CASE.
+              TRANSLATE <fs_field_new> TO UPPER CASE.
+            ENDIF.
             IF <fs_field_new> IS NOT INITIAL AND <fs_field_new> NE <fs_field_old>.
+              <fs_field_old> = <fs_old_buff>.
+              <fs_field_new> = <fs_new_buff>.
               has_change = abap_true.
               ls_fields-field = ls_comp-fieldname.
               ls_fields-field_old = <fs_field_old>.
               ls_fields-field_new = <fs_field_new>.
+              ls_fields-infty = me->infty.
+              ls_fields-subty = <subty>.
               APPEND ls_fields TO fields.
             ELSEIF  <fs_field_new> = '0.00' AND <fs_field_new> NE <fs_field_old>.
+              <fs_field_old> = <fs_old_buff>.
+              <fs_field_new> = <fs_new_buff>.
               has_change = abap_true.
               ls_fields-field = ls_comp-fieldname.
               ls_fields-field_old = <fs_field_old>.
               ls_fields-field_new = <fs_field_new>.
+              ls_fields-infty = me->infty.
+              ls_fields-subty = <subty>.
               APPEND ls_fields TO fields.
             ELSEIF  <fs_field_new> = '0' AND <fs_field_new> NE <fs_field_old>.
+              <fs_field_old> = <fs_old_buff>.
+              <fs_field_new> = <fs_new_buff>.
               has_change = abap_true.
               ls_fields-field = ls_comp-fieldname.
               ls_fields-field_old = <fs_field_old>.
               ls_fields-field_new = <fs_field_new>.
+              ls_fields-infty = me->infty.
+              ls_fields-subty = <subty>.
               APPEND ls_fields TO fields.
             ENDIF.
+            <fs_field_old> = <fs_old_buff>.
+            <fs_field_new> = <fs_new_buff>.
           ENDIF.
         ENDIF.
       ENDLOOP.
@@ -229,14 +269,21 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
           lv_pernr       TYPE pernr_d,
           lv_begda       TYPE dats,
           lv_endda       TYPE dats,
-          subty          TYPE subty.
+          subty          TYPE subty,
+          it0041_rel     TYPE boole_d.
     FIELD-SYMBOLS: <fs_it_new>     TYPE any,
                    <fs_it_new_upd> TYPE any,
                    <fs_it_old_upd> TYPE any,
                    <ft_it_old>     TYPE STANDARD TABLE.
     CLEAR: it_create, it_change, fields.
     ASSIGN it_record TO <fs_it_new>.
-    IF me->infty = '0041' AND action NE /sew/cl_int_constants=>hire.
+    it0041_rel = abap_false.
+    IF me->infty = /sew/cl_int_constants=>it0041.
+      IF action IN /sew/cl_int_constants=>hire_range OR action = /sew/cl_int_constants=>hire_date_change.
+        it0041_rel = abap_true.
+      ENDIF.
+    ENDIF.
+    IF me->infty = /sew/cl_int_constants=>it0041 AND it0041_rel = abap_false.
     ELSE.
       ASSIGN COMPONENT /sew/cl_int_constants=>pernr OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<fs_pernr>).
       me->pernr = <fs_pernr>.
@@ -252,7 +299,7 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
       CREATE DATA lr_table TYPE HANDLE lr_tabledescr.
       ASSIGN lr_table->* TO <ft_it_old>.
 
-      IF me->pernr IS NOT INITIAL.
+      IF me->pernr IS NOT INITIAL AND action NOT IN /sew/cl_int_constants=>hire_range.
         CALL FUNCTION 'HR_READ_INFOTYPE'
           EXPORTING
 *           TCLAS     = 'A'
@@ -307,13 +354,13 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
                             IMPORTING it_record_new_upd = <fs_it_new_upd> it_record_old_upd = <fs_it_old_upd> has_change = it_change
                                       fields = fields ).
 
-          IF it_change = abap_true OR action = /sew/cl_int_constants=>termination.
+          IF it_change = abap_true OR action IN /sew/cl_int_constants=>termination_range.
             "Fill record with old data
-            IF it_change = abap_false AND action = /sew/cl_int_constants=>termination AND me->endda NE /sew/cl_int_constants=>highdate.
+            IF it_change = abap_false AND action IN /sew/cl_int_constants=>termination_range AND me->endda NE /sew/cl_int_constants=>highdate.
             ELSE.
 *              me->transfer_infty_data( EXPORTING infty = me->infty it_record_old = <fs_it_old> it_record_new = <fs_it_new>
 *                                       IMPORTING it_record_new_upd = <fs_it_new_upd> ).
-              IF action = /sew/cl_int_constants=>termination AND me->infty NE /sew/cl_int_constants=>it0000.
+              IF action IN /sew/cl_int_constants=>termination_range AND me->infty NE /sew/cl_int_constants=>it0000.
 *              ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <fs_it_new_upd> TO FIELD-SYMBOL(<fs_begda_action>).
 *              ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <fs_it_old> TO FIELD-SYMBOL(<fs_begda_old>).
 *              <fs_begda_action> = <fs_begda_old>.
@@ -321,9 +368,9 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
 *              <fs_endda_action> = action_date - 1.
               ENDIF.
               it_record_upd = <fs_it_new_upd>.
-              it_change = abap_true.
+*              it_change = abap_true.
             ENDIF.
-          ELSEIF it_change = abap_false AND it_create = abap_false AND action NE /sew/cl_int_constants=>termination AND me->infty = /sew/cl_int_constants=>it0001.
+          ELSEIF it_change = abap_false AND it_create = abap_false AND action NOT IN /sew/cl_int_constants=>termination_range AND me->infty = /sew/cl_int_constants=>it0001.
 *            me->transfer_infty_data( EXPORTING infty = me->infty it_record_old = <fs_it_old> it_record_new = <fs_it_new>
 *                           IMPORTING it_record_new_upd = <fs_it_new_upd> ).
             it_record_upd = <fs_it_new_upd>.
@@ -337,7 +384,7 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
         it_create = abap_true.
       ENDIF.
 
-      IF it_create IS INITIAL AND it_change IS INITIAL AND action = /sew/cl_int_constants=>org_change AND me->infty = /sew/cl_int_constants=>it0000.
+      IF it_create IS INITIAL AND it_change IS INITIAL AND action IN /sew/cl_int_constants=>orgchange_range AND me->infty = /sew/cl_int_constants=>it0000.
         ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <fs_it_old> TO FIELD-SYMBOL(<fs_begda_old>).
         IF <fs_begda_old> IS ASSIGNED.
           IF me->begda NE <fs_begda_old>.
@@ -348,6 +395,12 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
       ENDIF.
 
       IF it_create = abap_true.
+        IF me->infty = /sew/cl_int_constants=>it0016.
+          <fs_it_new_upd> = <fs_it_new>.
+          ASSIGN COMPONENT /sew/cl_int_constants=>endda OF STRUCTURE <fs_it_new_upd> TO FIELD-SYMBOL(<fs_endda_new_16>).
+          <fs_endda_new_16> = /sew/cl_int_constants=>highdate.
+          it_record_upd = <fs_it_new_upd>.
+        ENDIF.
         me->get_fields_it_create( EXPORTING it_record_new = <fs_it_new>
                            IMPORTING  fields = fields ).
       ENDIF.
@@ -796,6 +849,135 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD check_infty_change_zxpadu02_kp.
+    DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
+          lr_structure   TYPE REF TO data,
+          it_new         TYPE REF TO data,
+          it_old         TYPE REF TO data,
+          dfies_tab      TYPE dfies_tab,
+          fieldname      TYPE dfies-fieldname,
+          tabname        TYPE ddobjname.
+
+    FIELD-SYMBOLS: <infty_data_new> TYPE any,
+                   <infty_data_old> TYPE any.
+
+    SELECT SINGLE * FROM /sew/int_fie_gen INTO @DATA(lt_fie).
+    CHECK sy-subrc EQ 0.
+
+    CONCATENATE 'P' is_prelp_new-infty INTO DATA(infty).
+    CREATE DATA it_new TYPE (infty).
+    CREATE DATA it_old TYPE (infty).
+    ASSIGN it_new->* TO <infty_data_new>.
+    ASSIGN it_old->* TO <infty_data_old>.
+
+    IF <infty_data_new> IS ASSIGNED.
+      "get infotype data
+      cl_hr_pnnnn_type_cast=>prelp_to_pnnnn(
+        EXPORTING
+          prelp = is_prelp_new
+        IMPORTING
+          pnnnn = <infty_data_new> ).
+    ENDIF.
+
+    IF <infty_data_old> IS ASSIGNED.
+      "get infotype data
+      cl_hr_pnnnn_type_cast=>prelp_to_pnnnn(
+        EXPORTING
+          prelp = is_prelp_old
+        IMPORTING
+          pnnnn = <infty_data_old> ).
+    ENDIF.
+
+DATA(lo_it_delta) = NEW /sew/cl_int_infty_delta( infty = is_prelp_new-infty ).
+lr_structdescr ?= cl_abap_typedescr=>describe_by_name( 'P' && is_prelp_new-infty ).
+    DATA(components) = lr_structdescr->get_ddic_field_list( ).
+    LOOP AT components ASSIGNING FIELD-SYMBOL(<component>).
+
+ASSIGN COMPONENT <component>-fieldname OF STRUCTURE <infty_data_new> TO FIELD-SYMBOL(<fs_field_new>).
+      IF ( <fs_field_new> IS ASSIGNED ) AND
+         ( <fs_field_new> IS NOT INITIAL ).
+
+ASSIGN COMPONENT <component>-fieldname OF STRUCTURE <infty_data_old> TO FIELD-SYMBOL(<fs_field_old>).
+        IF <fs_field_old> IS ASSIGNED AND <fs_field_new> IS ASSIGNED.
+**JMB20210907 start insert - in case of decimal pass translate statement
+*
+ DATA(type_old) = cl_abap_typedescr=>describe_by_data( <fs_field_old> ).
+
+          IF type_old->type_kind NE 'P'.
+            TRANSLATE <fs_field_old> TO UPPER CASE.
+            TRANSLATE <fs_field_new> TO UPPER CASE.
+          ELSE.
+
+          ENDIF.
+*JMB20210907 insert end
+
+          IF <fs_field_new> EQ <fs_field_old>.
+
+          ELSE.
+            "Add field to internal table
+DATA(fields) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = <component>-fieldname ) ). "JMB20210909 I
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
+
+
+SELECT * FROM /sew/int_fie_gen WHERE infty = @is_prelp_new-infty INTO TABLE @DATA(changed_infotyp).
+
+    LOOP AT fields ASSIGNING FIELD-SYMBOL(<field>).
+READ TABLE changed_infotyp WITH KEY molga = is_i001p-molga field = <field>-low ASSIGNING FIELD-SYMBOL(<ci>).
+      IF sy-subrc EQ 0.
+        IF <ci>-changeable_to LT sy-datum.
+          DATA(l_msg) = abap_true.
+        ENDIF.
+      ELSE.
+READ TABLE changed_infotyp WITH KEY molga = is_i001p-molga field = '*' ASSIGNING <ci>.
+        IF sy-subrc EQ 0.
+          IF <ci>-changeable_to LT sy-datum.
+            l_msg = abap_true.
+          ENDIF.
+        ELSE.
+READ TABLE changed_infotyp WITH KEY molga = '*' field = <field>-low ASSIGNING <ci>.
+          IF sy-subrc EQ 0.
+            IF <ci>-changeable_to LT sy-datum.
+              l_msg = abap_true.
+            ENDIF.
+          ELSE.
+READ TABLE changed_infotyp WITH KEY molga = '*' field = '*' ASSIGNING <ci>.
+            IF sy-subrc EQ 0.
+              IF <ci>-changeable_to LT sy-datum.
+                l_msg = abap_true.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+
+      IF l_msg EQ abap_true.
+        tabname = infty.
+        fieldname = <field>-low.
+
+        CALL FUNCTION 'DDIF_FIELDINFO_GET'
+          EXPORTING
+           tabname              = tabname
+           fieldname            = fieldname
+           langu                = sy-langu
+         TABLES
+           dfies_tab            = dfies_tab
+         EXCEPTIONS
+           not_found            = 1
+           internal_error       = 2
+           OTHERS               = 3
+                  .
+        READ TABLE dfies_tab INDEX 1 ASSIGNING FIELD-SYMBOL(<dfies>).
+       <dfies>-fieldtext = <dfies>-fieldtext && '(' && fieldname && ')'.
+        MESSAGE e003(/sew/customizing) WITH <dfies>-fieldtext.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD clear_fields.
     DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
           lr_struc_new   TYPE REF TO data,
@@ -856,6 +1038,7 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
 *    <fs_it_old> = it_record_old.
 
     DATA(lt_comp) = lr_structdescr->get_ddic_field_list( ).
+    ASSIGN COMPONENT 'subty' OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<subty>).
     "Processing relevant data
 *    DATA(rel_fields) = me->build_rel_fields( ).
 *    IF rel_fields IS NOT INITIAL.
@@ -872,7 +1055,7 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
 *          ENDIF.
 *          IF <fs_field_old> IS ASSIGNED AND <fs_field_new> IS ASSIGNED.
 *            TRANSLATE <fs_field_old> TO UPPER CASE.
-        IF ls_comp-datatype ne 'DEC'.
+        IF ls_comp-datatype NE 'DEC' AND ls_comp-datatype NE 'CURR'.
           TRANSLATE <fs_field_new> TO UPPER CASE.
         ENDIF.
         IF <fs_field_new> IS NOT INITIAL. "AND <fs_field_new> NE <fs_field_old>.
@@ -880,18 +1063,30 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
           ls_fields-field = ls_comp-fieldname.
 *              ls_fields-field_old = <fs_field_old>.
           ls_fields-field_new = <fs_field_new>.
+          ls_fields-infty = me->infty.
+          IF <subty> IS ASSIGNED.
+            ls_fields-subty = <subty>.
+          ENDIF.
           APPEND ls_fields TO fields.
         ELSEIF  <fs_field_new> = '0.00'. "AND <fs_field_new> NE <fs_field_old>.
 *              has_change = abap_true.
           ls_fields-field = ls_comp-fieldname.
 *              ls_fields-field_old = <fs_field_old>.
           ls_fields-field_new = <fs_field_new>.
+          ls_fields-infty = me->infty.
+          IF <subty> IS ASSIGNED.
+            ls_fields-subty = <subty>.
+          ENDIF.
           APPEND ls_fields TO fields.
         ELSEIF  <fs_field_new> = '0'. "AND <fs_field_new> NE <fs_field_old>.
 *              has_change = abap_true.
           ls_fields-field = ls_comp-fieldname.
 *              ls_fields-field_old = <fs_field_old>.
           ls_fields-field_new = <fs_field_new>.
+          ls_fields-infty = me->infty.
+          IF <subty> IS ASSIGNED.
+            ls_fields-subty = <subty>.
+          ENDIF.
           APPEND ls_fields TO fields.
         ENDIF.
 *          ENDIF.
@@ -929,8 +1124,22 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
         invalid_input   = 2
         OTHERS          = 3.
     IF sy-subrc = 0.
-      READ TABLE <ft_it_old> ASSIGNING FIELD-SYMBOL(<fs_it_old>) INDEX 1.
-      check <fs_it_old> is ASSIGNED.
+      LOOP AT <ft_it_old> ASSIGNING FIELD-SYMBOL(<fs_it_old>).
+        IF subty IS INITIAL.
+          EXIT.
+        ELSE.
+          ASSIGN COMPONENT /sew/cl_int_constants=>subty OF STRUCTURE <fs_it_old> TO FIELD-SYMBOL(<subty>).
+          IF <subty> IS ASSIGNED.
+            IF <subty> = subty.
+            ELSE.
+              CLEAR <fs_it_old>.
+              EXIT.
+            ENDIF.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+*      READ TABLE <ft_it_old> ASSIGNING FIELD-SYMBOL(<fs_it_old>) INDEX 1.
+      CHECK <fs_it_old> IS ASSIGNED.
       data = <fs_it_old>.
     ENDIF.
   ENDMETHOD.
@@ -1004,6 +1213,11 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
     ASSIGN lr_struc_old->* TO FIELD-SYMBOL(<fs_it_old>).
 *   Read last infotype entry
     ASSIGN COMPONENT 'SUBTY' OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<subty>).
+    ASSIGN COMPONENT 'ZZENTKM' OF STRUCTURE <fs_it_new> TO FIELD-SYMBOL(<entkm>).
+    IF <subty> IS ASSIGNED AND <subty> IS INITIAL AND <entkm> IS ASSIGNED AND <entkm> IS NOT INITIAL.
+      <subty> = '1'.
+      it_aend-subty = '1'.
+    ENDIF.
     /sew/cl_int_infty_delta=>get_last_infotype(
       EXPORTING
         pernr  = pernr
@@ -1023,16 +1237,30 @@ CLASS /SEW/CL_INT_INFTY_DELTA IMPLEMENTATION.
       ASSIGN COMPONENT ls_comp-fieldname OF STRUCTURE <fs_it_old> TO FIELD-SYMBOL(<fs_field_old>).
       CHECK <fs_field_new> IS ASSIGNED AND <fs_field_old> IS ASSIGNED.
 *     Check if field was deleted
-      READ TABLE fields WITH KEY field_sap = ls_comp-fieldname ASSIGNING FIELD-SYMBOL(<field_value>).
-      IF <field_value> IS ASSIGNED AND <field_value> = 'DELETED'.
-        CLEAR <fs_it_new>.
-        CONTINUE.
-      ENDIF.
+*      READ TABLE fields WITH KEY field_sap = ls_comp-fieldname ASSIGNING FIELD-SYMBOL(<field_value>).
+*      IF <field_value> IS ASSIGNED AND <field_value> = 'DELETED'.
+*        CLEAR <fs_it_new>.
+*        CONTINUE.
+*      ENDIF.
 *     Make actual change
-      IF <fs_field_new> IS ASSIGNED.
-        IF <fs_field_old> IS ASSIGNED.
-          IF <fs_field_new> IS INITIAL.
-            <fs_field_new> = <fs_field_old>.
+      IF infty = /sew/cl_int_constants=>it0027.
+      ELSE.
+        IF <fs_field_new> IS ASSIGNED.
+          IF <fs_field_old> IS ASSIGNED.
+            IF <fs_field_new> IS INITIAL.
+              IF it_aend-action NOT IN /sew/cl_int_constants=>termination_range.
+                <fs_field_new> = <fs_field_old>.
+              ENDIF.
+              LOOP AT fields ASSIGNING FIELD-SYMBOL(<field_value>) WHERE field_sap = ls_comp-fieldname AND begda LE stidat AND endda GE stidat AND value_converted = 'DELETED'.
+                CLEAR <fs_field_new>.
+              ENDLOOP.
+            ELSEIF <fs_field_new> = '000'.
+              <fs_field_new> = <fs_field_old>.
+            ELSEIF ls_comp-datatype NE 'NUMC' AND ls_comp-datatype NE 'DEC' AND ls_comp-datatype NE 'CURR'.
+              IF <fs_field_new> = '-'.
+                CLEAR <fs_field_new>.
+              ENDIF.
+            ENDIF.
           ENDIF.
         ENDIF.
       ENDIF.

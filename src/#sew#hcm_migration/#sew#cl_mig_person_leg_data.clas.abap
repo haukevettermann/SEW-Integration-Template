@@ -279,7 +279,7 @@ METHOD map_cofu_data.
       DATA(slart) = <p0022>-slart.
     ENDLOOP.
     IF sy-subrc EQ 0.
-      CONCATENATE sland '_' slart INTO highest_edu_level.
+*      CONCATENATE sland '_' slart INTO highest_edu_level.    "JMB20211202 D - Need to be clarified
     ELSE.
       highest_edu_level = ''.
     ENDIF.

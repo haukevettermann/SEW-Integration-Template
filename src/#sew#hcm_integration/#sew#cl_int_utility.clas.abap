@@ -17,7 +17,8 @@ public section.
       !BEGDA type DATS
       !ENDDA type DATS
       !OTYPE type OTYPE
-      !OBJID type HROBJID
+      !SOBID type SOBID optional
+      !OBJID type HROBJID optional
       !BUKRS type BUKRS optional
     returning
       value(OBJECT) type OBJEC .
@@ -110,6 +111,11 @@ public section.
       !SPRAS type SPRAS
     exporting
       !RETURN type BAPIRET1 .
+  class-methods MAP_MSG_TAB
+    importing
+      !MESSAGES type HRPAD_MESSAGE_TAB
+    returning
+      value(RETURN_TAB) type HRPAD_RETURN_TAB .
   class-methods MAP_SY_MSG
     importing
       !MSGID type SY-MSGID
@@ -140,6 +146,12 @@ public section.
       !TIME type TIMS
     returning
       value(TIME_EXT) type /SEW/DD_DATE_EXT .
+  class-methods GET_TIME_CONSTRAINT
+    importing
+      value(MV_INFTY) type CHAR4
+      value(MV_SUBTY) type CHAR4
+    returning
+      value(MV_TIMECONST) type CHAR1 .
 protected section.
 private section.
 ENDCLASS.
@@ -150,8 +162,7 @@ CLASS /SEW/CL_INT_UTILITY IMPLEMENTATION.
 
 
   METHOD build_object.
-    DATA: sobid TYPE sobid,
-          kostl TYPE c LENGTH 10.
+    DATA: kostl TYPE c LENGTH 10.
 *          kokrs TYPE kokrs.
     "Build child
     object-plvar = /sew/cl_int_constants=>plvar.
@@ -161,6 +172,7 @@ CLASS /SEW/CL_INT_UTILITY IMPLEMENTATION.
     object-objid = objid.
     object-istat = '1'.
     IF otype = /sew/cl_int_constants=>costcenter.
+      object-objid = sobid.
       "Get kostenrechnungskreis
 *      sobid = objid.
 *      CALL FUNCTION 'RH_GET_CONTROLLING_AREA'
@@ -180,7 +192,7 @@ CLASS /SEW/CL_INT_UTILITY IMPLEMENTATION.
 *      ENDIF.
       CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
         EXPORTING
-          input  = objid
+          input  = sobid+4(10)
         IMPORTING
           output = kostl.
 
@@ -189,9 +201,17 @@ CLASS /SEW/CL_INT_UTILITY IMPLEMENTATION.
 *      IF kokrs IS NOT INITIAL.
 *        CONCATENATE objid kokrs INTO object-realo.
 *      ELSE.
-      CONCATENATE kostl kokrs INTO object-realo.
+      DATA(leng) = strlen( kostl ).
+      IF leng LT 10.
+        DATA separator TYPE string.
+        WHILE leng LT 10.
+          CONCATENATE separator ' ' INTO separator RESPECTING BLANKS.
+          leng = leng + 1.
+        ENDWHILE.
+      ENDIF.
+      CONCATENATE kostl separator kokrs INTO object-realo.
 *      ENDIF.
-    ELSEIF otype = /sew/cl_int_constants=>position.
+    ELSEIF otype = /sew/cl_int_constants=>position OR otype = /sew/cl_int_constants=>orgunit.
       object-realo = objid.
     ENDIF.
 
@@ -401,9 +421,82 @@ ENDMETHOD.
       IMPORTING
         output = langu.
 
-    spras = 'E'.
-    langu = 'EN'.
+    DATA(project) = /sew/cl_int_utility=>check_project( molga ).
+    IF project = /sew/cl_int_constants=>cogl AND sy-cprog = '/SEW/RP_OM_AEND_POST'.
+      spras = 'E'.
+      langu = 'EN'.
+    ENDIF.
+  ENDMETHOD.
 
+
+  METHOD get_time_constraint.
+
+* Import mv_infty, mv_subty
+* Export mv_timeconst
+* Infty time Constraint Table T582A
+* SUBTY time COnstraint Table T591A
+
+*Check time constraint infty
+    SELECT SINGLE * FROM t582a INTO @DATA(infty) WHERE infty = @mv_infty.
+*      LOOP AT lt_infty ASSIGNING FIELD-SYMBOL(<fs_infty>).
+*        mv_timeconst = <fs_infty>-zeitb.
+*      ENDLOOP.
+
+*Check time constraint infty and subty
+    IF infty-zeitb = 'T'.
+      SELECT SINGLE * FROM t591a INTO @DATA(subty) WHERE infty = @mv_infty AND subty = @mv_subty.
+*      LOOP AT lt_subty ASSIGNING FIELD-SYMBOL(<fs_subty>).
+*        mv_timeconst = <fs_subty>-zeitb.
+*      ENDLOOP.
+      mv_timeconst = subty-zeitb.
+    ELSE.
+      mv_timeconst = infty-zeitb.
+    ENDIF.
+
+
+
+
+
+
+
+
+
+
+
+
+**Check time constraint infty
+*    IF mv_infty <> '' AND mv_subty = ''.
+*      SELECT * FROM t582a INTO TABLE @DATA(lt_infty).
+*      LOOP AT lt_infty ASSIGNING FIELD-SYMBOL(<fs_infty>) WHERE infty = mv_infty.
+*        mv_timeconst = <fs_infty>-zeitb.
+*      ENDLOOP.
+*
+**Check time constraint infty and subty
+*    ELSE.
+*      SELECT * FROM t591a INTO TABLE @DATA(lt_subty).
+*      LOOP AT lt_subty ASSIGNING FIELD-SYMBOL(<fs_subty>) WHERE infty = mv_infty AND subty = mv_subty.
+*        mv_timeconst = <fs_subty>-zeitb.
+*      ENDLOOP.
+*    ENDIF.
+*
+*  ENDMETHOD.
+*
+
+*    DATA: wa1 TYPE t582a,
+*            wa2 TYPE t591a.
+*
+**Check time constraint infty
+*    IF mv_infty <> '' AND mv_subty = ''.
+*      SELECT SINGLE * FROM t582a INTO wa1 WHERE infty = mv_infty.
+*      mv_timeconst = wa1-zeitb.
+*
+**Check time constraint infty and subty
+*    ELSE.
+*      SELECT SINGLE * FROM t591a INTO wa2 WHERE infty = mv_infty AND subty = mv_subty.
+*      mv_timeconst = wa2-zeitb.
+*    ENDIF.
+*
+*  ENDMETHOD.
   ENDMETHOD.
 
 
@@ -488,6 +581,28 @@ ENDMETHOD.
 *      COMMIT WORK AND WAIT.
       ENDIF.
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD map_msg_tab.
+    DATA: return LIKE LINE OF return_tab.
+
+    LOOP AT messages ASSIGNING FIELD-SYMBOL(<message>).
+      return = CORRESPONDING #( <message> ).
+      return-type = <message>-msgty.
+      return-id = <message>-msgid.
+      return-number = <message>-msgno.
+*      return-message = <message>-
+      return-message_v1 = <message>-msgv1.
+      return-message_v2 = <message>-msgv2.
+      return-message_v3 = <message>-msgv3.
+      return-message_v4 = <message>-msgv4.
+      /sew/cl_int_utility=>get_message( EXPORTING msgid = return-id msgno = return-number msgv1 = return-message_v1 msgv2 = return-message_v2
+                                      msgv3 = return-message_v3 msgv4 = return-message_v4
+                        IMPORTING message = return-message ).
+      APPEND return TO return_tab.
+      CLEAR: return.
+    ENDLOOP.
   ENDMETHOD.
 
 

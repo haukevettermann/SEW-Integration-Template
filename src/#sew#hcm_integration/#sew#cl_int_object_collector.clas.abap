@@ -20,6 +20,7 @@ public section.
     TYPES pernr_cloud TYPE char15.
     TYPES xml_node TYPE REF TO if_ixml_node.
     TYPES object_handler TYPE REF TO /sew/cl_int_object_handler.
+    TYPES projected_start_date type dats.
     TYPES END OF s_object .
   types:
     t_objects TYPE TABLE OF s_object .
@@ -104,7 +105,7 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
                                             THEN /sew/cl_int_constants=>country_code_path
                                             ELSE /sew/cl_int_constants=>country_code_path_om ).
 
-          DATA(object_rpt) = value rsdsselopt_t( ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>del_absence )
+          DATA(object_rpt) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>del_absence )
                                                  ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>del_attendance )
                                                  ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>balance ) ).
           DATA(person_number) = CONV string( '/PersonNumber' ).
@@ -116,7 +117,7 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
 
           "country code is needed for storage in IT_AEND
           me->read_country_code( EXPORTING customizing       = <customizing>
-                                           country_code_path = country_code_path
+                                           country_code_path = '//LegislativeCode' "country_code_path
                                            node              = lo_node
                                  IMPORTING bukrs        = DATA(bukrs)
                                            country_code = DATA(molga)
@@ -160,6 +161,7 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
 
               "get SAP own ID of actual object
               <object>-element_id_cloud = <customizing>-id_oracle.
+                CLEAR lv_value.
               /sew/cl_int_xml=>get_xpath_element( EXPORTING element_xpath = CONV #( <object>-element_id_cloud )
                                                             xml_node      = lo_node
                                                   IMPORTING value         = lv_value
@@ -174,9 +176,6 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
                                       IMPORTING value         = lv_value
                                                 message       = message ).
                 <object>-pernr_cloud = lv_value.
-
-**JMB20210823 start insert - fallback in case SAP PERNR wasn´t provided
-*
                 IF <object>-pernr_cloud IS NOT INITIAL AND
                    <object>-id_sap      IS INITIAL.
 
@@ -188,15 +187,16 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
                     CLEAR: pernr, lv_value.
                   ENDIF.
                 ENDIF.
-*JMB20210823 end insert, start delete
-*                IF sy-sysid = 'Q02'.
-*                  SELECT SINGLE pernr INTO @DATA(pernr) FROM pa9400 WHERE oraclepernr = @lv_value.
-*                  IF <object>-id_sap NE pernr.
-*                    <object>-id_sap = pernr.
-*                    CLEAR pernr.
-*                  ENDIF.
-*                ENDIF.
-*JMB20210823 delete end
+*               Get projected start date (Pending Hire)
+                CLEAR lv_value.
+                /sew/cl_int_xml=>get_xpath_element( EXPORTING element_xpath = |//JobInformation[AssStatusType = 'ACTIVE_PROCESS']/ProjectedStartDate|
+                                                xml_node      = lo_node
+                                      IMPORTING value         = lv_value
+                                                message       = message ).
+                IF lv_value IS NOT INITIAL.
+                  <object>-projected_start_date = /sew/cl_int_conversion=>convert_date( value_in = CONV #( lv_value ) ).
+                  clear lv_value.
+                ENDIF.
               ENDIF.
               FREE lo_node.
 
@@ -219,7 +219,7 @@ CLASS /SEW/CL_INT_OBJECT_COLLECTOR IMPLEMENTATION.
               processor->set_source_node( node = lo_node ).
             ENDIF.
           ENDIF.
-          CLEAR: molga, bukrs.
+          CLEAR: molga, bukrs, sap_id.
         ENDWHILE.
       ENDIF.
     ENDLOOP.
@@ -278,22 +278,29 @@ ENDMETHOD.
           IMPORTING
             value         = DATA(sap_id)
             message       = message ).
-        /sew/cl_int_xml=>get_xpath_element(
-          EXPORTING
-            element_xpath = CONV #( customizing-id_oracle )
-            xml_node      = node
-          IMPORTING
-            value         = DATA(cloud_id)
-            message       = message ).
+        SELECT SINGLE bukrs FROM pa0001 INTO bukrs WHERE pernr = sap_id AND begda <= sy-datum AND endda >= sy-datum.
+        SELECT SINGLE land1 FROM t001 WHERE bukrs = @bukrs INTO @DATA(land1).
+        IF sy-subrc IS INITIAL.
+          SELECT SINGLE molga FROM t500l INTO @country_code WHERE intca EQ @land1.
+        ENDIF.
+        IF country_code IS INITIAL.
+          /sew/cl_int_xml=>get_xpath_element(
+            EXPORTING
+              element_xpath = CONV #( customizing-id_oracle )
+              xml_node      = node
+            IMPORTING
+              value         = DATA(cloud_id)
+              message       = message ).
 *       Add message to returning parameter
-        message = VALUE bapiret1( type = /sew/cl_int_constants=>error
-                                  id = /sew/cl_int_constants=>msg_class_int
-                                  number = /sew/cl_int_constants=>msg_no-m7
-                                  message_v1 = customizing-object
-                                  message_v2 = sap_id
-                                  message_v3 = cloud_id
+          message = VALUE bapiret1( type = /sew/cl_int_constants=>error
+                                    id = /sew/cl_int_constants=>msg_class_int
+                                    number = /sew/cl_int_constants=>msg_no-m7
+                                    message_v1 = customizing-object
+                                    message_v2 = sap_id
+                                    message_v3 = cloud_id
 *                                  message_v4 =
-                                ).
+                                  ).
+        ENDIF.
       ENDIF.
       IF value IS INITIAL.
         /sew/cl_int_xml=>get_xpath_element(
@@ -308,7 +315,7 @@ ENDMETHOD.
 
       bukrs = value.
     ELSE.
-      SELECT SINGLE land1 FROM t001 WHERE bukrs = @value+0(4) INTO @DATA(land1).
+      SELECT SINGLE land1 FROM t001 WHERE bukrs = @value+0(4) INTO @land1.
       IF sy-subrc IS INITIAL.
         SELECT SINGLE molga FROM t500l INTO @country_code WHERE intca EQ @land1.
       ELSE.

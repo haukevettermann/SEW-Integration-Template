@@ -11,14 +11,6 @@
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
    </VSEOCLASS>
-   <DESCRIPTIONS>
-    <SEOCOMPOTX>
-     <CLSNAME>/SEW/CL_INT_ALV</CLSNAME>
-     <CMPNAME>DEFINE_NEW_ALV</CMPNAME>
-     <LANGU>D</LANGU>
-     <DESCRIPT>Neue ALV anlegen</DESCRIPT>
-    </SEOCOMPOTX>
-   </DESCRIPTIONS>
   </asx:values>
  </asx:abap>
 </abapGit>

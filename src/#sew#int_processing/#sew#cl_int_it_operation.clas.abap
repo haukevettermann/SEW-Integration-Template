@@ -18,10 +18,42 @@ public section.
       !BEGDA type SY-DATUM optional
       !ENDDA type SY-DATUM optional
       !INFTY type INFTY
+      !MASSN type MASSN optional
+      !SUBTY type SUBTY optional
+    exporting
+      !IS_OK type BOOLE_D
+      !MESSAGES type HRPAD_MESSAGE_TAB .
+  methods UPDATE_OMXXXX_DCIF
+    importing
+      !DATA type ANY
+      !PERNR type P_PERNR optional
+      !BEGDA type SY-DATUM optional
+      !ENDDA type SY-DATUM optional
+      !INFTY type INFTY
     exporting
       !IS_OK type BOOLE_D
       !MESSAGES type HRPAD_MESSAGE_TAB .
   methods CREATE_ACTION_DCIF
+    importing
+      !DATA type ANY
+      !PERNR type P_PERNR optional
+      !BEGDA type SY-DATUM optional
+      !ENDDA type SY-DATUM optional
+      !INFTY type INFTY
+    exporting
+      !IS_OK type BOOLE_D
+      !MESSAGES type HRPAD_MESSAGE_TAB .
+  methods DELETE_ACTION_DCIF
+    importing
+      !DATA type ANY
+      !PERNR type P_PERNR optional
+      !BEGDA type SY-DATUM optional
+      !ENDDA type SY-DATUM optional
+      !INFTY type INFTY
+    exporting
+      !IS_OK type BOOLE_D
+      !MESSAGES type HRPAD_MESSAGE_TAB .
+  methods UPDATE_ACTION_DCIF
     importing
       !DATA type ANY
       !PERNR type P_PERNR optional
@@ -41,6 +73,17 @@ public section.
       !SIMU type BOOLE_D optional
     exporting
       !RETURN type BAPIRET1 .
+  methods INSERT_PAXXXX_DCIF
+    importing
+      !DATA type ANY
+      !PERNR type P_PERNR optional
+      !BEGDA type SY-DATUM optional
+      !ENDDA type SY-DATUM optional
+      !INFTY type INFTY
+      !MASSN type MASSN
+    exporting
+      !IS_OK type BOOLE_D
+      !MESSAGES type HRPAD_MESSAGE_TAB .
   methods CREATE_PAXXXX_DCIF
     importing
       !IV_DATA type ANY
@@ -65,14 +108,14 @@ public section.
       !HRP_OLD type ANY .
   methods DELETE_PAXXXX_DCIF
     importing
-      !IV_PERNR type P_PERNR optional
-      !IV_BEGDA type SY-DATUM optional
-      !IV_ENDDA type SY-DATUM optional
-      !IV_ENTITY type CHAR50 optional
-      !IV_DATA type ANY optional
+      !PERNR type P_PERNR optional
+      !BEGDA type SY-DATUM optional
+      !ENDDA type SY-DATUM optional
+      !INFTY type INFTY
+      !ENTITY type CHAR50 optional
+      !DATA type ANY optional
     exporting
-      !EV_MESSAGE type BAPI_MSG
-      !ER_MESSAGE_LIST type ref to CL_HRPA_MESSAGE_LIST .
+      !MESSAGES type HRPAD_MESSAGE_TAB .
   methods MAINTAIN_RELATION
     importing
       !ACTION type OKCODE
@@ -90,11 +133,8 @@ public section.
     importing
       !IV_INFTY type INFTY
       !IV_SUBTY type SUBTY optional
-      !IV_BEGDA type SY-DATUM optional
-      !IV_ENDDA type SY-DATUM optional
+      !IV_STIDAT type SY-DATUM optional
       !IV_PERNR type P_PERNR optional
-      !EV_MESSAGE type BAPI_MSG
-      !ER_MESSAGE_LIST type ref to CL_HRPA_MESSAGE_LIST
       !IV_DATA type ANY optional
       !IV_ENTITY type CHAR50 optional
     exporting
@@ -123,6 +163,21 @@ public section.
     exporting
       !RETURN type BAPIRET1
       !HRP_OLD type ANY .
+  methods READ_HRP_TABXXXX
+    importing
+      !INFTY type INFTY
+      !SUBTY type SUBTY
+      !OTYPE type OTYPE
+      !LANGU type LAISO
+      !SAP_ID type HROBJID
+      !BEGDA type BEGDA
+      !ENDDA type ENDDA
+      !PLVAR type PLVAR
+      !RSIGN type RSIGN optional
+      !RELAT type RELAT optional
+    exporting
+      !RETURN type BAPIRET1
+      !HRP_OLD_TAB type STANDARD TABLE .
   methods CREATE_DUMMY_POS
     importing
       !BEGDA type DATS
@@ -160,6 +215,21 @@ public section.
     exporting
       !RETURN_TAB type HRPAD_RETURN_TAB
       !RECORD_TAB type STANDARD TABLE .
+  methods PERFORM_FUTURE_ACTION
+    importing
+      !RECORD type ANY
+      !INT_RUN type GUID_32
+      !ACTION type ACTIO
+      !INFTY type INFTY
+      !SUBTY type SUBTY optional
+      !BEGDA type DATS
+      !ENDDA type DATS
+      !PERNR type PERNR_D
+      !SIMU type BOOLE_D
+    exporting
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !RECORD_TAB type STANDARD TABLE
+      !IS_FUT_ACTION type BOOLE_D .
   methods PERFORM_REVERSE_TERMINATION
     importing
       !RECORD type ANY
@@ -290,6 +360,16 @@ public section.
       !RETURN_TAB type HRPAD_RETURN_TAB
       !RECORD_TAB type STANDARD TABLE
       !REVERSE_TERMINATION type BOOLE_D .
+  methods CHECK_FUTURE_ACTION
+    importing
+      !BEGDA type DATS
+      !ENDDA type DATS
+      !PERNR type PERNR_D
+      !SIMU type BOOLE_D
+    exporting
+      !RETURN_TAB type HRPAD_RETURN_TAB
+      !RECORD_TAB type STANDARD TABLE
+      !FUTURE_ACTION type BOOLE_D .
 protected section.
 
   data G_STARTDATE_0002 type BEGDA .
@@ -299,6 +379,36 @@ ENDCLASS.
 
 
 CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
+
+
+  METHOD check_future_action.
+
+    DATA: ret      LIKE LINE OF return_tab,
+          return   TYPE bapiret1,
+          tab_0000 TYPE STANDARD TABLE OF p0000,
+          tab_0001 TYPE STANDARD TABLE OF p0001.
+*          action         TYPE actio.
+
+    "Only perform reverse termination block if current record being processed is IT0000 and action not equal termination
+*    IF infty = /sew/cl_int_constants=>it0000 AND action NE /sew/cl_int_constants=>termination.
+    "Read IT0000 with time interval of new action
+    me->read_paxxxx( EXPORTING begda = endda
+                               endda = endda
+                               infty = CONV #( /sew/cl_int_constants=>it0000 )
+                               pernr = pernr
+                               simu  = simu
+                     IMPORTING return_tab = return_tab
+                               record_tab = tab_0000 ).
+    READ TABLE tab_0000 ASSIGNING FIELD-SYMBOL(<record_0000>) INDEX 1.
+    IF <record_0000> IS ASSIGNED AND <record_0000> IS NOT INITIAL.
+      "If current action is termination, reverse termination needs to take place else exit reverse termination block
+*      IF <record_0000>-massn = /sew/cl_int_constants=>termination.
+      future_action = abap_true.
+*      ENDIF.
+    ENDIF.
+    record_tab = tab_0000.
+*    ENDIF.
+  ENDMETHOD.
 
 
   METHOD check_reverse_termination.
@@ -518,6 +628,10 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
 
     ASSIGN COMPONENT 'MASSN' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massn>).
     ASSIGN COMPONENT 'MASSG' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massg>).
+
+*    IF <massn> IN /sew/cl_int_constants=>orgchange_range.
+*      <massg> = '01'.
+*    ENDIF.
 
     ls_update_mode-no_retroactivity = abap_true.
     CALL METHOD lr_masterdata_bl->insert
@@ -827,6 +941,193 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD delete_action_dcif.
+
+    DATA: it                     TYPE REF TO data,
+          lv_pernr               TYPE p_pernr,
+          lv_begda               TYPE begda,
+          lv_endda               TYPE endda,
+          lt_prelp               TYPE hrpad_prelp_tab,
+          lr_infty_reader        TYPE REF TO if_hrpa_read_infotype,
+          lr_message_list        TYPE REF TO cl_hrpa_message_list,
+          lr_masterdata_bl       TYPE REF TO if_hrpa_masterdata_bl,
+          container              TYPE REF TO if_hrpa_infty_container,
+          old_container          TYPE REF TO cl_hrpa_infotype_container,
+          new_container          TYPE REF TO if_hrpa_infty_container,
+          new_infotype_container TYPE REF TO cl_hrpa_infotype_container,
+          infotype_ref           TYPE REF TO data,
+          lv_is_ok               TYPE boole_d,
+          lv_dummy               TYPE string,
+          ls_msg                 TYPE symsg,
+          lv_massg               TYPE massg,
+          lv_massn               TYPE massn,
+          lv_begend              TYPE date,
+          lv_endbeg              TYPE date,
+          ls_message             TYPE hrpad_message,
+          entity_ref             TYPE REF TO data,
+          data_ref               TYPE REF TO data,
+          pnnnn_ref              TYPE REF TO data,
+          container_tab          TYPE hrpad_infty_container_tab,
+          container_if           TYPE hrpad_infty_container_ref,
+          t777d                  TYPE t777d,
+          lv_has_error           TYPE boole_d,
+          lv_count               TYPE i,
+          lv_offset              TYPE i,
+          lv_infotype            TYPE infty,
+          lv_entity              TYPE char50,
+          lt_messages            TYPE hrpad_message_tab,
+          ls_pa0000              TYPE p0000,
+          ls_pa0001              TYPE p0001,
+          ls_pa0004              TYPE p0004,
+          ls_pa0005              TYPE p0005,
+          ls_pa0014              TYPE p0014,
+          ls_pa0699              TYPE p0699,
+          ls_pa0017              TYPE p0017,
+          ls_pa0026              TYPE p0026,
+          ls_pa0029              TYPE p0029,
+          ls_pa0030              TYPE p0030,
+          ls_pa0032              TYPE p0032,
+          ls_pa0034              TYPE p0034,
+          ls_pa0041              TYPE p0041,
+          ls_pa0050              TYPE p0050,
+          ls_pa0105              TYPE p0105,
+          lv_cut_date_temp       TYPE begda,
+          lr_message             TYPE REF TO cl_hrpa_message_list,
+          ls_update_mode         TYPE hrpad_update_mode,
+          ls_0000_fut            TYPE p0000,
+          lt_0000_fut            TYPE TABLE OF p0000,
+          ls_0001_fut            TYPE p0001,
+          lt_0001_fut            TYPE TABLE OF p0001,
+          lv_date                TYPE sy-datum.
+
+
+    FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
+                   <pnnnn>    TYPE any,
+                   <ptnnnn>   TYPE ANY TABLE,
+                   <pskey>    TYPE pskey,
+                   <persk>    TYPE persk,
+                   <pxxxx>    TYPE any,
+                   <entity>   TYPE any,
+                   <data>     TYPE p0000,
+                   <struc>    TYPE any,
+                   <fs_pnnnn> TYPE ANY TABLE,
+                   <fs_endda> TYPE p0001-endda,
+                   <fs_begda> TYPE p0001-begda.
+
+    CONCATENATE 'P' infty INTO DATA(it_name).
+    CREATE DATA it TYPE (it_name).
+    ASSIGN it->* TO <struc>.
+    ASSIGN data TO <struc>.
+
+*    TRY.
+    CREATE OBJECT lr_message.
+
+    CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+      IMPORTING
+        business_logic = lr_masterdata_bl.
+
+    TRY.
+        CALL METHOD cl_hrpa_read_infotype=>get_instance
+          IMPORTING
+            infotype_reader = lr_infty_reader.
+      CATCH cx_hrpa_violated_assertion.
+    ENDTRY.
+
+    CHECK lr_masterdata_bl IS BOUND.
+
+    CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+      EXPORTING
+        date      = begda
+        days      = '1'
+        months    = '0'
+        signum    = '-'
+        years     = '0'
+      IMPORTING
+        calc_date = lv_cut_date_temp.
+
+    lv_date = begda - 1.
+***-----------------------------it0000--------------------------***
+*   Read old (existing) entry
+    CALL METHOD lr_masterdata_bl->read
+      EXPORTING
+        tclas           = 'A'
+        infty           = infty
+        pernr           = pernr
+        begda           = begda
+        endda           = endda
+        no_auth_check   = space
+        message_handler = lr_message
+      IMPORTING
+        container_tab   = container_tab
+        is_ok           = lv_is_ok.
+
+    IF lv_is_ok EQ abap_true.
+      DESCRIBE TABLE container_tab LINES lv_count.
+      IF lv_is_ok = abap_false.
+*        CALL METHOD lr_message->get_abend_list
+*          IMPORTING
+*            messages = lt_messages.
+*
+*        messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+*
+*        IF lt_messages IS INITIAL.
+*          CALL METHOD lr_message->get_error_list
+*            IMPORTING
+*              messages = lt_messages.
+*
+*          messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+      ENDIF.
+*      RETURN.
+*    ENDIF.
+      IF lv_count GT 0.
+*        READ TABLE container_tab INTO container INDEX lv_count.
+        LOOP AT container_tab INTO container.
+          IF sy-tabix = 1.
+            CONTINUE.
+          ENDIF.
+*   Old entry
+          old_container ?= container.
+
+          TRY.
+              CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
+                IMPORTING
+                  pnnnn_ref = infotype_ref.
+            CATCH cx_hrpa_violated_assertion.
+          ENDTRY.
+
+          ASSIGN COMPONENT 'MASSN' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massn>).
+          ASSIGN COMPONENT 'MASSG' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massg>).
+
+          ls_update_mode-no_retroactivity = abap_true.
+          CALL METHOD lr_masterdata_bl->delete
+            EXPORTING
+              container       = container
+              massn           = <massn>
+              massg           = <massg>
+              message_handler = lr_message
+              no_auth_check   = space
+              update_mode     = ls_update_mode
+            IMPORTING
+              is_ok           = lv_is_ok.
+
+          CALL METHOD lr_message->get_message_list
+            IMPORTING
+              messages = lt_messages.
+
+          messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+          IF lv_is_ok = abap_false.
+            RETURN.
+          ENDIF.
+          CLEAR: lt_messages.
+        ENDLOOP.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD delete_paxxxx.
 
     DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
@@ -945,10 +1246,10 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
   METHOD delete_paxxxx_dcif.
 
 
-    DATA: lv_pernr               TYPE p_pernr,
+    DATA: it                     TYPE REF TO data,
+          lv_pernr               TYPE p_pernr,
           lv_begda               TYPE begda,
           lv_endda               TYPE endda,
-          lc_hcm_globalhr_person TYPE REF TO /sew/cl_hcm_globalhr_person,
           lt_prelp               TYPE hrpad_prelp_tab,
           lr_infty_reader        TYPE REF TO if_hrpa_read_infotype,
           lr_message_list        TYPE REF TO cl_hrpa_message_list,
@@ -965,6 +1266,7 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
           lv_massn               TYPE massn,
           lv_begend              TYPE date,
           lv_endbeg              TYPE date,
+          ls_message             TYPE hrpad_message,
           entity_ref             TYPE REF TO data,
           data_ref               TYPE REF TO data,
           pnnnn_ref              TYPE REF TO data,
@@ -979,13 +1281,33 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
           lt_messages            TYPE hrpad_message_tab,
           ls_pa0000              TYPE p0000,
           ls_pa0001              TYPE p0001,
+          ls_pa0004              TYPE p0004,
+          ls_pa0005              TYPE p0005,
+          ls_pa0014              TYPE p0014,
+          ls_pa0699              TYPE p0699,
+          ls_pa0017              TYPE p0017,
+          ls_pa0026              TYPE p0026,
+          ls_pa0029              TYPE p0029,
+          ls_pa0030              TYPE p0030,
+          ls_pa0032              TYPE p0032,
+          ls_pa0034              TYPE p0034,
+          ls_pa0041              TYPE p0041,
           ls_pa0050              TYPE p0050,
-          ls_pa0105              TYPE p0105.
+          ls_pa0105              TYPE p0105,
+          lv_cut_date_temp       TYPE begda,
+          lr_message             TYPE REF TO cl_hrpa_message_list,
+          ls_update_mode         TYPE hrpad_update_mode,
+          ls_0000_fut            TYPE p0000,
+          lt_0000_fut            TYPE TABLE OF p0000,
+          ls_0001_fut            TYPE p0001,
+          lt_0001_fut            TYPE TABLE OF p0001,
+          lv_date                TYPE sy-datum.
 
     FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
                    <pnnnn>    TYPE any,
                    <ptnnnn>   TYPE ANY TABLE,
                    <pskey>    TYPE pskey,
+                   <persk>    TYPE persk,
                    <pxxxx>    TYPE any,
                    <entity>   TYPE any,
                    <data>     TYPE p0000,
@@ -994,407 +1316,116 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
                    <fs_endda> TYPE p0001-endda,
                    <fs_begda> TYPE p0001-begda.
 
+    CONCATENATE 'P' infty INTO DATA(it_name).
+    CREATE DATA it TYPE (it_name).
+    ASSIGN it->* TO <struc>.
+    ASSIGN data TO <struc>.
+
+*    TRY.
+    CREATE OBJECT lr_message.
+
+    CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+      IMPORTING
+        business_logic = lr_masterdata_bl.
+
     TRY.
-
-        CREATE OBJECT lr_message_list.
-
-        CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+        CALL METHOD cl_hrpa_read_infotype=>get_instance
           IMPORTING
-            business_logic = lr_masterdata_bl.
+            infotype_reader = lr_infty_reader.
+      CATCH cx_hrpa_violated_assertion.
+    ENDTRY.
 
-        TRY.
-            CALL METHOD cl_hrpa_read_infotype=>get_instance
-              IMPORTING
-                infotype_reader = lr_infty_reader.
-          CATCH cx_hrpa_violated_assertion .
-        ENDTRY.
+    CHECK lr_masterdata_bl IS BOUND.
 
-        CLEAR ls_pa0001.
-        CALL METHOD lr_masterdata_bl->read
-          EXPORTING
-            tclas           = 'A'
-            infty           = '0001'
-            pernr           = iv_pernr
-            begda           = iv_begda
-            endda           = iv_begda
-            no_auth_check   = space
-            message_handler = lr_message_list
-          IMPORTING
-            container_tab   = container_tab
-            is_ok           = lv_is_ok.
+    CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+      EXPORTING
+        date      = begda
+        days      = '1'
+        months    = '0'
+        signum    = '-'
+        years     = '0'
+      IMPORTING
+        calc_date = lv_cut_date_temp.
 
-        IF lv_is_ok EQ abap_true.
-          DESCRIBE TABLE container_tab LINES lv_count.
+    lv_date = begda - 1.
+***-----------------------------it0000--------------------------***
+*   Read old (existing) entry
+    CALL METHOD lr_masterdata_bl->read
+      EXPORTING
+        tclas           = 'A'
+        infty           = infty
+        pernr           = pernr
+        begda           = begda
+        endda           = endda
+        no_auth_check   = space
+        message_handler = lr_message
+      IMPORTING
+        container_tab   = container_tab
+        is_ok           = lv_is_ok.
 
-          IF lv_count GT 0.
-            READ TABLE container_tab INTO container INDEX lv_count.
-          ENDIF.
-        ENDIF.
-        IF container_tab IS NOT INITIAL.
+    IF lv_is_ok EQ abap_true.
+      DESCRIBE TABLE container_tab LINES lv_count.
+      IF lv_is_ok = abap_false.
+*        CALL METHOD lr_message->get_abend_list
+*          IMPORTING
+*            messages = lt_messages.
+*
+*        messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+*
+*        IF lt_messages IS INITIAL.
+*          CALL METHOD lr_message->get_error_list
+*            IMPORTING
+*              messages = lt_messages.
+*
+*          messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+      ENDIF.
+*      RETURN.
+*    ENDIF.
+      IF lv_count GT 0.
+*        READ TABLE container_tab INTO container INDEX lv_count.
+        LOOP AT container_tab INTO container.
+*          IF sy-tabix = 1.
+*            CONTINUE.
+*          ENDIF.
+*   Old entry
           old_container ?= container.
 
           TRY.
               CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
                 IMPORTING
                   pnnnn_ref = infotype_ref.
-            CATCH cx_hrpa_violated_assertion .
+            CATCH cx_hrpa_violated_assertion.
           ENDTRY.
 
-          UNASSIGN <pxxxx>.
+*          ASSIGN COMPONENT 'MASSN' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massn>).
+*          ASSIGN COMPONENT 'MASSG' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massg>).
 
-          ASSIGN infotype_ref->* TO <pxxxx>.
+          ls_update_mode-no_retroactivity = abap_true.
+          CALL METHOD lr_masterdata_bl->delete
+            EXPORTING
+              container       = container
+*             massn           = <massn>
+*             massg           = <massg>
+              message_handler = lr_message
+              no_auth_check   = space
+              update_mode     = ls_update_mode
+            IMPORTING
+              is_ok           = lv_is_ok.
 
-          MOVE <pxxxx> TO ls_pa0001.
-        ENDIF.
-
-        CHECK lr_masterdata_bl IS BOUND.
-
-        CALL METHOD lr_masterdata_bl->read
-          EXPORTING
-            tclas           = 'A'
-            infty           = '0000'
-            pernr           = iv_pernr
-            begda           = iv_begda
-            endda           = iv_endda
-            no_auth_check   = space
-            message_handler = er_message_list
-          IMPORTING
-            container_tab   = container_tab
-            is_ok           = lv_is_ok.
-
-        IF lv_is_ok EQ abap_true.
-          DESCRIBE TABLE container_tab LINES lv_count.
-
-          IF lv_count GT 0.
-            READ TABLE container_tab INTO container INDEX lv_count.
-          ENDIF.
-        ENDIF.
-
-        IF lv_is_ok = abap_false.
-          CALL METHOD lr_message_list->get_abend_list
+          CALL METHOD lr_message->get_message_list
             IMPORTING
               messages = lt_messages.
 
-          IF lt_messages IS INITIAL.
-            CALL METHOD lr_message_list->get_error_list
-              IMPORTING
-                messages = lt_messages.
+          messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+          IF lv_is_ok = abap_false.
+            RETURN.
           ENDIF.
-          RETURN.
-        ENDIF.
-
-        old_container ?= container.
-
-        TRY.
-            CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
-              IMPORTING
-                pnnnn_ref = infotype_ref.
-          CATCH cx_hrpa_violated_assertion .
-        ENDTRY.
-
-        ASSIGN infotype_ref->* TO <pxxxx>.
-        IF <pxxxx> IS ASSIGNED.
-          ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey>.
-          MOVE-CORRESPONDING <pxxxx> TO <pskey>.
-        ENDIF.
-
-        MOVE <pxxxx> TO ls_pa0000.
-        ls_pa0000-begda = iv_begda.
-        ls_pa0000-endda = iv_endda.
-        ls_pa0000-massn = '03'.
-
-        IF <pskey> IS ASSIGNED.
-          MOVE-CORRESPONDING ls_pa0000 TO <pskey>.
-        ENDIF.
-
-        READ TABLE container_tab INTO container_if  INDEX 1.
-        new_infotype_container ?= container_if.
-        new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-
-        new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0000 ).
-        new_container ?= new_infotype_container.
-
-        CALL METHOD lr_masterdata_bl->insert
-          EXPORTING
-            massn           = ls_pa0000-massn
-            message_handler = er_message_list
-            no_auth_check   = space
-          IMPORTING
-            is_ok           = lv_is_ok
-          CHANGING
-            container       = new_container.
-
-*        IF lv_is_ok = abap_true.
-*
-*          CLEAR: container_tab, new_infotype_container, old_container.
-*
-** mod it0001
-*          CALL METHOD lr_masterdata_bl->read
-*            EXPORTING
-*              tclas           = 'A'
-*              infty           = '0001'
-*              pernr           = iv_pernr
-*              begda           = iv_begda
-*              endda           = iv_begda
-*              no_auth_check   = space
-*              message_handler = lr_message_list
-*            IMPORTING
-*              container_tab   = container_tab
-*              is_ok           = lv_is_ok.
-*
-*          IF lv_is_ok EQ abap_true.
-*            DESCRIBE TABLE container_tab LINES lv_count.
-*
-*            IF lv_count GT 0.
-*              READ TABLE container_tab INTO container INDEX lv_count.
-*            ENDIF.
-*          ENDIF.
-*          IF container_tab IS NOT INITIAL.
-*            old_container ?= container.
-*
-*            TRY.
-*                CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
-*                  IMPORTING
-*                    pnnnn_ref = infotype_ref.
-*              CATCH cx_hrpa_violated_assertion .
-*            ENDTRY.
-*
-*            UNASSIGN <pxxxx>.
-*
-*            ASSIGN infotype_ref->* TO <pxxxx>.
-*
-*            MOVE <pxxxx> TO ls_pa0001.
-*
-*            ls_pa0001-begda = iv_begda.
-*            ls_pa0001-endda = iv_endda.
-*            ls_pa0001-persg = '6'.
-*
-*            IF <pxxxx> IS ASSIGNED.
-*              ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey>.
-*              MOVE-CORRESPONDING  ls_pa0001 TO <pskey>.
-*            ENDIF.
-*
-*            READ TABLE container_tab INTO container_if  INDEX 1.
-*            new_infotype_container ?= container_if.
-*            new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-*
-*            new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0001 ).
-*            new_container ?= new_infotype_container.
-*
-*            CALL METHOD lr_masterdata_bl->modify
-*              EXPORTING
-*                old_container   = old_container
-*                massn           = ls_pa0000-massn
-*                message_handler = lr_message_list
-*                no_auth_check   = space
-*              IMPORTING
-*                is_ok           = lv_is_ok
-*              CHANGING
-*                container       = new_container.
-*          ENDIF.
-*        ENDIF.
-
-* mod it0050
-        IF lv_is_ok = abap_true.
-*--------------------------------------------------------------------*
-* DE5SHAUK, 04.05.2018, MHP
-* Not only change infotype, also delimit position
-* Begin of change
-*--------------------------------------------------------------------*
-*         Read Position
-          SELECT * FROM hrp1001
-            INTO TABLE @DATA(t1001)
-            WHERE otype = 'P'
-            AND objid = @iv_pernr
-            AND sclas = 'S'.
-          IF sy-subrc IS INITIAL.
-            LOOP AT t1001 INTO DATA(s1001).
-              SELECT * FROM hrp1000
-                INTO TABLE @DATA(t1000)
-                WHERE otype = 'S'
-                AND objid = @s1001-sobid.
-*              AND objid = @ls_pa0001-plans.
-*            AND objid = @ls_pa0001-plans.
-              SORT t1000 BY begda ASCENDING.
-              READ TABLE t1000 INTO DATA(s1000) INDEX 1.
-*         Delimit Position
-              IF s1000-begda = iv_begda.
-                CALL FUNCTION 'RHOM_DELETE_OBJECT'
-                  EXPORTING
-                    plvar                  = '01'
-                    otype                  = s1000-otype
-                    objid                  = s1000-objid
-                    delete_from_date       = iv_begda
-                    delete_complete        = 'X'
-                  EXCEPTIONS
-                    error_during_delete    = 1
-                    enqueue_error          = 2
-                    wrong_delete_from_date = 3
-                    otype_not_supported    = 4
-                    OTHERS                 = 5.
-                IF sy-subrc <> 0.
-                  ev_message = 'Error during delete assignment, pleace contact your system administrator!'.
-                ENDIF.
-              ELSE.
-                CALL FUNCTION 'RHOM_DELETE_OBJECT'
-                  EXPORTING
-                    plvar                  = '01'
-                    otype                  = s1000-otype
-                    objid                  = s1000-objid
-                    delete_from_date       = iv_begda
-                    delete_complete        = ''
-                  EXCEPTIONS
-                    error_during_delete    = 1
-                    enqueue_error          = 2
-                    wrong_delete_from_date = 3
-                    otype_not_supported    = 4
-                    OTHERS                 = 5.
-                IF sy-subrc <> 0.
-                  ev_message = 'Error during delete assignment, pleace contact your system administrator!'.
-                ENDIF.
-              ENDIF.
-            ENDLOOP.
-          ENDIF.
-*--------------------------------------------------------------------*
-* End of change
-*--------------------------------------------------------------------*
-
-          CLEAR: container_tab, new_infotype_container, old_container.
-
-          CALL METHOD lr_masterdata_bl->read
-            EXPORTING
-              tclas           = 'A'
-              infty           = '0050'
-              pernr           = iv_pernr
-              begda           = iv_begda
-              endda           = iv_begda
-              no_auth_check   = space
-              message_handler = er_message_list
-            IMPORTING
-              container_tab   = container_tab
-              is_ok           = lv_is_ok.
-
-          IF lv_is_ok EQ abap_true.
-            DESCRIBE TABLE container_tab LINES lv_count.
-
-            IF lv_count GT 0.
-              READ TABLE container_tab INTO container INDEX lv_count.
-            ENDIF.
-          ENDIF.
-
-          IF container_tab IS NOT INITIAL.
-
-            old_container ?= container.
-
-            TRY.
-                CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
-                  IMPORTING
-                    pnnnn_ref = infotype_ref.
-              CATCH cx_hrpa_violated_assertion .
-            ENDTRY.
-
-            UNASSIGN <pxxxx>.
-
-            ASSIGN infotype_ref->* TO <pxxxx>.
-
-            MOVE <pxxxx> TO ls_pa0050.
-
-            ls_pa0050-endda = iv_begda.
-
-            IF <pxxxx> IS ASSIGNED.
-              ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey>.
-              MOVE-CORRESPONDING ls_pa0050 TO <pskey>.
-            ENDIF.
-
-            READ TABLE container_tab INTO container_if  INDEX 1.
-            new_infotype_container ?= container_if.
-            new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-
-            new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0050 ).
-            new_container ?= new_infotype_container.
-
-            CALL METHOD lr_masterdata_bl->modify
-              EXPORTING
-                old_container   = old_container
-                massn           = ls_pa0000-massn
-                message_handler = er_message_list
-                no_auth_check   = space
-              IMPORTING
-                is_ok           = lv_is_ok
-              CHANGING
-                container       = new_container.
-
-          ENDIF.
-        ENDIF.
-* mod 0105
-
-        CLEAR: container_tab, new_infotype_container, old_container.
-
-        IF lv_is_ok = abap_true.
-
-          CLEAR: container_tab, new_infotype_container, old_container.
-
-          CALL METHOD lr_masterdata_bl->read
-            EXPORTING
-              tclas           = 'A'
-              infty           = '0105'
-              pernr           = iv_pernr
-              begda           = iv_begda
-              endda           = iv_begda
-              no_auth_check   = space
-              message_handler = er_message_list
-            IMPORTING
-              container_tab   = container_tab
-              is_ok           = lv_is_ok.
-
-          IF lv_is_ok EQ abap_true.
-
-            LOOP AT container_tab INTO container.
-
-              old_container ?= container.
-
-              TRY.
-                  CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
-                    IMPORTING
-                      pnnnn_ref = infotype_ref.
-                CATCH cx_hrpa_violated_assertion .
-              ENDTRY.
-
-              UNASSIGN <pxxxx>.
-
-              ASSIGN infotype_ref->* TO <pxxxx>.
-
-              MOVE <pxxxx> TO ls_pa0105.
-              ls_pa0105-endda = iv_begda.
-
-              IF <pxxxx> IS ASSIGNED.
-                ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey>.
-                MOVE-CORRESPONDING ls_pa0105 TO <pskey>.
-              ENDIF.
-
-              new_infotype_container ?= container.
-              new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-
-              new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0105 ).
-              new_container ?= new_infotype_container.
-
-              CALL METHOD lr_masterdata_bl->modify
-                EXPORTING
-                  old_container   = old_container
-                  massn           = ls_pa0000-massn
-                  message_handler = er_message_list
-                  no_auth_check   = space
-                IMPORTING
-                  is_ok           = lv_is_ok
-                CHANGING
-                  container       = new_container.
-            ENDLOOP.
-          ENDIF.
-        ENDIF.
-
-      CATCH /iwbep/cx_mgw_busi_exception.
-      CATCH /iwbep/cx_mgw_tech_exception.
-    ENDTRY.
+          CLEAR: lt_messages.
+        ENDLOOP.
+      ENDIF.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -2020,6 +2051,130 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD insert_paxxxx_dcif.
+
+    DATA: it                    TYPE REF TO data,
+          lr_message_list       TYPE REF TO cl_hrpa_message_list,
+          lr_masterdata_bl      TYPE REF TO if_hrpa_masterdata_bl,
+          lr_container          TYPE REF TO if_hrpa_infty_container,
+          old_container         TYPE REF TO if_hrpa_infty_container,
+          new_container         TYPE REF TO if_hrpa_infty_container,
+          lr_container_data     TYPE REF TO if_hrpa_infty_container_data,
+          lc_infotype_container TYPE REF TO cl_hrpa_infotype_container,
+          lc_message_handler    TYPE REF TO cl_hrpay00_message_handler,
+          ls_pskey              TYPE pskey,
+          lv_ok                 TYPE xfeld,
+          rel_massn             TYPE massn,
+          ls_update_mode        TYPE hrpad_update_mode,
+          ls_message            LIKE LINE OF messages,
+          lt_messages           TYPE hrpad_message_tab,
+          lv_message            TYPE char50,
+          t777d                 TYPE t777d,
+          infotype_ref          TYPE REF TO data
+          .
+
+    FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
+                   <pnnnn>    TYPE any,
+                   <ptnnnn>   TYPE ANY TABLE,
+                   <pskey>    TYPE pskey,
+                   <pxxxx>    TYPE any,
+                   <data>     TYPE any,
+                   <struc>    TYPE any,
+                   <fs_pnnnn> TYPE any,
+                   <fs_begda> TYPE p0001-begda,
+                   <fs_endda> TYPE p0001-endda,
+                   <pernr>    TYPE pernr_d.
+
+    rel_massn = massn.
+
+    CONCATENATE 'P' infty INTO DATA(it_name).
+    CREATE DATA it TYPE (it_name).
+    ASSIGN it->* TO <struc>.
+    ASSIGN data TO <struc>.
+    ASSIGN COMPONENT 'PERNR' OF STRUCTURE <struc> TO <pernr>.
+*    <pernr> = '200673'.
+
+*    t777d = cl_hr_t777d=>read( infty = infty ).
+*    CREATE DATA infotype_ref TYPE (t777d-ppnnn).
+*    ASSIGN infotype_ref->* TO <pxxxx>.
+*
+*    ASSIGN infotype_ref->* TO <pnnnn> CASTING LIKE <pxxxx>.
+*    <pnnnn> = <pxxxx>.
+*    ASSIGN <pnnnn> TO <pshdr> CASTING.
+*    <pshdr>-infty = infty.
+*
+*    ASSIGN infotype_ref->* TO <struc> CASTING LIKE <pxxxx>.
+    ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <struc> TO <pskey>.
+*    ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <struc> TO <fs_begda>.
+*    ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <struc> TO <fs_endda>.
+
+* Create
+    TRY.
+        CLEAR ls_pskey.
+
+        CREATE OBJECT lr_message_list.
+
+*        MOVE <struc> TO ls_pskey.
+
+        CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+          IMPORTING
+            business_logic = lr_masterdata_bl.
+
+        CALL METHOD lr_masterdata_bl->get_infty_container
+          EXPORTING
+            tclas           = 'A'
+            pskey           = <pskey>
+            no_auth_check   = space
+            message_handler = lr_message_list
+          IMPORTING
+            container       = lr_container
+            is_ok           = is_ok.
+
+        lc_infotype_container ?= lr_container.
+        lc_infotype_container ?= lc_infotype_container->modify_key( <pskey> ).
+        lc_infotype_container ?= lc_infotype_container->modify_primary_record( <struc> ).
+        new_container         ?= lc_infotype_container.
+
+      CATCH cx_root.
+
+        ls_message-msgty = 'E'.
+        ls_message-msgid = 'ZHR_PA_INT'.
+        ls_message-msgno = 001. "Success
+        APPEND ls_message TO messages.
+        CLEAR: ls_message, lv_message.
+
+    ENDTRY.
+
+    IF is_ok IS NOT INITIAL.
+      IF massn = 'HC' OR massn = 'RT'.
+        CLEAR: rel_massn.
+      ENDIF.
+*      ls_update_mode-no_retroactivity = 'X'.
+      CALL METHOD lr_masterdata_bl->insert
+        EXPORTING
+*         old_container   = old_container
+          no_auth_check   = space
+          massn           = rel_massn
+          update_mode     = ls_update_mode
+          message_handler = lr_message_list
+        IMPORTING
+          is_ok           = is_ok
+        CHANGING
+          container       = new_container.
+    ENDIF.
+
+    lr_message_list->get_message_list(
+    IMPORTING
+      messages = lt_messages    " HR Stammdaten: Meldungsliste
+  ).
+    messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+    IF lr_message_list->has_error( ).
+      EXIT.
+    ELSE.
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD maintain_hrpxxxx.
 *    DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
 *          lr_tabledescr  TYPE REF TO cl_abap_tabledescr,
@@ -2416,7 +2571,8 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
           hrp_old_it     TYPE REF TO data,
           plvar          TYPE plvar,
           begda_new      TYPE dats,
-          is_manager     TYPE boole_d.
+          is_manager     TYPE boole_d,
+          procent        TYPE prozt.
 
     FIELD-SYMBOLS:  <hrp_old>     TYPE any.
     is_manager = abap_false.
@@ -2498,22 +2654,29 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
 
         ASSIGN COMPONENT /sew/cl_int_constants=>sobid OF STRUCTURE <hrp_old> TO FIELD-SYMBOL(<sobid_old>).
         IF child-objid NE <sobid_old>.
-          me->delimit_hrpxxxx(
-          EXPORTING
-            record       = <hrp_old>
-            begda        = begda
-            endda        = endda
-            infty        = CONV #( /sew/cl_int_constants=>it1001 )
-            delimit_date = delimit_date
-            IMPORTING
-              return     = return
-                              ).
+          IF <sobid_old> IS NOT INITIAL.
+            me->delimit_hrpxxxx(
+            EXPORTING
+              record       = <hrp_old>
+              begda        = begda
+              endda        = endda
+              infty        = CONV #( /sew/cl_int_constants=>it1001 )
+              delimit_date = delimit_date
+              IMPORTING
+                return     = return
+                                ).
 *        ret = CORRESPONDING #( return ).
 *        APPEND ret TO return_tab.
-          CLEAR: return.
+            CLEAR: return.
+          ENDIF.
         ENDIF.
       ENDIF.
 
+      IF is_manager = abap_true.
+        procent = ''.
+      ELSE.
+        procent = '100'.
+      ENDIF.
       plvar = /sew/cl_int_constants=>plvar.
       CALL FUNCTION 'RHOM_MAINTAIN_RELATION_BUFF'
         EXPORTING
@@ -2555,6 +2718,9 @@ CLASS /SEW/CL_INT_IT_OPERATION IMPLEMENTATION.
           return-type = /sew/cl_int_constants=>error.
         ENDIF.
       ELSE.
+*        IF sy-msgty = 'E'.
+*          return = /sew/cl_int_utility=>map_sy_msg( msgid = sy-msgid msgty = sy-msgty msgno = sy-msgno msgv1 = sy-msgv1 msgv2 = sy-msgv2 msgv3 = sy-msgv3 msgv4 = sy-msgv4 ).
+*        ENDIF.
         "Success create relation
 *      CALL FUNCTION 'RHOM_WRITE_BUFFER_TO_DB'.
 *      COMMIT WORK AND WAIT.
@@ -2873,6 +3039,81 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+  METHOD perform_future_action.
+
+    DATA: tab_0001     TYPE STANDARD TABLE OF p0001,
+          return_maint TYPE bapiret1,
+          ret          LIKE LINE OF return_tab.
+    FIELD-SYMBOLS: <record_new> TYPE any,
+                   <fs_it>      TYPE any.
+    ASSIGN record TO <record_new>.
+
+    CLEAR: is_fut_action.
+    "Check if reverse termination is necessary (if current action is a termination)
+    me->check_future_action(
+    EXPORTING
+      begda = begda
+      endda = endda
+      pernr = pernr
+      simu = simu
+      IMPORTING
+        future_action = is_fut_action
+        record_tab = record_tab
+    ).
+
+    "Check for reverse termination is true - continue with reverse termination logic
+    IF is_fut_action = abap_true.
+      "Delete termination action
+
+      DATA(infty_operation) = NEW /sew/cl_int_it_operation( int_run = int_run molga = molga pernr = pernr ).
+      ASSIGN record TO <fs_it>.
+
+      infty_operation->delete_action_dcif(
+      EXPORTING
+        begda = begda
+        endda = endda
+        data = <fs_it>
+        infty = infty
+        pernr = pernr
+        IMPORTING
+          is_ok = DATA(is_ok)
+          messages = DATA(messages)
+      ).
+
+      return_tab = CORRESPONDING #( messages ).
+
+      READ TABLE return_tab INTO DATA(return) WITH KEY type = /sew/cl_int_constants=>error.
+      IF return IS INITIAL.
+*          me->maintain_paxxxx(
+*          EXPORTING
+*            begda = begda
+*            endda = endda
+*            pernr = pernr
+*            infty = infty
+*            subty = subty
+*            record = <record_new> "<fs_record_old>
+*            operation = /sew/cl_int_constants=>infty_operation-pa_delete
+*            simu = simu
+*            IMPORTING
+*              return = return_maint
+*            ).
+*          IF return_maint IS NOT INITIAL."-type = /sew/cl_int_constants=>error.
+*            MOVE-CORRESPONDING return_maint TO ret.
+*            APPEND ret TO return_tab.
+*          ENDIF.
+*        me->read_paxxxx( EXPORTING begda = begda
+*                                  endda = begda
+*                                  infty = /sew/cl_int_constants=>it0001
+*                                  pernr = pernr
+*                                  simu  = simu
+*                        IMPORTING return_tab = return_tab
+*                                  record_tab = tab_0001 ).
+
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD perform_hire.
     DATA: prelp_tab      TYPE prelp_tab,
           prelp          TYPE prelp,
@@ -2923,6 +3164,7 @@ ENDMETHOD.
       IF aend_tmp-infty = '0001'.
         cl_hr_pnnnn_type_cast=>prelp_to_pnnnn( EXPORTING prelp = prelp
                                IMPORTING pnnnn = p0001 ).
+        bukrs = p0001-bukrs.
         cl_hr_pnnnn_type_cast=>pnnnn_to_prelp( EXPORTING pnnnn = p0001
                                 IMPORTING prelp = prelp ).
       ENDIF.
@@ -2991,7 +3233,8 @@ ENDMETHOD.
         CATCH cx_hrpa_missing_infty_data.
       ENDTRY.
     ENDIF.
-
+    SORT return_tab DESCENDING BY number.
+    DELETE ADJACENT DUPLICATES FROM return_tab.
     IF is_ok = abap_true.
       READ TABLE bapipakey_tab ASSIGNING FIELD-SYMBOL(<bapipakey>) INDEX 1.
       IF <bapipakey>-employeeno IS NOT INITIAL.
@@ -3179,6 +3422,86 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+  METHOD read_hrp_tabxxxx.
+    DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
+          lr_tabledescr  TYPE REF TO cl_abap_tabledescr,
+          lr_table       TYPE REF TO data.
+    FIELD-SYMBOLS:  <hrp_old_tab> TYPE STANDARD TABLE.
+
+    lr_structdescr ?= cl_abap_typedescr=>describe_by_name( CONV #( 'P' && infty ) ).
+    lr_tabledescr ?= cl_abap_tabledescr=>create( p_line_type = lr_structdescr ).
+    CREATE DATA lr_table TYPE HANDLE lr_tabledescr.
+    ASSIGN lr_table->* TO <hrp_old_tab>.
+
+*    IF infty = /sew/cl_int_constants=>it1000.
+    CALL FUNCTION 'RH_READ_INFTY'
+      EXPORTING
+*       AUTHORITY            = 'DISP'
+        with_stru_auth       = ' '
+        plvar                = plvar
+        otype                = otype
+        objid                = sap_id
+        infty                = infty
+*       ISTAT                = ' '
+*       EXTEND               = 'X'
+        subty                = subty
+        begda                = begda
+        endda                = endda
+*       CONDITION            = '00000'
+*       INFTB                = '1'
+*       SORT                 = 'X'
+*       VIA_T777D            = ' '
+      TABLES
+        innnn                = <hrp_old_tab>
+*       OBJECTS              =
+      EXCEPTIONS
+        all_infty_with_subty = 1
+        nothing_found        = 2
+        no_objects           = 3
+        wrong_condition      = 4
+        wrong_parameters     = 5
+        OTHERS               = 6.
+
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+*      return = /sew/cl_int_utility=>map_sy_msg( msgid = sy-msgid msgty = sy-msgty msgno = sy-msgno msgv1 = sy-msgv1 msgv2 = sy-msgv2 msgv3 = sy-msgv3 msgv4 = sy-msgv4 ).
+
+    ENDIF.
+*    ELSE.
+    IF <hrp_old_tab> IS NOT INITIAL.
+      LOOP AT <hrp_old_tab> ASSIGNING FIELD-SYMBOL(<hrp_old>).
+*        READ TABLE <hrp_old_tab> ASSIGNING FIELD-SYMBOL(<hrp_old>) INDEX 1.
+        "If IT is HRP1000 we need to get language specific entry
+        IF infty = /sew/cl_int_constants=>it1000.
+          ASSIGN COMPONENT 'LANGU' OF STRUCTURE <hrp_old> TO FIELD-SYMBOL(<langu>).
+          IF <langu> = langu.
+            APPEND <hrp_old> TO hrp_old_tab.
+*              EXIT.
+          ENDIF.
+        ELSEIF infty = /sew/cl_int_constants=>it1001.
+
+          IF rsign IS NOT INITIAL AND relat IS NOT INITIAL.
+*        READ TABLE <hrp_old_tab> ASSIGNING <hrp_old> WITH KEY langu = langu.
+
+            ASSIGN COMPONENT 'RELAT' OF STRUCTURE <hrp_old> TO FIELD-SYMBOL(<relat>).
+            ASSIGN COMPONENT 'RSIGN' OF STRUCTURE <hrp_old> TO FIELD-SYMBOL(<rsign>).
+            IF <relat> = relat AND <rsign> = rsign.
+              APPEND <hrp_old> TO hrp_old_tab.
+            ENDIF.
+
+          ENDIF.
+        ELSE.
+          IF <hrp_old> IS ASSIGNED.
+            APPEND <hrp_old> TO hrp_old_tab.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+*    ENDIF.
+*    ENDIF.
+  ENDMETHOD.
+
+
   METHOD read_paxxxx.
 
     DATA: lr_structdescr TYPE REF TO cl_abap_structdescr,
@@ -3291,9 +3614,10 @@ ENDMETHOD.
           EXPORTING
             tclas           = 'A'
             infty           = iv_infty
+            subty           = iv_subty
             pernr           = iv_pernr
-            begda           = iv_begda
-            endda           = iv_begda
+            begda           = iv_stidat
+            endda           = iv_stidat
             no_auth_check   = space
             message_handler = lr_message_list
           IMPORTING
@@ -3331,171 +3655,68 @@ ENDMETHOD.
 
           READ TABLE container_tab INTO container_if  INDEX 1.
           new_infotype_container ?= container_if.
-          new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-*          new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0000 ).
-          new_container ?= new_infotype_container.
+          IF <pskey> IS ASSIGNED.
+            new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
           ENDIF.
+*           new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0000 ).
+          new_container ?= new_infotype_container.
+        ENDIF.
 
-        CATCH /iwbep/cx_mgw_busi_exception.
-        CATCH /iwbep/cx_mgw_tech_exception.
-      ENDTRY.
-    ENDMETHOD.
-
-
-  METHOD read_teven.
-
-    DATA: ret    LIKE LINE OF return_tab,
-          return TYPE bapiret1.
-
-    CALL FUNCTION 'HR_EVENT_READ'
-      EXPORTING
-        pernr   = pernr
-        begda   = begda
-        endda   = endda
-      TABLES
-        mt      = record_tab
-        mt_more = record_more_tab.
-
-    IF sy-subrc <> 0.
-      return = /sew/cl_int_utility=>map_sy_msg( msgid = sy-msgid msgty = sy-msgty msgno = sy-msgno
-                                        msgv1 = sy-msgv1 msgv2 = sy-msgv2 msgv3 = sy-msgv3 msgv4 = sy-msgv4 ).
-      ret = CORRESPONDING #( return ).
-      APPEND ret TO return_tab.
-    ENDIF.
-
-  ENDMETHOD.
+      CATCH /iwbep/cx_mgw_busi_exception.
+      CATCH /iwbep/cx_mgw_tech_exception.
+    ENDTRY.
 
 
-  METHOD update_paxxxx_dcif.
-*    DATA: lv_pernr                    TYPE p_pernr,
-*          lv_begda                    TYPE begda,
-*          lv_endda                    TYPE endda,
-*          lc_hcm_globalhr_person      TYPE REF TO /sew/cl_hcm_globalhr_person,
-*          lt_prelp                    TYPE hrpad_prelp_tab,
-*          lr_infty_reader             TYPE REF TO if_hrpa_read_infotype,
-*          lr_message_list             TYPE REF TO cl_hrpa_message_list,
-*          lr_masterdata_bl            TYPE REF TO if_hrpa_masterdata_bl,
-*          container                   TYPE REF TO if_hrpa_infty_container,
-*          container_0000              TYPE REF TO if_hrpa_infty_container,
-*          container_0001              TYPE REF TO if_hrpa_infty_container,
-*          old_container               TYPE REF TO cl_hrpa_infotype_container,
-*          old_container_0000          TYPE REF TO cl_hrpa_infotype_container,
-*          old_container_0001          TYPE REF TO cl_hrpa_infotype_container,
-*          new_container               TYPE REF TO if_hrpa_infty_container,
-*          new_infotype_container      TYPE REF TO cl_hrpa_infotype_container,
-*          new_container_0000          TYPE REF TO if_hrpa_infty_container,
-*          new_infotype_container_0000 TYPE REF TO cl_hrpa_infotype_container,
-*          infotype_ref                TYPE REF TO data,
-*          infotype_ref_0000           TYPE REF TO data,
-*          new_container_0001          TYPE REF TO if_hrpa_infty_container,
-*          new_infotype_container_0001 TYPE REF TO cl_hrpa_infotype_container,
-*          infotype_ref_0001           TYPE REF TO data,
-*          lv_is_ok                    TYPE boole_d,
-*          lv_dummy                    TYPE string,
-*          ls_msg                      TYPE symsg,
-*          lv_massg                    TYPE massg,
-*          lv_massn                    TYPE massn,
-*          lv_begend                   TYPE date,
-*          lv_endbeg                   TYPE date,
-*          entity_ref                  TYPE REF TO data,
-*          data_ref                    TYPE REF TO data,
-*          pnnnn_ref                   TYPE REF TO data,
-*          container_tab               TYPE hrpad_infty_container_tab,
-*          container_tab_0000          TYPE hrpad_infty_container_tab,
-*          container_if                TYPE hrpad_infty_container_ref,
-*          container_if_0000           TYPE hrpad_infty_container_ref,
-*          container_tab_0001          TYPE hrpad_infty_container_tab,
-*          container_if_0001           TYPE hrpad_infty_container_ref,
-*          t777d                       TYPE t777d,
-*          lv_has_error                TYPE boole_d,
-*          lv_count                    TYPE i,
-*          lv_offset                   TYPE i,
-*          lv_infotype                 TYPE infty,
-*          lv_entity                   TYPE char50,
-*          lo_message_handler          TYPE REF TO if_hrpa_message_handler,
-*          lt_messages                 TYPE hrpad_message_tab,
-*          lv_message                  TYPE bapi_msg,
-*          lv_mess                     TYPE string,
-*          lo_hrpa_assertion           TYPE REF TO cx_hrpa_violated_assertion,
-*          ls_message                  TYPE hrpad_message,
-*          lw_msg1                     TYPE symsg,
-*          s_wd_return                 TYPE bapiret2,
-*          ls_update_mode              TYPE hrpad_update_mode,
-*          lt_it0001                   TYPE TABLE OF p0001,
-*          ls_it0001                   TYPE p0001,
-*          ls_hrp1001                  TYPE hrp1001,
-*          ls_hrp1000                  TYPE hrp1000.
+* Alte Methode
+*    METHOD read_paxxxx_dcif.
 *
-*    FIELD-SYMBOLS: <pshdr>      TYPE pshdr,
-*                   <pnnnn>      TYPE any,
-*                   <ptnnnn>     TYPE ANY TABLE,
-*                   <pskey>      TYPE pskey,
-*                   <pskey_0000> TYPE pskey,
-*                   <pskey_0001> TYPE pskey,
-*                   <pxxxx>      TYPE any,
-*                   <entity>     TYPE any,
-*                   <data>       TYPE any,
-*                   <struc>      TYPE any,
-*                   <fs_pnnnn>   TYPE ANY TABLE,
-*                   <fs_endda>   TYPE p0001-endda,
-*                   <fs_begda>   TYPE p0001-begda,
-*                   <persk_old>  TYPE persk,
-*                   <persk_new>  TYPE persk,
-*                   <kostl_old>  TYPE kostl,
-*                   <kostl_new>  TYPE kostl,
-*                   <persg>      TYPE persg,
-*                   <p0000>      TYPE p0000,
-*                   <p0001>      TYPE p0001,
-*                   <begda>      TYPE begda,
-*                   <endda>      TYPE endda,
-*                   <plans>      TYPE plans.
 *
+*    DATA: lr_structdescr         TYPE REF TO cl_abap_structdescr,
+*          record_old             TYPE REF TO data,
+*          lr_tabledescr          TYPE REF TO cl_abap_tabledescr,
+*          lr_table_old           TYPE REF TO data,
+*          lr_table               TYPE REF TO data,
+*          ret                    LIKE LINE OF return_tab,
+*          return                 TYPE bapiret1,
+*          lr_message_list        TYPE REF TO cl_hrpa_message_list,
+*          lr_masterdata_bl       TYPE REF TO if_hrpa_masterdata_bl,
+*          lr_infty_reader        TYPE REF TO if_hrpa_read_infotype,
+*          container_tab          TYPE hrpad_infty_container_tab,
+*          lv_is_ok               TYPE boole_d,
+*          lv_count               TYPE i,
+*          container              TYPE REF TO if_hrpa_infty_container,
+*          old_container          TYPE REF TO cl_hrpa_infotype_container,
+*          new_container          TYPE REF TO if_hrpa_infty_container,
+*          container_if           TYPE hrpad_infty_container_ref,
+*          infotype_ref           TYPE REF TO data,
+*          new_infotype_container TYPE REF TO cl_hrpa_infotype_container,
+*          lt_messages            TYPE hrpad_message_tab.
+*
+*    FIELD-SYMBOLS:
+*                   <pskey>          TYPE pskey.
+**    ASSIGN record TO <record_new>.
 *    TRY.
+*
 *        CREATE OBJECT lr_message_list.
-*        CREATE OBJECT lo_hrpa_assertion.
 *
 *        CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
 *          IMPORTING
 *            business_logic = lr_masterdata_bl.
 *
-*
 *        TRY.
 *            CALL METHOD cl_hrpa_read_infotype=>get_instance
 *              IMPORTING
 *                infotype_reader = lr_infty_reader.
-*            .
 *          CATCH cx_hrpa_violated_assertion .
 *        ENDTRY.
-*
-** Get infotype
-*        CREATE DATA entity_ref TYPE (iv_entity).
-*
-*        ASSIGN entity_ref->* TO <entity>.
-*        CLEAR lv_entity.
-*        MOVE iv_entity TO lv_entity.
-*        lv_offset = strlen( lv_entity ).
-*        lv_offset = lv_offset - 4.
-*        lv_entity = lv_entity+lv_offset.
-*        CLEAR lv_infotype.
-*        MOVE lv_entity TO lv_infotype.
-*        CONCATENATE 'p' lv_entity INTO lv_entity.
-*        CREATE DATA pnnnn_ref TYPE TABLE OF (lv_entity).
-*        ASSIGN pnnnn_ref->* TO <ptnnnn>.
-*        ASSIGN pnnnn_ref->* TO <struc>.
-*        ASSIGN iv_data TO <struc>.
-*        CHECK lr_masterdata_bl IS BOUND.
-*
-*        IF lv_infotype = '0002'.
-*          me->g_startdate_0002 = iv_begda.
-*        ENDIF.
-*
 *        CALL METHOD lr_masterdata_bl->read
 *          EXPORTING
 *            tclas           = 'A'
-*            infty           = lv_infotype
+*            infty           = iv_infty
+*            subty           = iv_subty
 *            pernr           = iv_pernr
-*            begda           = iv_begda
-*            endda           = iv_endda
+*            begda           = iv_stidat
+*            endda           = iv_stidat
 *            no_auth_check   = space
 *            message_handler = lr_message_list
 *          IMPORTING
@@ -3522,10 +3743,8 @@ ENDMETHOD.
 *          ENDIF.
 *          RETURN.
 *        ENDIF.
-*
-*        IF container IS NOT INITIAL.
+*        IF container_tab IS NOT INITIAL.
 *          old_container ?= container.
-*
 *          TRY.
 *              CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
 *                IMPORTING
@@ -3533,547 +3752,374 @@ ENDMETHOD.
 *            CATCH cx_hrpa_violated_assertion .
 *          ENDTRY.
 *
-*          ASSIGN infotype_ref->* TO <pxxxx>.
-*          t777d = cl_hr_t777d=>read( infty = lv_infotype ).
-*          CREATE DATA infotype_ref TYPE (t777d-ppnnn).
-*          ASSIGN infotype_ref->* TO <pnnnn> CASTING LIKE <pxxxx>.
-*          <pnnnn> = <pxxxx>.
-*          ASSIGN <pnnnn> TO <pshdr> CASTING.
-*          <pshdr>-infty = lv_infotype.
-*          ASSIGN infotype_ref->* TO <data> CASTING LIKE <pxxxx>.
-*          MOVE-CORRESPONDING <struc> TO <data>.
-*
-*        ELSE.
-*          FIELD-SYMBOLS  <field> TYPE any.
-*          CREATE DATA infotype_ref TYPE (lv_entity).
-*          ASSIGN infotype_ref->* TO <data>.
-*          MOVE-CORRESPONDING <struc> TO <data>.
-*
-*          ASSIGN COMPONENT 'INFTY' OF STRUCTURE <data> TO <field>.
-*          <field> = lv_infotype.
+*          READ TABLE container_tab INTO container_if  INDEX 1.
+*          new_infotype_container ?= container_if.
+*          IF <pskey> IS ASSIGNED.
+*            new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
+*          ENDIF.
+**           new_infotype_container ?= new_infotype_container->modify_primary_record( ls_pa0000 ).
+*          new_container ?= new_infotype_container.
 *        ENDIF.
-*
-** save kostl for
-*        ASSIGN COMPONENT 'KOSTL' OF STRUCTURE <pxxxx> TO <kostl_old>.
-*        ASSIGN COMPONENT 'KOSTL' OF STRUCTURE <data> TO <kostl_new>.
-**--------------------------------------------------------------------*
-** DE5SHAUK, 04.05.2018
-** In case of Change of Position, the old position should be delimited.
-** Begin of change 1: Save Position for later check.
-**--------------------------------------------------------------------*
-*        ASSIGN COMPONENT 'PLANS' OF STRUCTURE <pxxxx> TO FIELD-SYMBOL(<plans_old>).
-*        ASSIGN COMPONENT 'PLANS' OF STRUCTURE <data> TO FIELD-SYMBOL(<pans_new>).
-**--------------------------------------------------------------------*
-** End of change 1: Save Position for later check.
-**--------------------------------------------------------------------*
-*
-***********************************************************************
-** Change persk
-*        ASSIGN COMPONENT 'PERSK' OF STRUCTURE <pxxxx> TO <persk_old>.
-*        ASSIGN COMPONENT 'PERSK' OF STRUCTURE <data> TO <persk_new>.
-*
-*        IF <persk_old> IS  ASSIGNED AND <persk_new> IS ASSIGNED.
-*          IF <persk_old> NE <persk_new>.
-*            lv_massn = '02'.
-*            lv_massg = <persk_new>.
-** write IT0000
-*            CALL METHOD lr_masterdata_bl->read
-*              EXPORTING
-*                tclas           = 'A'
-*                infty           = '0000'
-*                pernr           = iv_pernr
-*                begda           = iv_begda
-*                endda           = iv_endda
-*                no_auth_check   = space
-*                message_handler = lr_message_list
-*              IMPORTING
-*                container_tab   = container_tab_0000
-*                is_ok           = lv_is_ok.
-*
-*            IF lv_is_ok EQ abap_true.
-*              DESCRIBE TABLE container_tab_0000 LINES lv_count.
-*
-*              IF lv_count GT 0.
-*                READ TABLE container_tab_0000 INTO container_0000 INDEX lv_count.
-*              ENDIF.
-*            ENDIF.
-*            old_container_0000 ?= container_0000.
-*            TRY.
-*                CALL METHOD old_container_0000->if_hrpa_infty_container_data~primary_record_ref
-*                  IMPORTING
-*                    pnnnn_ref = infotype_ref_0000.
-*              CATCH cx_hrpa_violated_assertion .
-*            ENDTRY.
-*            ASSIGN infotype_ref_0000->* TO <p0000>.
-*            ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <p0000> TO <pskey_0000>.
-*
-*            <p0000>-massn = '02'.
-*            <p0000>-begda = iv_begda.
-*            <p0000>-endda = iv_endda.
-*
-*            MOVE-CORRESPONDING <p0000> TO <pskey_0000>.
-*
-*            new_infotype_container_0000 ?= container_0000.
-*            new_infotype_container_0000 ?= new_infotype_container_0000->modify_key( <pskey_0000> ).
-*
-*            new_infotype_container_0000 ?= new_infotype_container_0000->modify_primary_record( <p0000> ).
-*            new_container_0000 ?= new_infotype_container_0000.
-*
-*            CALL METHOD lr_masterdata_bl->insert
-*              EXPORTING
-**               old_container   = old_container
-*                massn           = lv_massn
-*                massg           = lv_massg
-*                update_mode     = ls_update_mode
-*                message_handler = lr_message_list
-*                no_auth_check   = space
-*              IMPORTING
-*                is_ok           = lv_is_ok
-*              CHANGING
-*                container       = new_container_0000.
-*
-*          ENDIF.
-*        ENDIF.
-*
-***********************************************************************
-*
-*        ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <data> TO <pskey>.
-*        ASSIGN COMPONENT 'PERSG' OF STRUCTURE <data> TO <persg>.
-*
-*        lv_massn = '02'.
-*
-*        CALL METHOD lr_masterdata_bl->get_infty_container
-*          EXPORTING
-*            tclas           = 'A'
-*            pskey           = <pskey>
-*            no_auth_check   = abap_true
-*            message_handler = lr_message_list
-*          IMPORTING
-*            container       = container_if.
-*
-*        new_infotype_container ?= container_if.
-*        new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
-*
-*        new_infotype_container ?= new_infotype_container->modify_primary_record( <data> ).
-*        new_container ?= new_infotype_container.
-*
-*        ls_update_mode-no_retroactivity = 'X'.
-*
-*        IF NOT lv_infotype = '0003' OR NOT lv_infotype = '0709'.
-*
-**--------------------------------------------------------------------* + fgawlik 12.04.2017
-*          UNASSIGN: <begda>, <endda>.
-*
-*          CALL METHOD lr_masterdata_bl->read
-*            EXPORTING
-*              tclas           = 'A'
-*              infty           = '0001'
-*              pernr           = iv_pernr
-*              begda           = '19000101'
-*              endda           = '99991231'
-*              no_auth_check   = space
-*              message_handler = lr_message_list
-*            IMPORTING
-*              container_tab   = container_tab_0001
-*              is_ok           = lv_is_ok.
-*
-*          IF lv_is_ok EQ abap_true.
-*            CLEAR lv_count.
-*            DESCRIBE TABLE container_tab_0001 LINES lv_count.
-*            IF lv_count = 2. " Prüfung ob zwei Datensätze vorhanden sind, erst dann kann es sein das ein Fehler vorhanden ist
-*              READ TABLE container_tab_0001 INTO container_0001 INDEX 1.
-*              old_container_0001 ?= container_0001.
-*              TRY.
-*                  CALL METHOD old_container_0001->if_hrpa_infty_container_data~primary_record_ref
-*                    IMPORTING
-*                      pnnnn_ref = infotype_ref_0001.
-*                CATCH cx_hrpa_violated_assertion .
-*              ENDTRY.
-*
-*              ASSIGN infotype_ref_0001->* TO <p0001>.
-*              ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <p0001> TO <begda>.
-*              ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <p0001> TO <endda>.
-*
-** zu löschende Planstelle wegschreiben
-*
-*              UNASSIGN <plans>.
-*              ASSIGN COMPONENT 'PLANS' OF STRUCTURE <p0001> TO <plans>.
-*
-*            ELSE. " falls nur ein Datensatz vorhanden ist, darf keine aktion stattfinden.
-*
-*            ENDIF.
-*          ENDIF.
-*
-*          IF  <begda> IS ASSIGNED AND <endda> IS ASSIGNED.
-*            IF <begda> = <endda>.
-*              READ TABLE container_tab_0001 INTO container_0001 INDEX lv_count.
-*              old_container_0001 ?= container_0001.
-*              TRY.
-*                  CALL METHOD old_container_0001->if_hrpa_infty_container_data~primary_record_ref
-*                    IMPORTING
-*                      pnnnn_ref = infotype_ref_0001.
-*                CATCH cx_hrpa_violated_assertion .
-*              ENDTRY.
-*              ASSIGN infotype_ref_0001->* TO <p0001>.
-*              ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <p0001> TO <pskey_0001>.
-*
-*              <p0001>-begda = <begda>.
-*
-*              MOVE-CORRESPONDING <p0001> TO <pskey_0001>.
-*
-*              new_infotype_container_0001 ?= container_0001.
-*              new_infotype_container_0001 ?= new_infotype_container_0001->modify_key( <pskey_0001> ).
-*
-*              new_infotype_container_0001 ?= new_infotype_container_0001->modify_primary_record( <p0001> ).
-*              new_container_0001 ?= new_infotype_container_0001.
-*
-*              CALL METHOD lr_masterdata_bl->modify
-*                EXPORTING
-*                  old_container   = old_container_0001
-*                  massn           = lv_massn
-*                  massg           = lv_massg
-*                  update_mode     = ls_update_mode
-*                  message_handler = lr_message_list
-*                  no_auth_check   = space
-*                IMPORTING
-*                  is_ok           = lv_is_ok
-*                CHANGING
-*                  container       = new_container_0001.
-*
-*              IF lv_is_ok IS NOT INITIAL AND <plans> IS ASSIGNED.
-*
-*                DATA           lv_user        TYPE sy-uname.
-*                CALL FUNCTION 'IF_HR_ENQUEUE_OBJECT'
-*                  EXPORTING
-*                    plvar            = '01'
-*                    otype            = 'S'
-*                    objid            = <plans>
-**                   ENQUEUE_ONCE     = ' '
-*                  IMPORTING
-*                    lock_user        = lv_user
-*                  EXCEPTIONS
-*                    enqueue_failed   = 1
-*                    objid_is_initial = 2
-*                    illegal_otype    = 3
-*                    internal_error   = 4
-*                    OTHERS           = 5.
-*
-*                IF sy-subrc <> 0.
-*                  CONCATENATE 'Position is locked by User:' lv_user INTO ev_message.
-*                  EXIT.
-*                ENDIF.
-*
-*                CALL FUNCTION 'RHOM_DELETE_RELATIONS'
-*                  EXPORTING
-**                   PLVAR                  =
-*                    otype                  = 'S'
-*                    objid                  = <plans>
-**                   delete_from_date       = <p0001>-begda
-*                    delete_complete        = 'X'
-*                  EXCEPTIONS
-*                    no_active_plvar        = 1
-*                    enqueue_error          = 2
-*                    delete_error           = 3
-*                    wrong_delete_from_date = 4
-*                    OTHERS                 = 5.
-*
-*                IF sy-subrc = 0.
-*
-*                  CALL FUNCTION 'RHOM_DELETE_OBJECT'
-*                    EXPORTING
-*                      plvar                  = '01'
-*                      otype                  = 'S'
-*                      objid                  = <plans>
-**                     delete_from_date       = iv_cut_date
-*                      delete_complete        = 'X'
-*                    EXCEPTIONS
-*                      error_during_delete    = 1
-*                      enqueue_error          = 2
-*                      wrong_delete_from_date = 3
-*                      otype_not_supported    = 4
-*                      OTHERS                 = 5.
-**
-*                  IF sy-subrc <> 0.
-*                    ev_message = 'Error during delete assignment, pleace contact your system administrator!'.
-*                  ENDIF.
-*                ENDIF.
-*              ENDIF.
-*            ELSE.
-*
-*              TRY.
-*                  CALL METHOD lr_masterdata_bl->insert
-*                    EXPORTING
-**                     old_container   = old_container
-*                      massn           = lv_massn
-*                      massg           = lv_massg
-*                      update_mode     = ls_update_mode
-*                      message_handler = lr_message_list
-*                      no_auth_check   = space
-*                    IMPORTING
-*                      is_ok           = lv_is_ok
-*                    CHANGING
-*                      container       = new_container.
-*                CATCH cx_hrpa_violated_assertion .
-*              ENDTRY.
-*
-*              IF  lv_is_ok = abap_false.
-*                CALL METHOD lr_masterdata_bl->modify
-*                  EXPORTING
-*                    old_container   = new_container
-*                    massn           = lv_massn
-*                    massg           = lv_massg
-*                    update_mode     = ls_update_mode
-*                    message_handler = lr_message_list
-*                    no_auth_check   = space
-*                  IMPORTING
-*                    is_ok           = lv_is_ok
-*                  CHANGING
-*                    container       = new_container.
-*              ENDIF.
-*            ENDIF.
-*          ELSE.
-**--------------------------------------------------------------------* + fgawlik 12.04.2017
-*            TRY.
-*                CALL METHOD lr_masterdata_bl->insert
-*                  EXPORTING
-**                   old_container   = old_container
-*                    massn           = lv_massn
-*                    massg           = lv_massg
-*                    update_mode     = ls_update_mode
-*                    message_handler = lr_message_list
-*                    no_auth_check   = space
-*                  IMPORTING
-*                    is_ok           = lv_is_ok
-*                  CHANGING
-*                    container       = new_container.
-*              CATCH cx_hrpa_violated_assertion .
-*            ENDTRY.
-*
-*            IF  lv_is_ok = abap_false.
-*              CALL METHOD lr_masterdata_bl->modify
-*                EXPORTING
-*                  old_container   = new_container
-*                  massn           = lv_massn
-*                  massg           = lv_massg
-*                  update_mode     = ls_update_mode
-*                  message_handler = lr_message_list
-*                  no_auth_check   = space
-*                IMPORTING
-*                  is_ok           = lv_is_ok
-*                CHANGING
-*                  container       = new_container.
-*            ENDIF.
-*          ENDIF.
-*** change costcenter
-*          IF <kostl_old> IS ASSIGNED AND <kostl_new> IS ASSIGNED.
-*            IF <kostl_old> NE <kostl_new>.
-*              DATA: ls_parent_orgunit TYPE objec,
-*                    ls_child_orgunit  TYPE objec,
-*                    lv_kokrs          TYPE kokrs,
-*                    lt_existence      TYPE TABLE OF hroexist,
-*                    lv_objid          TYPE plog-objid,
-*                    lv_objid_temp     TYPE wplog-objid.
-*
-*              UNASSIGN <plans>.
-*              ASSIGN COMPONENT 'PLANS' OF STRUCTURE <data> TO <plans>.
-*
-*              CLEAR: lv_objid_temp.
-*
-*              IF <plans> IS ASSIGNED.
-*                lv_objid_temp = <plans>.
-*
-*                CALL FUNCTION 'RH_GET_CONTROLLING_AREA'
-*                  EXPORTING
-*                    plvar         = '01'
-*                    otype         = 'S '
-*                    objid         = lv_objid_temp
-*                    find_kokrs_up = 'X'
-*                  IMPORTING
-*                    kokrs         = lv_kokrs
-*                  EXCEPTIONS
-*                    not_found     = 1
-*                    OTHERS        = 2.
-*
-*                IF sy-subrc <> 0.
-** Implement suitable error handling here
-*                ENDIF.
-*
-*                CONCATENATE <kostl_new> lv_kokrs INTO ls_child_orgunit-realo.
-*                CALL FUNCTION 'RH_READ_OBJECT'
-*                  EXPORTING
-*                    begda     = iv_begda
-*                    endda     = iv_endda
-*                    realo     = ls_child_orgunit-realo
-*                    otype     = 'K '
-*                    plvar     = '01'
-*                  IMPORTING
-*                    ostat     = ls_child_orgunit-istat
-*                    obeg      = ls_child_orgunit-begda
-*                    oend      = ls_child_orgunit-endda
-*                    short     = ls_child_orgunit-short
-*                    stext     = ls_child_orgunit-stext
-*                  EXCEPTIONS
-*                    not_found = 1.
-*
-*                ls_child_orgunit-otype = 'K '.
-*                ls_child_orgunit-short = <kostl_new>.
-*                ls_child_orgunit-stext = <kostl_new>.
-*
-*
-*                lv_objid = <plans>.
-*                CALL FUNCTION 'RH_READ_OBJECT'
-*                  EXPORTING
-*                    plvar           = '01'
-*                    otype           = 'S '
-*                    objid           = lv_objid
-*                    begda           = lv_begda
-*                    endda           = lv_endda
-*                    check_stru_auth = 'X'
-*                  IMPORTING
-*                    obeg            = ls_parent_orgunit-begda
-*                    oend            = ls_parent_orgunit-endda
-*                    histo           = ls_parent_orgunit-histo
-*                    short           = ls_parent_orgunit-short
-*                    stext           = ls_parent_orgunit-stext
-*                    tistat          = ls_parent_orgunit-istat
-*                  TABLES
-*                    existence       = lt_existence
-*                  EXCEPTIONS
-*                    not_found       = 1
-*                    OTHERS          = 2.
-*
-*                ls_parent_orgunit-plvar = '01'.
-*                ls_parent_orgunit-otype = 'S '.
-*                ls_parent_orgunit-objid = <plans>.
-*                ls_parent_orgunit-realo = <plans>.
-*
-**** Maintain Buffer for child relation
-*                CALL FUNCTION 'RHOM_MAINTAIN_RELATION_BUFF'
-*                  EXPORTING
-*                    act_fcode       = 'INSE'
-*                    vbegda          = iv_begda
-*                    vendda          = iv_endda
-*                    parent_object   = ls_parent_orgunit
-*                    act_infty       = '1001'
-*                    act_rsign       = 'A'
-*                    act_relat       = '011'
-*                    child_object    = ls_child_orgunit
-*                  EXCEPTIONS
-*                    no_active_plvar = 1
-*                    no_authority    = 2
-*                    write_error     = 3
-*                    OTHERS          = 4.
-*
-*                CASE sy-subrc.
-*                  WHEN 1.
-*                    ev_message = 'No active planning version!'.
-*                  WHEN 2.
-*                    ev_message = 'No authority!'.
-*                  WHEN 3.
-*                    ev_message = 'Write error while updating infotype'.
-*                  WHEN 4.
-*                    ev_message = 'Internal error!'.
-*                ENDCASE.
-*              ENDIF.
-*            ENDIF.
-*          ENDIF.
-*
-*          IF lr_message_list->has_error( ) = abap_true.
-*            TRY.
-*                CALL METHOD lr_message_list->get_error_list
-*                  IMPORTING
-*                    messages = lt_messages.
-*
-*                IF lt_messages IS NOT INITIAL.
-*                  LOOP AT lt_messages INTO ls_message.
-*                    MOVE-CORRESPONDING ls_message TO lw_msg1.
-*                    CALL FUNCTION 'BALW_BAPIRETURN_GET2'
-*                      EXPORTING
-*                        type   = lw_msg1-msgty
-*                        cl     = lw_msg1-msgid
-*                        number = lw_msg1-msgno
-*                        par1   = lw_msg1-msgv1
-*                        par2   = lw_msg1-msgv2
-*                        par3   = lw_msg1-msgv3
-*                        par4   = lw_msg1-msgv4
-*                      IMPORTING
-*                        return = s_wd_return.
-*
-*                    ev_message = s_wd_return-message.
-*
-*                  ENDLOOP.
-*                ENDIF.
-*              CATCH cx_hrpa_violated_assertion .
-*            ENDTRY.
-*          ENDIF.
-**--------------------------------------------------------------------*
-** DE5SHAUK, 04.05.2018
-** In case of Change of Position, the old position should be delimited.
-** Begin of change 1: Delimit Position and Relations.
-**--------------------------------------------------------------------*
-**         Read Position
-*          IF ( <plans_old> IS ASSIGNED AND <plans> IS ASSIGNED ) AND <plans> NE <plans_old>.
-*            SELECT * FROM hrp1000
-*              INTO TABLE @DATA(t1000)
-*              WHERE otype = 'S'
-*              AND objid = @<plans_old>.
-*            SORT t1000 BY begda ASCENDING.
-*            READ TABLE t1000 INTO DATA(s1000) INDEX 1.
-**         Delimit Position
-*            IF s1000-begda = iv_begda.
-*              CALL FUNCTION 'RHOM_DELETE_OBJECT'
-*                EXPORTING
-*                  plvar                  = '01'
-*                  otype                  = s1000-otype
-*                  objid                  = s1000-objid
-*                  delete_from_date       = iv_begda
-*                  delete_complete        = 'X'
-*                EXCEPTIONS
-*                  error_during_delete    = 1
-*                  enqueue_error          = 2
-*                  wrong_delete_from_date = 3
-*                  otype_not_supported    = 4
-*                  OTHERS                 = 5.
-*              IF sy-subrc <> 0.
-*                ev_message = 'Error during delete assignment, pleace contact your system administrator!'.
-*              ENDIF.
-*            ELSE.
-*              CALL FUNCTION 'RHOM_DELETE_OBJECT'
-*                EXPORTING
-*                  plvar                  = '01'
-*                  otype                  = s1000-otype
-*                  objid                  = s1000-objid
-*                  delete_from_date       = iv_begda
-*                  delete_complete        = ''
-*                EXCEPTIONS
-*                  error_during_delete    = 1
-*                  enqueue_error          = 2
-*                  wrong_delete_from_date = 3
-*                  otype_not_supported    = 4
-*                  OTHERS                 = 5.
-*              IF sy-subrc <> 0.
-*                ev_message = 'Error during delete assignment, pleace contact your system administrator!'.
-*              ENDIF.
-*            ENDIF.
-*          ENDIF.
-**--------------------------------------------------------------------*
-** End of change 1: Delimit Position and Relations.
-**--------------------------------------------------------------------*
-*        ENDIF.
-**        ENDIF. "DE5RETST, 20160811 (MHP)
-*
-*
 *
 *      CATCH /iwbep/cx_mgw_busi_exception.
 *      CATCH /iwbep/cx_mgw_tech_exception.
 *    ENDTRY.
+*  ENDMETHOD.
+  ENDMETHOD.
+
+
+  METHOD read_teven.
+
+    DATA: ret    LIKE LINE OF return_tab,
+          return TYPE bapiret1.
+
+    CALL FUNCTION 'HR_EVENT_READ'
+      EXPORTING
+        pernr   = pernr
+        begda   = begda
+        endda   = endda
+      TABLES
+        mt      = record_tab
+        mt_more = record_more_tab.
+
+    IF sy-subrc <> 0.
+      return = /sew/cl_int_utility=>map_sy_msg( msgid = sy-msgid msgty = sy-msgty msgno = sy-msgno
+                                        msgv1 = sy-msgv1 msgv2 = sy-msgv2 msgv3 = sy-msgv3 msgv4 = sy-msgv4 ).
+      ret = CORRESPONDING #( return ).
+      APPEND ret TO return_tab.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD update_action_dcif.
+
+    DATA: it                     TYPE REF TO data,
+          lv_pernr               TYPE p_pernr,
+          lv_begda               TYPE begda,
+          lv_endda               TYPE endda,
+          lt_prelp               TYPE hrpad_prelp_tab,
+          lr_infty_reader        TYPE REF TO if_hrpa_read_infotype,
+          lr_message_list        TYPE REF TO cl_hrpa_message_list,
+          lr_masterdata_bl       TYPE REF TO if_hrpa_masterdata_bl,
+          container              TYPE REF TO if_hrpa_infty_container,
+          old_container          TYPE REF TO cl_hrpa_infotype_container,
+          new_container          TYPE REF TO if_hrpa_infty_container,
+          new_infotype_container TYPE REF TO cl_hrpa_infotype_container,
+          infotype_ref           TYPE REF TO data,
+          lv_is_ok               TYPE boole_d,
+          lv_dummy               TYPE string,
+          ls_msg                 TYPE symsg,
+          lv_massg               TYPE massg,
+          lv_massn               TYPE massn,
+          ls_message             TYPE hrpad_message,
+          entity_ref             TYPE REF TO data,
+          data_ref               TYPE REF TO data,
+          pnnnn_ref              TYPE REF TO data,
+          container_tab          TYPE hrpad_infty_container_tab,
+          container_if           TYPE hrpad_infty_container_ref,
+          t777d                  TYPE t777d,
+          lv_has_error           TYPE boole_d,
+          lv_count               TYPE i,
+          lv_offset              TYPE i,
+          lt_messages            TYPE hrpad_message_tab,
+          lv_cut_date_temp       TYPE begda,
+          lr_message             TYPE REF TO cl_hrpa_message_list,
+          ls_update_mode         TYPE hrpad_update_mode.
+
+
+    FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
+                   <pnnnn>    TYPE any,
+                   <ptnnnn>   TYPE ANY TABLE,
+                   <pskey>    TYPE pskey,
+                   <persk>    TYPE persk,
+                   <pxxxx>    TYPE any,
+                   <struc>    TYPE any,
+                   <fs_pnnnn> TYPE ANY TABLE,
+                   <fs_endda> TYPE p0001-endda,
+                   <fs_begda> TYPE p0001-begda.
+
+
+    CONCATENATE 'P' infty INTO DATA(it_name).
+    CREATE DATA it TYPE (it_name).
+    ASSIGN it->* TO <struc>.
+    ASSIGN data TO <struc>.
+*    ASSIGN COMPONENT 'PERNR' OF STRUCTURE <struc> TO <pernr>.
+
+    ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <struc> TO <pskey>.
+
+*    TRY.
+    CREATE OBJECT lr_message.
+
+    CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+      IMPORTING
+        business_logic = lr_masterdata_bl.
+
+    TRY.
+        CALL METHOD cl_hrpa_read_infotype=>get_instance
+          IMPORTING
+            infotype_reader = lr_infty_reader.
+      CATCH cx_hrpa_violated_assertion.
 *
-*    er_message_list = lr_message_list.
+    ENDTRY.
+
+    CHECK lr_masterdata_bl IS BOUND.
+
+    CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+      EXPORTING
+        date      = begda
+        days      = '1'
+        months    = '0'
+        signum    = '-'
+        years     = '0'
+      IMPORTING
+        calc_date = lv_cut_date_temp.
+
+*   Read old (existing) entry
+    CALL METHOD lr_masterdata_bl->read
+      EXPORTING
+        tclas           = 'A'
+        infty           = infty
+        pernr           = pernr
+        begda           = begda
+        endda           = endda
+        no_auth_check   = space
+        message_handler = lr_message
+      IMPORTING
+        container_tab   = container_tab
+        is_ok           = lv_is_ok.
+
+    IF lv_is_ok EQ abap_true.
+      DESCRIBE TABLE container_tab LINES lv_count.
+
+      IF lv_count GT 0.
+        READ TABLE container_tab INTO container INDEX lv_count.
+      ENDIF.
+    ENDIF.
+
+    IF lv_is_ok = abap_false.
+      CALL METHOD lr_message->get_abend_list
+        IMPORTING
+          messages = lt_messages.
+
+      messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+      IF lt_messages IS INITIAL.
+        CALL METHOD lr_message->get_error_list
+          IMPORTING
+            messages = lt_messages.
+
+        messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+*   Old entry
+    old_container ?= container.
+
+    TRY.
+        CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
+          IMPORTING
+            pnnnn_ref = infotype_ref.
+      CATCH cx_hrpa_violated_assertion.
+    ENDTRY.
+
+*   Transfer old infotype key to write Measure
+    ASSIGN infotype_ref->* TO <pxxxx>.
+    IF sy-subrc IS NOT INITIAL.
+      is_ok = abap_false.
+    ENDIF.
+*      IF <pxxxx> IS ASSIGNED.
+*        ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey>.
+*        IF sy-subrc IS NOT INITIAL.
+*          is_ok = abap_false.
+*        ENDIF.
+*        MOVE-CORRESPONDING <pxxxx> TO <pskey>.
+*      ENDIF.
+
+*      MOVE <pxxxx> TO ls_pa0000.
+
+*      me->read_future_infotype( EXPORTING iv_pernr = iv_pernr iv_infty = '0000' iv_begda = iv_begda IMPORTING is_infty_future = ls_0000_fut it_infty_future = lt_0000_fut ).
+
+
+*   New enddate is highdate
+*      IF iv_endda IS INITIAL.
+*        IF ls_0000_fut-begda IS NOT INITIAL AND ls_0000_fut-begda NE ls_pa0000-begda.
+*          ls_pa0000-endda = ls_0000_fut-begda - 1.
+*        ELSE.
+*          ls_pa0000-endda = '99991231'.
+*        ENDIF.
+*      ELSE.
+*        IF ls_0000_fut-begda IS NOT INITIAL AND ls_0000_fut-begda NE ls_pa0000-begda.
+*          ls_pa0000-endda = ls_0000_fut-begda - 1.
+*        ELSE.
+*          ls_pa0000-endda = iv_endda.
+*        ENDIF.
+*      ENDIF.
+
+
+*      IF <pskey> IS ASSIGNED.
+*        MOVE-CORRESPONDING ls_pa0000 TO <pskey>.
+*      ENDIF.
+
+    READ TABLE container_tab INTO container_if  INDEX 1.
+    new_infotype_container ?= container_if.
+    new_infotype_container ?= new_infotype_container->modify_key( <pskey> ).
+    new_infotype_container ?= new_infotype_container->modify_primary_record( <struc> ).
+    new_container ?= new_infotype_container.
+
+    ASSIGN COMPONENT 'MASSN' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massn>).
+    ASSIGN COMPONENT 'MASSG' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massg>).
+
+*    IF <massn> IN /sew/cl_int_constants=>orgchange_range.
+*      <massg> = '01'.
+*    ENDIF.
+
+    ls_update_mode-no_retroactivity = abap_true.
+    CALL METHOD lr_masterdata_bl->modify
+      EXPORTING
+        old_container   = old_container
+        massn           = <massn>
+        massg           = <massg>
+        message_handler = lr_message
+        no_auth_check   = space
+        update_mode     = ls_update_mode
+      IMPORTING
+        is_ok           = lv_is_ok
+      CHANGING
+        container       = new_container.
+
+    CALL METHOD lr_message->get_message_list
+      IMPORTING
+        messages = lt_messages.
+
+    messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+
+    IF lv_is_ok = abap_false.
+
+      RETURN.
+
+    ELSE.
+
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD UPDATE_OMXXXX_DCIF.
+*
+*    DATA: it                    TYPE REF TO data,
+*          lr_message_list       TYPE REF TO cl_hrpa_message_list,
+*          lr_masterdata_bl      TYPE REF TO if_hrbas_infty_bl,
+*          lr_container          TYPE REF TO if_hrpa_infty_container,
+*          old_container         TYPE REF TO if_hrpa_infty_container,
+*          new_container         TYPE REF TO if_hrpa_infty_container,
+*          lr_container_data     TYPE REF TO if_hrpa_infty_container_data,
+*          lc_infotype_container TYPE REF TO cl_hrpa_infotype_container,
+*          lc_message_handler    TYPE REF TO cl_hrpay00_message_handler,
+*          ls_pskey              TYPE pskey,
+*          lv_ok                 TYPE xfeld,
+*          ls_update_mode        TYPE hrpad_update_mode,
+*          ls_message            LIKE LINE OF messages,
+*          lt_messages           TYPE hrpad_message_tab,
+*          lv_message            TYPE char50,
+*          t777d                 TYPE t777d,
+*          infotype_ref          TYPE REF TO data
+*          .
+*
+*    FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
+*                   <pnnnn>    TYPE any,
+*                   <ptnnnn>   TYPE ANY TABLE,
+*                   <pskey>    TYPE pskey,
+*                   <pxxxx>    TYPE any,
+*                   <data>     TYPE any,
+*                   <struc>    TYPE any,
+*                   <fs_pnnnn> TYPE any,
+*                   <fs_begda> TYPE p0001-begda,
+*                   <fs_endda> TYPE p0001-endda,
+*                   <pernr>    TYPE pernr_d.
+*
+*    CONCATENATE 'P' infty INTO DATA(it_name).
+*    CREATE DATA it TYPE (it_name).
+*    ASSIGN it->* TO <struc>.
+*    ASSIGN data TO <struc>.
+*    ASSIGN COMPONENT 'PERNR' OF STRUCTURE <struc> TO <pernr>.
+*    ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <struc> TO <pskey>.
+*
+*
+** Create
+*    TRY.
+*        CLEAR ls_pskey.
+*
+*        CREATE OBJECT lr_message_list.
+*
+**        MOVE <struc> TO ls_pskey.
+*
+**        CALL METHOD cl_hrbas_infotype_factory=>get_infotype_generic_bl
+**          IMPORTING
+**            business_logic = lr_masterdata_bl.
+*
+*        CALL METHOD lr_masterdata_bl->get_infty_container
+*          EXPORTING
+*            hripkey         = endda
+*            pskey           = <pskey>
+*            no_auth_check   = space
+*            message_handler = lr_message_list
+*          IMPORTING
+*            container       = lr_container
+*            is_ok           = is_ok.
+*
+*        lc_infotype_container ?= lr_container.
+*        lc_infotype_container ?= lc_infotype_container->modify_key( <pskey> ).
+*        lc_infotype_container ?= lc_infotype_container->modify_primary_record( <struc> ).
+*        new_container         ?= lc_infotype_container.
+*
+*      CATCH cx_root.
+*
+*        ls_message-msgty = 'E'.
+*        ls_message-msgid = 'ZHR_PA_INT'.
+*        ls_message-msgno = 001. "Success
+*        APPEND ls_message TO messages.
+*        CLEAR: ls_message, lv_message.
+*
+*    ENDTRY.
+*
+*    IF is_ok IS NOT INITIAL.
+**      ls_update_mode-no_retroactivity = 'X'.
+*      CALL METHOD lr_masterdata_bl->insert
+*        EXPORTING
+**         old_container   = old_container
+*          no_auth_check   = space
+*          update_mode     = ls_update_mode
+*          message_handler = lr_message_list
+*        IMPORTING
+*          is_ok           = is_ok
+*        CHANGING
+*          container       = new_container.
+*    ENDIF.
+*
+*    lr_message_list->get_message_list(
+*    IMPORTING
+*      messages = lt_messages    " HR Stammdaten: Meldungsliste
+*  ).
+*    messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+*    IF lr_message_list->has_error( ).
+*      EXIT.
+*    ELSE.
+*    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD update_paxxxx_dcif.
+
     DATA: it                    TYPE REF TO data,
           lr_message_list       TYPE REF TO cl_hrpa_message_list,
           lr_masterdata_bl      TYPE REF TO if_hrpa_masterdata_bl,
           lr_container          TYPE REF TO if_hrpa_infty_container,
-          old_container         TYPE REF TO if_hrpa_infty_container,
+          lr_infty_reader       TYPE REF TO if_hrpa_read_infotype,
+          old_container         TYPE REF TO cl_hrpa_infotype_container,
+          container_tab         TYPE hrpad_infty_container_tab,
+          lv_count              TYPE i,
           new_container         TYPE REF TO if_hrpa_infty_container,
           lr_container_data     TYPE REF TO if_hrpa_infty_container_data,
           lc_infotype_container TYPE REF TO cl_hrpa_infotype_container,
@@ -4085,24 +4131,28 @@ ENDMETHOD.
           lt_messages           TYPE hrpad_message_tab,
           lv_message            TYPE char50,
           t777d                 TYPE t777d,
-          infotype_ref          TYPE REF TO data
-          .
+          infotype_ref          TYPE REF TO data,
+          massn_imp             TYPE massn,
+          massg                 TYPE massg,
+          itbld_new             TYPE itbld.
 
-    FIELD-SYMBOLS: <pshdr>    TYPE pshdr,
-                   <pnnnn>    TYPE any,
-                   <ptnnnn>   TYPE ANY TABLE,
-                   <pskey>    TYPE pskey,
-                   <pxxxx>    TYPE any,
-                   <data>     TYPE any,
-                   <struc>    TYPE any,
-                   <fs_pnnnn> TYPE any,
-                   <fs_begda> TYPE p0001-begda,
-                   <fs_endda> TYPE p0001-endda,
-                   <pernr>    TYPE pernr_d.
+    FIELD-SYMBOLS: <pshdr>     TYPE pshdr,
+                   <pnnnn>     TYPE any,
+                   <ptnnnn>    TYPE ANY TABLE,
+                   <pskey>     TYPE pskey,
+                   <pskey_old> TYPE pskey,
+                   <pxxxx>     TYPE any,
+                   <data>      TYPE any,
+                   <struc>     TYPE any,
+                   <fs_pnnnn>  TYPE any,
+                   <fs_begda>  TYPE p0001-begda,
+                   <fs_endda>  TYPE p0001-endda,
+                   <pernr>     TYPE pernr_d.
 
     CONCATENATE 'P' infty INTO DATA(it_name).
     CREATE DATA it TYPE (it_name).
     ASSIGN it->* TO <struc>.
+    ASSIGN it->* TO <data>.
     ASSIGN data TO <struc>.
     ASSIGN COMPONENT 'PERNR' OF STRUCTURE <struc> TO <pernr>.
 *    <pernr> = '200673'.
@@ -4120,66 +4170,156 @@ ENDMETHOD.
     ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <struc> TO <pskey>.
 *    ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <struc> TO <fs_begda>.
 *    ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <struc> TO <fs_endda>.
-
+    massn_imp = massn.
 * Create
-    TRY.
-        CLEAR ls_pskey.
+*    TRY.
+    CLEAR ls_pskey.
 
-        CREATE OBJECT lr_message_list.
+    CREATE OBJECT lr_message_list.
 
 *        MOVE <struc> TO ls_pskey.
 
-        CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+    CALL METHOD cl_hrpa_masterdata_factory=>get_business_logic
+      IMPORTING
+        business_logic = lr_masterdata_bl.
+
+    TRY.
+        CALL METHOD cl_hrpa_read_infotype=>get_instance
           IMPORTING
-            business_logic = lr_masterdata_bl.
-
-        CALL METHOD lr_masterdata_bl->get_infty_container
-          EXPORTING
-            tclas           = 'A'
-            pskey           = <pskey>
-            no_auth_check   = space
-            message_handler = lr_message_list
-          IMPORTING
-            container       = lr_container
-            is_ok           = is_ok.
-
-        lc_infotype_container ?= lr_container.
-        lc_infotype_container ?= lc_infotype_container->modify_key( <pskey> ).
-        lc_infotype_container ?= lc_infotype_container->modify_primary_record( <struc> ).
-        new_container         ?= lc_infotype_container.
-
-      CATCH cx_root.
-
-        ls_message-msgty = 'E'.
-        ls_message-msgid = 'ZHR_PA_INT'.
-        ls_message-msgno = 001. "Success
-        APPEND ls_message TO messages.
-        CLEAR: ls_message, lv_message.
-
+            infotype_reader = lr_infty_reader.
+        .
+      CATCH cx_hrpa_violated_assertion .
     ENDTRY.
 
-    IF is_ok IS NOT INITIAL.
-*      ls_update_mode-no_retroactivity = 'X'.
-      CALL METHOD lr_masterdata_bl->insert
-        EXPORTING
-*         old_container   = old_container
-          no_auth_check   = space
-          update_mode     = ls_update_mode
-          message_handler = lr_message_list
+    CALL METHOD lr_masterdata_bl->read
+      EXPORTING
+        tclas           = 'A'
+        infty           = infty
+        subty           = subty
+        pernr           = <pernr>
+        begda           = begda
+        endda           = begda
+        no_auth_check   = space
+        message_handler = lr_message_list
+      IMPORTING
+        container_tab   = container_tab
+        is_ok           = is_ok.
+
+*    IF is_ok EQ abap_true.
+*      DESCRIBE TABLE container_tab LINES lv_count.
+*
+*      IF lv_count GT 0.
+*        READ TABLE container_tab INTO DATA(container) INDEX lv_count.
+*      ENDIF.
+*    ENDIF.
+
+    IF is_ok = abap_false.
+      CALL METHOD lr_message_list->get_abend_list
         IMPORTING
-          is_ok           = is_ok
-        CHANGING
-          container       = new_container.
+          messages = lt_messages.
+
+      IF lt_messages IS INITIAL.
+        CALL METHOD lr_message_list->get_error_list
+          IMPORTING
+            messages = lt_messages.
+      ENDIF.
+      RETURN.
     ENDIF.
 
-    lr_message_list->get_message_list(
-    IMPORTING
-      messages = lt_messages    " HR Stammdaten: Meldungsliste
-  ).
-    messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
-    IF lr_message_list->has_error( ).
-      EXIT.
-    ELSE.
-    ENDIF.
+    LOOP AT container_tab INTO DATA(container).
+
+      IF container IS NOT INITIAL.
+        old_container ?= container.
+        TRY.
+            CALL METHOD old_container->if_hrpa_infty_container_data~primary_record_ref
+              IMPORTING
+                pnnnn_ref = infotype_ref.
+          CATCH cx_hrpa_violated_assertion.
+        ENDTRY.
+
+*   Transfer old infotype key to write Measure
+        ASSIGN infotype_ref->* TO <pxxxx>.
+        IF sy-subrc IS NOT INITIAL.
+          is_ok = abap_false.
+        ENDIF.
+        IF <pxxxx> IS ASSIGNED.
+          ASSIGN COMPONENT 'PSKEY' OF STRUCTURE <pxxxx> TO <pskey_old>.
+          IF sy-subrc IS NOT INITIAL.
+            is_ok = abap_false.
+          ENDIF.
+          MOVE-CORRESPONDING <pxxxx> TO <pskey_old>.
+        ENDIF.
+      ENDIF.
+*      IF infty NE '0302'.
+
+      CALL METHOD lr_masterdata_bl->get_infty_container
+        EXPORTING
+          tclas           = 'A'
+*         itbld           = '05'
+          pskey           = <pskey>
+          no_auth_check   = space
+          message_handler = lr_message_list
+        IMPORTING
+          container       = lr_container
+          is_ok           = is_ok.
+
+
+      <data> = <struc>.
+      ASSIGN COMPONENT 'GRPVL' OF STRUCTURE <data> TO FIELD-SYMBOL(<grpvl>).
+      ASSIGN COMPONENT 'GRPVL' OF STRUCTURE <pxxxx> TO FIELD-SYMBOL(<grpvl_old>).
+      <grpvl> = <grpvl_old>.
+      lc_infotype_container ?= lr_container.
+      lc_infotype_container ?= lc_infotype_container->modify_key( <pskey> ).
+      lc_infotype_container ?= lc_infotype_container->modify_primary_record( <data> ).
+      new_container         ?= lc_infotype_container.
+
+      FREE lc_infotype_container.
+      lc_infotype_container ?= lr_container.
+      lc_infotype_container ?= lc_infotype_container->modify_key( <pskey_old> ).
+      lc_infotype_container ?= lc_infotype_container->modify_primary_record( <pxxxx> ).
+      old_container         ?= lc_infotype_container.
+
+
+*      ELSE.
+*        lc_infotype_container ?= container.
+**      old_container ?= lc_infotype_container.
+*        lc_infotype_container ?= lc_infotype_container->modify_key( <pskey> ).
+*        lc_infotype_container ?= lc_infotype_container->modify_primary_record( <struc> ).
+*        new_container         ?= lc_infotype_container.
+*      ENDIF.
+      IF is_ok IS NOT INITIAL.
+        CLEAR: massn_imp, massg.
+        massn_imp = massn.
+        IF infty = /sew/cl_int_constants=>it0000.
+          ASSIGN COMPONENT 'MASSN' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massn>).
+          ASSIGN COMPONENT 'MASSG' OF STRUCTURE <struc> TO FIELD-SYMBOL(<massg>).
+          massn_imp = <massn>.
+          massg = <massg>.
+        ENDIF.
+        CALL METHOD lr_masterdata_bl->modify
+          EXPORTING
+            old_container   = old_container
+            massn           = massn_imp
+            massg           = massg
+            update_mode     = ls_update_mode
+            message_handler = lr_message_list
+            no_auth_check   = space
+          IMPORTING
+            is_ok           = is_ok
+          CHANGING
+            container       = new_container.
+
+      ENDIF.
+
+      lr_message_list->get_message_list(
+      IMPORTING
+        messages = lt_messages    " HR Stammdaten: Meldungsliste
+    ).
+      messages = CORRESPONDING #( BASE ( messages ) lt_messages ).
+      IF lr_message_list->has_error( ).
+        EXIT.
+      ELSE.
+      ENDIF.
+    ENDLOOP.
   ENDMETHOD.
 ENDCLASS.

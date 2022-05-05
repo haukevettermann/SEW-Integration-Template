@@ -14,6 +14,8 @@ public section.
   data COFU type BOOLEAN .
   data COGL type BOOLEAN .
   data MOLGA type RSDSSELOPT_T .
+  data BANK_ACC type ref to /SEW/CL_MIG_EXT_BANK_ACC .
+  data BANK_OWN type ref to /SEW/CL_MIG_EXT_BANK_OWN .
 
   methods MAP_MIG_COFU_VALUES
     importing
@@ -28,14 +30,21 @@ public section.
       !COFU type BOOLEAN
       !COGL type BOOLEAN
       !MOLGA type RSDSSELOPT_T
-      !COGU type BOOLEAN .
+      !COGU type BOOLEAN
+      !BANK_ACC type ref to /SEW/CL_MIG_EXT_BANK_ACC
+      !BANK_OWN type ref to /SEW/CL_MIG_EXT_BANK_OWN .
   methods CREATE_METADATA
+    exporting
+      value(METADATA_BANK) type STRING
     returning
       value(METADATA) type STRING .
   methods PROCEED_COFU_PERSON_PAY_METHOD
     importing
       !VP_SRC_ID type /IWBEP/T_MGW_NAME_VALUE_PAIR
       !WORKER type ref to /SEW/CL_MIG_WORKER
+    exporting
+      !EXT_BANK_ACC type STRING
+      !EXT_BANK_OWN type STRING
     returning
       value(DATA) type STRING .
 protected section.
@@ -52,6 +61,9 @@ private section.
   methods MAP_COFU_DATA
     importing
       !VP_SRC_ID type /IWBEP/T_MGW_NAME_VALUE_PAIR
+    exporting
+      !EXT_BANK_ACC type STRING
+      !EXT_BANK_OWN type STRING
     returning
       value(DATA) type STRING .
   methods MAP_COGL_DATA .
@@ -70,11 +82,15 @@ METHOD constructor.
   me->cogu  = cogu.
   me->cogl  = cogl.
   me->molga = molga.
+  me->bank_acc = bank_acc.
+  me->bank_own = bank_own.
 
   IF cofu EQ abap_true OR
      cogu EQ abap_true.
     vp_person_pay = VALUE #( ( name = 1  value = /sew/cl_mig_utils=>merge )
                              ( name = 2  value = person_payment_method )
+                             ( name = 3  value = 'SourceSystemId' )
+                             ( name = 3  value = 'SourceSystemOwner' )
                              ( name = 3  value = 'LegislativeDataGroupName' )
                              ( name = 4  value = 'AssignmentNumber' )
                              ( name = 5  value = 'PersonalPaymentMethodCode' )
@@ -84,8 +100,10 @@ METHOD constructor.
                              ( name = 9  value = 'ProcessingOrder' )
                              ( name = 10 value = 'OrganizationPaymentMethodCode' )
                              ( name = 11 value = 'Percentage' )
+                             ( name = 16 value = 'BankNumber' )
                              ( name = 12 value = 'BankName' )
                              ( name = 13 value = 'BankBranchNumber' )
+                             ( name = 17 value = 'BankBranchName' )
                              ( name = 14 value = 'BankCountryCode' )
                              ( name = 15 value = 'BankAccountNumber' ) ).
   ELSEIF cogl EQ abap_true.
@@ -125,12 +143,14 @@ METHOD get_cofu_data.
          subty,
          begda,
          endda,
+         waers,
          zweck,
          bankl,
          banks,
-         bankn INTO CORRESPONDING FIELDS OF TABLE @p0009 FROM pa0009 WHERE pernr IN @pernr AND
-                                                                           begda LE @endda AND
-                                                                           endda GE @begda.
+         bankn,
+         iban INTO CORRESPONDING FIELDS OF TABLE @p0009 FROM pa0009 WHERE pernr IN @pernr AND
+                                                                          begda LE @endda AND
+                                                                          endda GE @begda.
 
   "collect bank keys
   DATA(bankl) = VALUE rsdsselopt_t( FOR <bankl> IN p0009 ( sign = 'I' option = 'EQ' low = <bankl>-bankl ) ).
@@ -139,7 +159,8 @@ METHOD get_cofu_data.
 
   "Get BNKA
   SELECT bankl,
-         banka INTO CORRESPONDING FIELDS OF TABLE @bnka FROM bnka WHERE bankl IN @bankl.
+         banka,
+         bnklz INTO CORRESPONDING FIELDS OF TABLE @bnka FROM bnka WHERE bankl IN @bankl.
 
 ENDMETHOD.
 
@@ -173,8 +194,17 @@ ENDMETHOD.
 
 
 METHOD map_cofu_data.
+  DATA: bankbranchcode TYPE string,
+        bankbranchname TYPE string,
+        counter        TYPE string,
+        bank_name      TYPE string,
+        pernr_old      type rsdsselopt_t,
+        count          TYPE i.
+
+  DATA(sso) = 'SAP_' && sy-mandt.
 
   LOOP AT p0009 ASSIGNING FIELD-SYMBOL(<p0009>).
+    count = count + 1.
 
     "get BankName
     READ TABLE bnka ASSIGNING FIELD-SYMBOL(<bnka>) WITH KEY bankl = <p0009>-bankl.
@@ -194,27 +224,83 @@ METHOD map_cofu_data.
     map_mig_cofu_values( EXPORTING p0009              = <p0009>
                          IMPORTING org_payment_method = DATA(org_pay_method) ).
 
-    DATA(assignmentnumber) = 'E' && <p0009>-pernr.
+    counter = CONV #( count ).
+    CONDENSE counter.
 
+    DATA(assignmentnumber) = 'E' && <p0009>-pernr.
+    CONCATENATE assignmentnumber '_PPM_' counter INTO DATA(ssid).
+
+    CLEAR: bank_name.
     CONCATENATE <p0009>-banks 'LDG' INTO DATA(leg_group) SEPARATED BY space.
+    CONCATENATE <bnka>-banka '_' <bnka>-bankl(5) INTO bank_name.
+
+    "JMB20220211 I - For Netherlands pass bank code
+    IF sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands.
+      CONCATENATE <bnka>-banka '_' <bnka>-bnklz INTO bank_name.
+    ENDIF.
+
+    CLEAR: bankbranchcode, bankbranchname.
+
+    "for Italy Bank branch code is needed
+    IF '15' IN molga.
+      bankbranchcode = <p0009>-bankl.
+      bankbranchname = <bnka>-banka && '_' && <p0009>-bankl.
+
+    ELSEIF sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands OR
+           '03'     IN molga .
+      bankbranchcode = <bnka>-brnch.
+      bankbranchname = <bnka>-banka && '_' && <bnka>-bnklz.
+    ENDIF.
+
+    DATA(personalpaycode) = conv string( <p0009>-zweck ).
+
+    IF <p0009>-zweck IS INITIAL.
+      personalpaycode = 'SALARY'.
+    ENDIF.
 
     CONCATENATE /sew/cl_mig_utils=>merge
                 person_payment_method
+                ssid
+                sso
                 leg_group
                 assignmentnumber
-                <p0009>-zweck
+                personalpaycode
                 begda_tmp
                 'M'
                 ''
                 ''
                 org_pay_method
                 ''
-                <bnka>-banka
-                <p0009>-bankl
+                '' "<p0009>-bankl "JMB20220218 D - C400129651-6652
+                bank_name
+                bankbranchcode
+                bankbranchname
                 <p0009>-banks
                 <p0009>-bankn
     INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
     CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+
+    ext_bank_acc = ext_bank_acc && cl_abap_char_utilities=>newline && bank_acc->map_cofu_data( bankname   = bank_name
+                                                                                               bankbranch = bankbranchname
+                                                                                               country    = <p0009>-banks
+                                                                                               number     = <p0009>-bankn
+                                                                                               currency   = <p0009>-waers
+                                                                                               iban       = <p0009>-iban ).
+    DATA(primary) = /sew/cl_mig_utils=>yes.
+    IF <p0009>-pernr IN pernr_old AND
+       pernr_old     IS NOT INITIAL.
+      CLEAR primary.
+    ENDIF.
+
+    ext_bank_own = ext_bank_own && cl_abap_char_utilities=>newline && bank_own->map_cofu_data( pernr      = <p0009>-pernr
+                                                                                               bankname   = bank_name
+                                                                                               bankbranch = bankbranchname
+                                                                                               country    = <p0009>-banks
+                                                                                               number     = <p0009>-bankn
+                                                                                               currency   = <p0009>-waers
+                                                                                               primary    = primary ).
+    APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0009>-pernr ) to pernr_old.
+
   ENDLOOP.
 
 ENDMETHOD.
@@ -247,6 +333,10 @@ ENDMETHOD.
 
 METHOD proceed_cofu_person_pay_method.
   get_cofu_data( ).
-  data = map_cofu_data( vp_src_id ).
+  get_mapping_cofu_fields( ).
+  get_mapping_cofu_values( ).
+  data = map_cofu_data( EXPORTING vp_src_id = vp_src_id
+                        IMPORTING ext_bank_acc = ext_bank_acc
+                                  ext_bank_own = ext_bank_own ).
 ENDMETHOD.
 ENDCLASS.

@@ -540,7 +540,24 @@ METHOD MAP_COFU_DATA.
   DATA: leader_assign TYPE string,
         leader_pernr  TYPE string.
 
-  DATA(massn_term) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '03' ) ).
+  DATA(massn_term) = SWITCH rsdsselopt_t( sy-mandt
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-germany     THEN VALUE #( ( sign = 'I' option = 'EQ' low = '10' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '11' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '13' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '18' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '35' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '99' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = 'ZZ' ) )
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-france      THEN VALUE #( ( sign = 'I' option = 'EQ' low = '09' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '10' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '11' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '18' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '32' )
+                                                                                                            ( sign = 'I' option = 'EQ' low = '34' ) )
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-netherlands THEN VALUE #( ( sign = 'I' option = 'EQ' low = 'Z4' ) )
+                                         "default Italy/Austria
+                                         ELSE VALUE #( ( sign = 'I' option = 'EQ' low = '03' )
+                                                       ( sign = 'I' option = 'EQ' low = 'ZZ' ) ) ).
 
   CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO DATA(sys_id).
 

@@ -273,7 +273,7 @@ CLASS /SEW/CL_INT_XML IMPLEMENTATION.
       IF lo_node IS BOUND.
         value = lo_node->get_value( ).
         IF value IS INITIAL.
-          value = 'DELETED'.
+*          value = 'DELETED'.
         ENDIF.
       ELSE.
       ENDIF.
@@ -351,23 +351,38 @@ CLASS /SEW/CL_INT_XML IMPLEMENTATION.
         WHILE lo_node IS BOUND.
 *       In case of job info or employment data only process primary assignment.
           IF folder_xpath = /sew/cl_int_constants=>folders-employmentdata OR folder_xpath = /sew/cl_int_constants=>folders-jobinformation.
-            /sew/cl_int_xml=>get_xpath_element(
-              EXPORTING
-                element_xpath = COND #( WHEN folder_xpath = /sew/cl_int_constants=>folders-employmentdata THEN /sew/cl_int_constants=>primary
-                                        WHEN folder_xpath = /sew/cl_int_constants=>folders-jobinformation THEN /sew/cl_int_constants=>primaryassignment )
-                xml_node      = lo_node
-              IMPORTING
-                value         = value
-                message       = message ).
-            IF value NE 'Y'.
-              FREE lo_node.
-              lo_node = lr_iterator->get_next( ).
-              CONTINUE.
+            IF folder_xpath = /sew/cl_int_constants=>folders-employmentdata.
+              /sew/cl_int_xml=>get_xpath_element(
+               EXPORTING
+                 element_xpath = '//TermActionCode'
+                 xml_node      = lo_node
+               IMPORTING
+                 value         = value
+                 message       = message ).
+            ENDIF.
+            DATA(range) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = 'ORA_ADD_PWK_WORK_RELATION' )
+           ( sign = 'I' option = 'EQ' low = 'ADD_PEN_WKR' )
+           ( sign = 'I' option = 'EQ' low = 'REHIRE' ) ).
+            IF value NOT IN range.
+*            IF value NE 'ADD_PEN_WKR'.
+              /sew/cl_int_xml=>get_xpath_element(
+                EXPORTING
+                  element_xpath = COND #( WHEN folder_xpath = /sew/cl_int_constants=>folders-employmentdata THEN /sew/cl_int_constants=>primary
+                                          WHEN folder_xpath = /sew/cl_int_constants=>folders-jobinformation THEN /sew/cl_int_constants=>primaryassignment )
+                  xml_node      = lo_node
+                IMPORTING
+                  value         = value
+                  message       = message ).
+              IF value NE 'Y'.
+                FREE lo_node.
+                lo_node = lr_iterator->get_next( ).
+                CONTINUE.
+              ENDIF.
             ENDIF.
           ENDIF.
           APPEND INITIAL LINE TO nodes ASSIGNING <node>.
           <node>-node = lo_node.
-          clear value.
+          CLEAR value.
           /sew/cl_int_xml=>get_xpath_element(
             EXPORTING
               element_xpath = /sew/cl_int_constants=>xpath_begda

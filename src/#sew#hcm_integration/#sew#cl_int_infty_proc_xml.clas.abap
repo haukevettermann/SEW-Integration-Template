@@ -377,6 +377,9 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
                    <prelp>    TYPE prelp,
                    <ft_table> TYPE STANDARD TABLE.
 
+    "Set molga specific actions
+    /sew/cl_int_constants=>set_action_ranges( EXPORTING molga = molga ) .
+
     "Instantiate Status Handler
     DATA(status_handler) = /sew/cl_int_status_handler=>get_instance( sap_id      = CONV #( sap_id )
                                                                      cloud_id    = CONV #( cloud_id )
@@ -404,11 +407,35 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
       "Instantiate infotype change  class
       me->infotype_changes = NEW /sew/cl_int_it_aend( ).
 
+      "Transfering time slice dates to fields
+*      LOOP AT <folder_aggregated>-fields ASSIGNING FIELD-SYMBOL(<field>).
+*        READ TABLE time_slices INTO DATA(slice) WITH KEY begda = <field>-begda.
+*        IF slice IS NOT INITIAL.
+*          <field>-endda = slice-endda.
+*        ENDIF.
+*        CLEAR: slice.
+*      ENDLOOP.
+
 *--------------------------------------------------------------------*
 *   Start of field value processing
 *--------------------------------------------------------------------*
       "Loop at time slices and generate infotype entries.
       LOOP AT time_slices ASSIGNING FIELD-SYMBOL(<time_slice>).
+        "If not hire action and begda of timeslice before actual hire date -> skip time slice
+        IF sap_id IS NOT INITIAL.
+          SELECT * FROM pa0000 INTO TABLE @DATA(it0000) WHERE pernr = @sap_id AND massn IN @/sew/cl_int_constants=>hire_range.
+          IF sy-subrc IS INITIAL.
+            SORT it0000 BY begda ASCENDING.
+            READ TABLE it0000 ASSIGNING FIELD-SYMBOL(<s0000>) INDEX 1.
+            IF <time_slice>-endda LT <s0000>-begda.
+              CONTINUE.
+            ENDIF.
+            IF <time_slice>-endda GT <s0000>-begda AND <time_slice>-begda LT <s0000>-begda.
+              "Hire date change so do not skip
+*              <time_slice>-begda = <s0000>-begda.
+            ENDIF.
+          ENDIF.
+        ENDIF.
         "One change id per infotype entry
         aend_id = /sew/cl_int_status_handler=>generate_guid( ).
         APPEND INITIAL LINE TO <ft_table> ASSIGNING FIELD-SYMBOL(<structure>).
@@ -430,17 +457,32 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
         DATA(fields_folder) = <folder_aggregated>-fields.
 
 *     Get values for infotype and build infotype structure.
+        IF <folder_aggregated>-fields IS INITIAL.
+          CONTINUE.
+        ENDIF.
+
+        SORT <folder_aggregated>-fields ASCENDING BY begda cust_seqnr seqnr parent_folder_seqnr.
+
         LOOP AT <folder_aggregated>-fields ASSIGNING FIELD-SYMBOL(<infty_value>) WHERE ( ( begda <= <time_slice>-endda   AND
                                                                                            begda >= <time_slice>-begda ) OR
                                                                                          ( endda >= <time_slice>-begda   AND
-                                                                                           endda <= <time_slice>-endda ) ).
+                                                                                           endda <= <time_slice>-endda ) OR
+                                                                                         ( begda <= <time_slice>-endda   AND
+                                                                                           begda <= <time_slice>-begda   AND
+                                                                                           endda >= <time_slice>-begda   AND
+                                                                                           endda >= <time_slice>-endda  ) ).
+*          IF <infty_value>-value_mapped IS NOT INITIAL.
+*            IF <infty_value>-field_sap NE 'DAT02'.
+*              CONTINUE.
+*            ENDIF.
+*          ENDIF.
 *       Get customizing instance in order to process mappings and conversions
           DATA(customizing_instance) = /sew/cl_int_customizing_xml=>get_instance( object_type = object_type molga = molga ).
 
 *       Process mappings
           IF sy-subrc IS INITIAL.
             DATA(value) = <infty_value>-value.
-            check value ne 'DELETED'.
+            CHECK value NE 'DELETED'.
             /sew/cl_int_mapping=>process_mapping(
               EXPORTING
                 pernr = sap_id
@@ -464,8 +506,9 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
                 skip           = DATA(skip)
                 CHANGING
                 value       = value ).
+            <infty_value>-value_mapped = value.
             IF skip = abap_true.
-              CLEAR: <structure>.
+              CLEAR: <structure>, message.
               CONTINUE.
             ENDIF.
 *           Set status. If already error, do not overwrite.
@@ -498,13 +541,19 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
                 value_in  = CONV /sew/dd_value( value )
               RECEIVING
                 value_out = value.
+            <infty_value>-value_converted = value.
+*            IF <infty_value>-value_converted = 'DELETED'.
+*              CLEAR: <infty_value>-value, <infty_value>-value_mapped.
+*            ENDIF.
           ENDIF.
 *        ENDIF.
 *       Transfer value to infotype structure with conversion to target type
           ASSIGN COMPONENT <infty_value>-field_sap OF STRUCTURE <structure> TO <value>.
           IF sy-subrc IS INITIAL.
             CHECK <value> IS ASSIGNED.
-            MOVE value TO <value>.
+*            IF value NE 'DELETED'.
+              MOVE value TO <value>.
+*            ENDIF.
             UNASSIGN <value>.
           ENDIF.
         ENDLOOP.
@@ -869,6 +918,14 @@ CLASS /SEW/CL_INT_INFTY_PROC_XML IMPLEMENTATION.
         CLEAR: value.
       ENDLOOP.
     ENDLOOP.
+    IF me->infty = /sew/cl_int_constants=>it0006.
+      LOOP AT me->fields INTO DATA(field) WHERE field_sap = 'COM01'.
+        IF field-value NE 'HM' AND field-value NE 'H1'.
+          DELETE me->fields WHERE seqnr = field-seqnr.
+          DELETE me->folders WHERE seqnr = field-seqnr.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -1185,8 +1242,17 @@ ENDMETHOD.
 *          ENDIF.
 *        ENDIF.
 
+        ASSIGN COMPONENT /sew/cl_int_constants=>begda OF STRUCTURE <structure> TO FIELD-SYMBOL(<value>).
+
+*        IF me->infty = /sew/cl_int_constants=>it0001 AND endda = /sew/cl_int_constants=>highdate.
+*          IF me->object_handler->action IN /sew/cl_int_constants=>termination_range.
+*            ASSIGN COMPONENT /sew/cl_int_constants=>plans OF STRUCTURE <structure> TO <value>.
+*            <value> = '99999999'.
+*          ENDIF.
+*        ENDIF.
+
         IF me->infty = /sew/cl_int_constants=>it0050.
-          ASSIGN COMPONENT /sew/cl_int_constants=>bdegr OF STRUCTURE <structure> TO FIELD-SYMBOL(<value>).
+          ASSIGN COMPONENT /sew/cl_int_constants=>bdegr OF STRUCTURE <structure> TO <value>.
           IF <value> IS ASSIGNED AND <value> IS INITIAL.
             <value> = '000'.
           ENDIF.
@@ -1283,7 +1349,7 @@ ENDMETHOD.
 *    "Check for active status.
         IF me->infty = /sew/cl_int_constants=>it0001. "OR me->infty = /sew/cl_int_constants=>it0000.
           READ TABLE fields WITH KEY field_oracle = 'AssStatusType' ASSIGNING FIELD-SYMBOL(<status>).
-          IF <status> IS ASSIGNED AND <status>-value CS 'INACTIVE'.
+          IF <status> IS ASSIGNED AND <status>-value CS 'INACTIVE' AND me->object_handler->action NOT IN /sew/cl_int_constants=>termination_range.
             it_aend-active = 'I'.
           ENDIF.
         ENDIF.
@@ -1299,7 +1365,23 @@ ENDMETHOD.
       ENDIF.
     ENDIF.
 
+    IF me->infty = /sew/cl_int_constants=>it0000.
+      READ TABLE fields WITH KEY field_sap = /sew/cl_int_constants=>massn ASSIGNING FIELD-SYMBOL(<action>).
+    ENDIF.
+
 *   Before persisting infotype in staging table transfer old values from current infotype.
+    IF <action> IS ASSIGNED AND <action>-value = 'ORA_EMPL_REV_TERMINATION'.
+      it_aend-action = 'RT'.
+*      /sew/cl_int_infty_delta=>transfer_infty_data_v2(
+*        EXPORTING
+*          infty   = me->infty
+*          pernr   = CONV pernr_d( sap_id )
+*          stidat  = begda
+*          fields  = fields
+*        CHANGING
+*          it_aend = it_aend ).
+    ENDIF.
+*    ELSE.
     /sew/cl_int_infty_delta=>transfer_infty_data_v2(
       EXPORTING
         infty   = me->infty
@@ -1308,10 +1390,11 @@ ENDMETHOD.
         fields  = fields
       CHANGING
         it_aend = it_aend ).
+*    ENDIF.
 
 *   Create IT_AEND entries with respective operation
     IF it_aend-infty IS INITIAL.
-      exit.
+      EXIT.
     ENDIF.
     /sew/cl_int_status_handler=>get_instance( sap_id      = CONV #( sap_id )
                                               cloud_id    = CONV #( cloud_id )
@@ -1423,9 +1506,38 @@ ENDMETHOD.
       ENDIF.
 
       <add_folder>-begda = <node>-begda.
-
+*     Special logic for Pending Hire
+      IF <add_folder>-folder = '//EmploymentData' OR <add_folder>-folder = '//JobInformation'.
+        IF <add_folder>-begda < object_handler->projected_start_date AND object_handler->projected_start_date IS NOT INITIAL.
+          <add_folder>-begda = object_handler->projected_start_date.
+        ENDIF.
+        IF <add_folder>-begda = 0.
+          /sew/cl_int_xml=>get_xpath_folder_with_begda(
+            EXPORTING
+              folder_xpath = CONV #( '//JobInformation' )
+              xml_document = folder_xml_node
+            IMPORTING
+              nodes        = DATA(nodes_ji)
+              message      = message ).
+          LOOP AT nodes_ji ASSIGNING FIELD-SYMBOL(<node_ji>).
+            IF <add_folder>-begda IS INITIAL.
+              <add_folder>-begda = <node_ji>-begda.
+            ELSE.
+              IF <add_folder>-begda LT <node_ji>-begda.
+                <add_folder>-begda = <node_ji>-begda.
+              ENDIF.
+              IF <add_folder>-endda LT <add_folder>-begda.
+                <add_folder>-endda = <node_ji>-endda.
+              ENDIF.
+            ENDIF.
+          ENDLOOP.
+        ENDIF.
+      ENDIF.
       IF <node>-endda NE 0.
-        <add_folder>-endda = <node>-endda.
+*        IF <node>-endda GT <add_folder>-begda.
+        IF <node>-endda GE <add_folder>-begda."DEVETHAU, 09.03.2022 Angepasst von GT auf GE zur Umsetzung der Tax Anforderung
+          <add_folder>-endda = <node>-endda.
+        ENDIF.
       ELSE.
 *         Default enddate if not given
         SELECT * FROM /sew/int_values INTO TABLE @DATA(fallback_values) WHERE object = @me->object_handler->object_type
@@ -1458,6 +1570,14 @@ ENDMETHOD.
       <add_folder>-node = <node>-node.
       <add_folder>-ignore_timeslices = customizing-time_slice.
       <add_folder>-cust_seqnr = customizing-seqnr.
+      IF customizing-seqnr = 001 AND <add_folder>-folder = '//EmploymentData'.
+        <add_folder>-endda = /sew/cl_int_constants=>highdate.
+      ENDIF.
+      IF customizing-infty = /sew/cl_int_constants=>it0001 AND ( <add_folder>-endda IS INITIAL OR <add_folder>-endda = 0 ) AND <node>-endda = <add_folder>-begda AND <add_folder>-folder = '//EmploymentData'.
+*        LOOP AT nodes ASSIGNING FIELD-SYMBOL(<it0001_check>) WHERE begda GT <add_folder>-begda.
+        <add_folder>-endda = /sew/cl_int_constants=>highdate.
+*        ENDLOOP.
+      ENDIF.
       <add_folder>-seqnr = seqnr.
       <add_folder>-parent_folder_seqnr = parent_folder_seqnr.
       <add_folder>-parent_folder = parent_folder.

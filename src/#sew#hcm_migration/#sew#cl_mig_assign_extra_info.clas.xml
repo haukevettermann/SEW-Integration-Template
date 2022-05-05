@@ -38,9 +38,33 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>
+     <CMPNAME>MAP_0001</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Map infotyp structure to migration string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>
+     <CMPNAME>MAP_0008</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Map infotyp structure to migration string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>
+     <CMPNAME>MAP_0050</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Map infotyp structure to migration string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>
      <CMPNAME>MAP_COFU_DATA</CMPNAME>
      <LANGU>D</LANGU>
      <DESCRIPT>Map infotyp structure to migration string</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>
+     <CMPNAME>P0001</CMPNAME>
+     <LANGU>D</LANGU>
+     <DESCRIPT>Personal-Stammsatz Infotyp 0001 (Org. Zuordnung)</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_MIG_ASSIGN_EXTRA_INFO</CLSNAME>

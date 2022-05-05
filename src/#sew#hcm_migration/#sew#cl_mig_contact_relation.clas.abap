@@ -11,7 +11,6 @@ public section.
   data COGL type BOOLEAN .
   data COGU type BOOLEAN .
   data MOLGA type RSDSSELOPT_T .
-  data P0002 type P0002_TAB .
   data VP_CON_RELATIONSHIP_STRUCTURE type /IWBEP/T_MGW_NAME_VALUE_PAIR .
   constants CONTACT_RELATIONSHIP type STRING value 'ContactRelationship' ##NO_TEXT.
   data P0021 type P0021_TAB .
@@ -49,11 +48,6 @@ private section.
       !VP_SRC_ID type /IWBEP/T_MGW_NAME_VALUE_PAIR
     returning
       value(DATA) type STRING .
-  methods UPDATE_BEGIN_DATE
-    importing
-      !P0002 type P0002_TAB
-    changing
-      !P0021 type P0021_TAB .
   methods GET_MAPPING_COFU_FIELDS .
   methods GET_MAPPING_COFU_VALUES .
   methods MAP_MIG_VALUES
@@ -128,36 +122,32 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_cofu_data.
+METHOD get_cofu_data.
 
+**JMB20211312 start insert - select only specific subtypes
+*
+  DATA: famsa TYPE rsdsselopt_t.
+  CASE sy-mandt.
+    WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
+      famsa = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '1' )
+                                  ( sign = 'I' option = 'EQ' low = '13' )
+                                  ( sign = 'I' option = 'EQ' low = '15' ) ).
+  ENDCASE.
+*JMB20211312 insert end
 
-    " Read Infotype 0002
-    SELECT pernr,
-           begda,
-           endda
-    INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
-                                                            AND begda LE @endda
-                                                            AND endda GE @begda.
+  " Read Infotype 0021
+  SELECT pernr,
+         begda,
+         endda,
+         famsa,
+         objps,
+         fgbdt
+  INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr
+                                                          AND famsa IN @famsa
+                                                          AND begda LE @endda
+                                                          AND endda GE @begda.
 
-
-    " Read Infotype 0021
-    SELECT pernr,
-           begda,
-           endda,
-           famsa,
-           seqnr,
-           emrgn,
-           subty,
-           objps,
-           fgbdt,
-           zz_telnr,
-           zz_telnr2,
-           zz_art
-    INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr
-                                                            AND begda LE @endda
-                                                            AND endda GE @begda.
-
-  ENDMETHOD.
+ENDMETHOD.
 
 
   METHOD get_mapping_cofu_fields.
@@ -196,19 +186,7 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
 
 
     CHECK p0021 IS NOT INITIAL.
-*    DATA(tmp_pernr) = p0021[ 1 ]-pernr.
-*    DATA(count) = 0.
-**IFT20211116 Start Insert
-*
-*    LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>).
-*      LOOP AT p0021 ASSIGNING FIELD-SYMBOL(<p0021>) WHERE pernr = <p0002>-pernr
-*                                                      AND begda LE endda
-*                                                      AND endda GE begda
-*                                                      AND emrgn IS NOT INITIAL.
-*        EXIT.
-*      ENDLOOP.
 
-    CHECK p0021 IS NOT INITIAL.
     SORT p0021 BY pernr ASCENDING begda ASCENDING.
 
     DATA(check_pernr) = p0021[ 1 ]-pernr.
@@ -232,12 +210,8 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
                   count_str
       INTO DATA(per_id) SEPARATED BY '_'.
 
-
-
       DATA(eff_start_date) = /sew/cl_mig_utils=>convert_date( <p0021>-begda ).
       DATA(rel_per_id) = per && '_' && <p0021>-pernr.
-
-
 
       DATA(emergency_contact) = COND #( WHEN <p0021>-emrgn IS NOT INITIAL
                                         THEN 'Y'
@@ -246,6 +220,8 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
       DATA(existing_person) = 'Y'.
       map_mig_values( EXPORTING p0021 = <p0021>
                       IMPORTING famsa = DATA(contact_type) ).
+
+      CHECK contact_type IS NOT INITIAL.
 
       sys_id = 'SAP_' && sy-mandt.
       CONCATENATE per
@@ -269,7 +245,6 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
                   existing_person
                   'Y'
                   'N'
-*                  <p0021>-seqnr "IFT20211116 D
                   count_str "IFT20211116 I
                   sys_id
                   src_id
@@ -278,7 +253,6 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
 
     ENDLOOP.
-*IFT20211116 End Insert
 
   ENDMETHOD.
 
@@ -309,29 +283,9 @@ CLASS /SEW/CL_MIG_CONTACT_RELATION IMPLEMENTATION.
   METHOD proceed_cofu_con_relationship.
 
     get_cofu_data( ).
-*    update_begin_date( EXPORTING p0002 = p0002
-*                       CHANGING  p0021 = p0021 ).
     get_mapping_cofu_fields( ).
     get_mapping_cofu_values( ).
-
     data = map_cofu_data( vp_src_id ).
-
-  ENDMETHOD.
-
-
-  METHOD update_begin_date.
-
-    LOOP AT p0021 ASSIGNING FIELD-SYMBOL(<p0021>).
-      LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>) WHERE pernr EQ <p0021>-pernr
-                                                      AND begda LE endda
-                                                      AND endda GE begda.
-        EXIT.
-      ENDLOOP.
-      CHECK <p0002> IS ASSIGNED.
-
-      <p0021>-begda = <p0002>-begda.
-      UNASSIGN <p0002>.
-    ENDLOOP.
 
   ENDMETHOD.
 ENDCLASS.

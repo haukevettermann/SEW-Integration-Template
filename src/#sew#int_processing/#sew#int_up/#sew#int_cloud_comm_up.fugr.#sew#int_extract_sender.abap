@@ -6,6 +6,7 @@ FUNCTION /sew/int_extract_sender.
 *"  EXPORTING
 *"     VALUE(XML_STRING) TYPE  XSTRING
 *"     VALUE(STATUS) TYPE  CHAR1
+*"     VALUE(XML_OUT) TYPE  STRING
 *"----------------------------------------------------------------------
 
   DATA: is_aendup  TYPE /sew/int_it_aeup,
@@ -67,7 +68,9 @@ FUNCTION /sew/int_extract_sender.
       <change>-status = '02'.
 
       DELETE changed_data_pernr WHERE infty IS INITIAL.
-
+      IF <change>-infty IS INITIAL.
+        APPEND <change> TO up_success.
+      ENDIF.
       LOOP AT changed_data_pernr ASSIGNING FIELD-SYMBOL(<data_pernr>).
 
         DATA(data_pernr) = VALUE /sew/cl_int_employee_xml_up=>t_itaendup( ( <data_pernr> ) ).
@@ -111,6 +114,7 @@ FUNCTION /sew/int_extract_sender.
     ENDIF.
 
 *    cl_abap_browser=>show_xml( EXPORTING xml_string = string ).
+    xml_out = string.
 
     IF changed_data_tmp IS INITIAL.
       status = 'E'.
@@ -177,6 +181,7 @@ FUNCTION /sew/int_extract_sender.
       status = 'E'.
     ENDIF.
 
+    xml_out = string_om.
 *    cl_abap_browser=>show_xml( EXPORTING xml_string   =  string_om ).  " XML in String
 
 **JMB20210928 start insert - export work schedule xml

@@ -85,8 +85,9 @@ public section.
       !COGU type BOOLEAN .
   methods MAP_COFU_DATA
     importing
-      !PERIODS type HRPERIODS_TAB
       !PERNR type PERNR_D
+      !PERIODS type HRPERIODS_TAB
+      !MIG_DATE type DATUM optional
     returning
       value(DATA) type STRING .
   methods CREATE_METADATA
@@ -487,10 +488,10 @@ METHOD create_hire_cofu_entry.
               business_code
               worker_category
               assignment_category
-              ''
+              '#NULL' "JobCode
               location_code
               is_manager
-              department_name
+              '#NULL' "department_name
               period_of_ser
               begda_tmp
               worker_type
@@ -501,7 +502,7 @@ METHOD create_hire_cofu_entry.
               internal_number
               dateprob_end
               rpt_est
-              grade_code
+              '#NULL' "grade_code
               pos_code
               prob_period
               prob_unit
@@ -1135,7 +1136,7 @@ METHOD get_cogl_data.
 ENDMETHOD.
 
 
-METHOD GET_MAPPING_COFU_FIELDS.
+METHOD get_mapping_cofu_fields.
 
   DATA(worker_sap) = persk.
   "for Austria employee group is relevant for workertype
@@ -1279,7 +1280,7 @@ METHOD GET_MAPPING_COFU_FIELDS.
                                                    export       = abap_true
                                          IMPORTING mapping_fields = mapping_fields_job ).
 
-    "get mapping fields for PRBEH
+  "get mapping fields for PRBEH
   /sew/cl_mig_utils=>get_mapping_fields( EXPORTING molga        = molga
                                                    infty        = '0016'
                                                    sap_field    = 'PRBEH'
@@ -1971,6 +1972,7 @@ METHOD map_cofu_data.
   DATA: plvar           TYPE plvar,
         massn_tmp       TYPE massn,
         pernr_tmp       TYPE pernr_d,
+        period_del      TYPE hrperiods_tab,
         period_of_ser   TYPE string,
         job             TYPE string,
         dateprob_end    TYPE string,
@@ -2009,7 +2011,8 @@ METHOD map_cofu_data.
 
   CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO DATA(sys_id).
 
-  LOOP AT periods ASSIGNING FIELD-SYMBOL(<period>).
+  DATA(periods_lcl) = periods.
+  LOOP AT periods_lcl ASSIGNING FIELD-SYMBOL(<period>).
 
     "get relevant P0000
     LOOP AT p0000 ASSIGNING FIELD-SYMBOL(<p0000>) WHERE begda LE <period>-endda AND
@@ -2029,6 +2032,18 @@ METHOD map_cofu_data.
 
     CHECK sy-subrc EQ 0.
 
+    "in case of termination in future
+    CHECK <p0000>-massn NOT IN massn_term.
+
+    "check for terminations right after actual record
+    DATA(datum) = CONV datum( <period>-endda + 1 ).
+    LOOP AT p0000 ASSIGNING FIELD-SYMBOL(<p0000_term>) WHERE begda LE datum         AND
+                                                             endda GE datum         AND
+                                                             pernr EQ pernr         AND
+                                                             massn IN massn_term.
+      <period>-endda = <p0000_term>-endda.
+    ENDLOOP.
+
     "get P0105
     LOOP AT p0105 ASSIGNING FIELD-SYMBOL(<p0105>) WHERE begda LE <period>-endda AND
                                                         endda GE <period>-begda AND
@@ -2039,7 +2054,8 @@ METHOD map_cofu_data.
 
     LOOP AT p0016 INTO DATA(p0016_entry) WHERE begda LE <period>-endda AND
                                                endda GE <period>-begda AND
-                                               pernr EQ pernr.
+                                               pernr EQ pernr          AND
+                                               prbzt NE 0.
       notice_per = prob_period = p0016_entry-prbzt.
       CONDENSE: notice_per, prob_period.
       EXIT.
@@ -2070,9 +2086,10 @@ METHOD map_cofu_data.
                                 WHEN 'E' OR 'C' THEN assignment_type && 'T' ).
 
     "check hire entry for employee
-    IF pernr  IN pernr_history AND
-        pernr_history IS NOT INITIAL.
-      "actioncode for these entries will be ASC_CHANGE
+    IF pernr          IN pernr_history AND
+       <period>-begda NE mig_date      AND
+       pernr_history  IS NOT INITIAL.
+      "actioncode for these entries will be ASG_CHANGE
       massn = 'ASG_CHANGE'.
     ELSE.
       APPEND VALUE #( sign = 'I' option = 'EQ' low = pernr ) TO pernr_history.
@@ -2114,7 +2131,7 @@ METHOD map_cofu_data.
       LOOP AT hrp1000_stell ASSIGNING FIELD-SYMBOL(<hrp1000>) WHERE objid EQ <p0001>-stell AND
                                                                     begda LE <p0001>-endda AND
                                                                     endda GE <p0001>-begda.
-        job = <hrp1000>-short.
+*        job = <hrp1000>-short. "JMB20211202 D - Need to be discussed
         EXIT.
       ENDLOOP.
     ENDIF.
@@ -2494,6 +2511,13 @@ METHOD map_cogu_data.
       EXIT.
     ENDLOOP.
 
+**JMB20220207 start insert - in case of 21945, clear department due to department set issue in Oracle
+*
+    IF <p0001>-pernr EQ '00021945'.
+      CLEAR: department_name.
+    ENDIF.
+*JMB20220207 insert end
+
     CONCATENATE /sew/cl_mig_utils=>merge
                 workterms
                 sys_id
@@ -2543,7 +2567,7 @@ METHOD map_cogu_data.
 ENDMETHOD.
 
 
-METHOD MAP_MIG_COFU_VALUES.
+METHOD map_mig_cofu_values.
   DATA: value_tmp TYPE /sew/dd_value.
   DATA(fields) = VALUE /sew/cl_int_infty_proc_xml=>t_fields( ( infty = /sew/cl_mig_utils=>it0001
                                                                field_sap = /sew/cl_mig_utils=>btrtl
@@ -2551,7 +2575,23 @@ METHOD MAP_MIG_COFU_VALUES.
                                                              ( infty = /sew/cl_mig_utils=>it0001
                                                                field_sap = /sew/cl_mig_utils=>werks
                                                                value = p0001-werks ) ).
-  "Process WERKS/BTRTL mapping (LocationCode)
+  IF sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-italy.
+    "Process MASSN mapping
+    value_tmp       = CONV #( p0001-btrtl ).
+    /sew/cl_int_mapping=>process_mapping(
+      EXPORTING
+        import         = abap_false
+        export         = abap_true
+        infty          = /sew/cl_mig_utils=>it0001
+        field_sap      = /sew/cl_mig_utils=>btrtl
+        field_oracle   = /sew/cl_mig_utils=>locationcode
+        mapping_fields = CONV #( mapping_fields_btrtl )
+        mapping_values = CONV #( mapping_values_btrtl )
+      CHANGING
+        value          = value_tmp ).
+    location_code = value_tmp.
+  ELSE.
+    "Process WERKS/BTRTL mapping (LocationCode)
   /sew/cl_int_mapping=>process_mapping(
     EXPORTING
       import         = abap_false
@@ -2563,6 +2603,7 @@ METHOD MAP_MIG_COFU_VALUES.
       fields         = fields
     CHANGING
       value          = location_code ).
+    ENDIF.
 
   "Process MASSN mapping
   value_tmp       = CONV #( p0000-massn ).
@@ -2636,7 +2677,7 @@ METHOD MAP_MIG_COFU_VALUES.
 
   worker_type = value_tmp.
 
-"Process assignmenttype mapping
+  "Process assignmenttype mapping
   "for Austria/Australie employee group is relevant for assignmenttype
   value_tmp = COND #( WHEN '03'     IN molga                                         THEN p0001-persg
                       WHEN sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-australia THEN p0001-persg
@@ -2841,20 +2882,24 @@ METHOD MAP_MIG_COFU_VALUES.
 
   business_unit_code = value_tmp.
 
-  value_tmp       = CONV #( p0016-prbeh ).
-  /sew/cl_int_mapping=>process_mapping(
-    EXPORTING
-      import         = abap_false
-      export         = abap_true
-      infty          = '0016'
-      field_sap      = 'PRBEH'
-      field_oracle   = 'PROBATIONUNIT'
-      mapping_fields = CONV #( mapping_fields_prbeh )
-      mapping_values = CONV #( mapping_values_prbeh )
-    CHANGING
-      value          = value_tmp ).
+  CLEAR probationunit.
 
-  probationunit = value_tmp.
+  IF p0016-prbzt NE 0.
+    value_tmp       = CONV #( p0016-prbeh ).
+    /sew/cl_int_mapping=>process_mapping(
+      EXPORTING
+        import         = abap_false
+        export         = abap_true
+        infty          = '0016'
+        field_sap      = 'PRBEH'
+        field_oracle   = 'PROBATIONUNIT'
+        mapping_fields = CONV #( mapping_fields_prbeh )
+        mapping_values = CONV #( mapping_values_prbeh )
+      CHANGING
+        value          = value_tmp ).
+
+    probationunit = value_tmp.
+  ENDIF.
 
   value_tmp       = CONV #( p0016-kdgf2 ).
   /sew/cl_int_mapping=>process_mapping(
@@ -2896,6 +2941,8 @@ METHOD MAP_MIG_COFU_VALUES.
 
   business_unit_code = /sew/cl_mig_utils=>default_business_unit.
   CLEAR: location_code, department_name, job_code.
+
+  location_code = '#NULL'. "JMB20211213 I - To force update to empty value in Oracle
 ENDMETHOD.
 
 
@@ -3222,6 +3269,7 @@ METHOD map_mig_cogu_values.
 
   business_unit_code = /sew/cl_mig_utils=>default_business_unit.
   CLEAR: location_code, department_name, job_code.
+  location_code = '#NULL'. "JMB20220112 I - To force update to empty value in Oracle
 ENDMETHOD.
 
 

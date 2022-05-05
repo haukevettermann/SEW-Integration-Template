@@ -11,7 +11,6 @@ public section.
   data COGL type BOOLEAN .
   data COGU type BOOLEAN .
   data MOLGA type RSDSSELOPT_T .
-  data P0002 type P0002_TAB .
   data VP_CON_LEG_DATA_STRUCTURE type /IWBEP/T_MGW_NAME_VALUE_PAIR .
   constants CONTACT_LEG_DATA type STRING value 'ContactLegislativeData' ##NO_TEXT.
   constants PER type STRING value 'PER' ##NO_TEXT.
@@ -120,54 +119,44 @@ CLASS /SEW/CL_MIG_CONTACT_LEG_DATA IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_cofu_data.
-    "Get IT0021
-    SELECT pernr,
-           begda,
-           endda,
-           famsa,
-           fasex,
-           seqnr,
-           emrgn,
-           subty,
-           objps,
-           fgbdt,
-           zz_telnr,
-           zz_telnr2,
-           zz_art,
-           fanat
-    INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr
-                                                            AND begda LE @endda
-                                                            AND endda GE @begda.
+METHOD get_cofu_data.
+**JMB20211312 start insert - select only specific subtypes
+*
+  DATA: famsa TYPE rsdsselopt_t.
+  CASE sy-mandt.
+    WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
+      famsa = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '1' )
+                                  ( sign = 'I' option = 'EQ' low = '13' )
+                                  ( sign = 'I' option = 'EQ' low = '15' ) ).
+  ENDCASE.
+*JMB20211312 insert end
 
+  "Get IT0021
+  SELECT pernr,
+         begda,
+         endda,
+         fasex
+  INTO CORRESPONDING FIELDS OF TABLE @p0021 FROM pa0021 WHERE pernr IN @pernr
+                                                          AND famsa IN @famsa
+                                                          AND begda LE @endda
+                                                          AND endda GE @begda.
 
-    "Get IT0002
-    SELECT pernr,
-           begda,
-           endda,
-           sprsl,
-           gesch,
-           famst,
-           famdt INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr AND
-                                                                             begda LE @endda AND
-                                                                             endda GE @begda.
-
-    "Get BUKRS for LegislationCode
-    SELECT pernr,
-           begda,
-           endda,
-           bukrs INTO CORRESPONDING FIELDS OF TABLE @p0001 FROM pa0001 WHERE pernr IN @pernr AND
-                                                                             begda LE @endda AND
-                                                                             endda GE @begda.
+  "Get BUKRS for LegislationCode
+  SELECT pernr,
+         begda,
+         endda,
+         bukrs INTO CORRESPONDING FIELDS OF TABLE @p0001 FROM pa0001 WHERE pernr IN @pernr AND
+                                                                           begda LE @endda AND
+                                                                           endda GE @begda.
 
 
 
-    DATA(bukrs) = VALUE rsdsselopt_t( FOR <p0001> IN p0001 ( sign = 'I' option = 'EQ' low = <p0001>-bukrs ) ).
-    SORT bukrs BY low.
-    DELETE ADJACENT DUPLICATES FROM bukrs COMPARING low.
-    land1_map = /sew/cl_mig_utils=>get_legislation_codes( bukrs ).
+  DATA(bukrs) = VALUE rsdsselopt_t( FOR <p0001> IN p0001 ( sign = 'I' option = 'EQ' low = <p0001>-bukrs ) ).
+  SORT bukrs BY low.
+  DELETE ADJACENT DUPLICATES FROM bukrs COMPARING low.
+  land1_map = /sew/cl_mig_utils=>get_legislation_codes( bukrs ).
 
-  ENDMETHOD.
+ENDMETHOD.
 
 
   method GET_MAPPING_FIELDS.
@@ -195,123 +184,72 @@ CLASS /SEW/CL_MIG_CONTACT_LEG_DATA IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD map_cofu_data.
+METHOD map_cofu_data.
 
-    DATA: src_id TYPE string,
-          sys_id TYPE string,
-          land1  TYPE /iwbep/s_mgw_name_value_pair.
+  DATA: src_id TYPE string,
+        sys_id TYPE string,
+        land1  TYPE /iwbep/s_mgw_name_value_pair.
 
-    CHECK p0021 IS NOT INITIAL.
-    SORT p0021 BY pernr ASCENDING begda ASCENDING.
+  CHECK p0021 IS NOT INITIAL. "IFT20211207 I, due to dump
+  SORT p0021 BY pernr ASCENDING begda ASCENDING.
 
-    DATA(check_pernr) = p0021[ 1 ]-pernr.
-    DATA(count) = 0.
+  DATA(check_pernr) = p0021[ 1 ]-pernr.
+  DATA(count) = 0.
 
-    LOOP AT p0021 ASSIGNING FIELD-SYMBOL(<p0021>).
+  LOOP AT p0021 ASSIGNING FIELD-SYMBOL(<p0021>).
 
-      IF <p0021>-pernr NE check_pernr.
-        count = 1.
-        check_pernr = <p0021>-pernr.
-      ELSE.
-        count = count + 1.
-      ENDIF.
+    IF <p0021>-pernr NE check_pernr.
+      count = 1.
+      check_pernr = <p0021>-pernr.
+    ELSE.
+      count = count + 1.
+    ENDIF.
 
-
-      CLEAR land1.
-**IFT20211119 Start delete
-*
-*      LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE pernr EQ <p0021>-pernr AND
-*                                                          begda LE <p0021>-endda AND
-*                                                          endda GE <p0021>-begda.
-*        READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
-*      ENDLOOP.
-*IFT20211119 End delete
-      DATA(eff_start_date) = /sew/cl_mig_utils=>convert_date( <p0021>-begda ).
-
-      DATA(count_str) = CONV string( count ).
-      CONDENSE count_str.
-
-      CONCATENATE per
-                  cont
-                  <p0021>-pernr
-                  count_str
-      INTO DATA(per_id) SEPARATED BY '_'.
-
-
-
-      sys_id = 'SAP_' && sy-mandt.
-
-      CONCATENATE per
-                  cont
-                  leg
-                  <p0021>-pernr
-                  count_str
-      INTO src_id SEPARATED BY '_'.
-      map_mig_values( EXPORTING p0021 = <p0021>
-                      IMPORTING gesch = DATA(gesch_tmp) ).
-
-      CONCATENATE /sew/cl_mig_utils=>merge
-                  contact_leg_data
-                  eff_start_date
-                  ''
-                  per_id
-                  <p0021>-fanat
-                  gesch_tmp
-                  sys_id
-                  src_id
-      INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
-
-      CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+    "get legislationcode
+    CLEAR land1.
+    LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE pernr EQ <p0021>-pernr AND
+                                                        begda LE <p0021>-endda AND
+                                                        endda GE <p0021>-begda.
+      READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
+      EXIT.
     ENDLOOP.
 
+    DATA(eff_start_date) = /sew/cl_mig_utils=>convert_date( <p0021>-begda ).
 
-**IFT20211116 Start Deletion
-*
-*    LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>).
-*      CLEAR land1.
-*      LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE pernr EQ <p0002>-pernr AND
-*                                                          begda LE <p0002>-endda AND
-*                                                          endda GE <p0002>-begda.
-*
-*        READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
-*        EXIT.
-*      ENDLOOP.
-*
-*      DATA(eff_start_date) = /sew/cl_mig_utils=>convert_date( <p0002>-begda ).
-*
-*      CONCATENATE per
-*                  cont
-*                  <p0002>-pernr
-*      INTO DATA(per_id) SEPARATED BY '_'.
-*
-*      sys_id = 'SAP_' && sy-mandt.
-*
-*      CONCATENATE per
-*                  cont
-*                  leg
-*                  <p0002>-pernr
-*      INTO src_id SEPARATED BY '_'.
-*
-*      map_mig_values( EXPORTING p0002 = <p0002>
-*                      IMPORTING gesch = DATA(gesch_tmp) ).
-*
-*
-*      CONCATENATE /sew/cl_mig_utils=>merge
-*                  contact_leg_data
-*                  eff_start_date
-*                  ''
-*                  per_id
-*                  land1-value
-*                  gesch_tmp
-*                  sys_id
-*                  src_id
-*      INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
-*
-*      CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
-*    ENDLOOP.
-*IFT20211116 End Deletion
+    DATA(count_str) = CONV string( count ).
+    CONDENSE count_str.
 
-  ENDMETHOD.
+    CONCATENATE per
+                cont
+                <p0021>-pernr
+                count_str
+    INTO DATA(per_id) SEPARATED BY '_'.
+
+    sys_id = 'SAP_' && sy-mandt.
+
+    CONCATENATE per
+                cont
+                leg
+                <p0021>-pernr
+                count_str
+    INTO src_id SEPARATED BY '_'.
+    map_mig_values( EXPORTING p0021 = <p0021>
+                    IMPORTING gesch = DATA(gesch_tmp) ).
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                contact_leg_data
+                eff_start_date
+                ''
+                per_id
+                land1-value
+                gesch_tmp
+                sys_id
+                src_id
+    INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+  ENDLOOP.
+ENDMETHOD.
 
 
   METHOD map_mig_values.
@@ -342,9 +280,6 @@ CLASS /SEW/CL_MIG_CONTACT_LEG_DATA IMPLEMENTATION.
     get_cofu_data( ).
     get_mapping_fields( ).
     get_mapping_values( ).
-*    /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = worker->p0000
-*                                           CHANGING p0002 = p0002 ).
-
     data =  map_cofu_data( vp_src_id ).
 
   ENDMETHOD.

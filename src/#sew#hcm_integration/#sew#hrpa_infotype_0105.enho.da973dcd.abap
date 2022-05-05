@@ -1,0 +1,7 @@
+"Name: \TY:CL_HRPA_INFOTYPE_0105\ME:CHECK_EMAIL_ADDRESS\SE:BEGIN\EI
+ENHANCEMENT 0 /SEW/HRPA_INFOTYPE_0105.
+if sy-sysid EQ 'D02' or sy-sysid EQ 'Q02'.
+  is_ok = true.
+  exit.
+endif.
+ENDENHANCEMENT.

@@ -35,4 +35,5 @@ ENHANCEMENT 0 /SEW/HCM_ORACLE_INT.
   IF dcif IS NOT INITIAL.
     pspar-newitf = space.
     ENDIF.
+
 ENDENHANCEMENT.

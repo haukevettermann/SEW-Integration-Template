@@ -127,35 +127,35 @@ ENDMETHOD.
 
 METHOD GET_COFU_DATA.
 
-  "Get relevant IT0105 entries
-  DATA(subty) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = /sew/cl_mig_utils=>it0105_9998 )    "Get IT0105 Subty 9998 - CRM Pernr
-                                    ( sign = 'I' option = 'EQ' low = /sew/cl_mig_utils=>it0105_9900 ) ). "Get IT0105 Subty 9900 - Pernr local payroll system
-
-  "Get IT0105
-  SELECT pernr,
-         begda,
-         endda,
-         subty,
-         usrid FROM pa0105 INTO CORRESPONDING FIELDS OF TABLE @p0105 WHERE pernr IN @pernr AND
-                                                                           begda LE @endda AND
-                                                                           endda GE @begda AND
-                                                                           subty IN @subty.
-
-  "Get IT0050
-  SELECT pernr,
-         begda,
-         endda,
-         zausw FROM pa0050 INTO CORRESPONDING FIELDS OF TABLE @p0050 WHERE pernr IN @pernr AND
-                                                                           begda LE @endda AND
-                                                                           endda GE @begda.
-
-  "Get IT0001
-  SELECT pernr,
-         begda,
-         endda,
-         bukrs FROM pa0001 INTO CORRESPONDING FIELDS OF TABLE @p0001 WHERE pernr IN @pernr AND
-                                                                           begda LE @endda AND
-                                                                           endda GE @begda.
+*  "Get relevant IT0105 entries
+*  DATA(subty) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = /sew/cl_mig_utils=>it0105_9998 )    "Get IT0105 Subty 9998 - CRM Pernr
+*                                    ( sign = 'I' option = 'EQ' low = /sew/cl_mig_utils=>it0105_9900 ) ). "Get IT0105 Subty 9900 - Pernr local payroll system
+*
+*  "Get IT0105
+*  SELECT pernr,
+*         begda,
+*         endda,
+*         subty,
+*         usrid FROM pa0105 INTO CORRESPONDING FIELDS OF TABLE @p0105 WHERE pernr IN @pernr AND
+*                                                                           begda LE @endda AND
+*                                                                           endda GE @begda AND
+*                                                                           subty IN @subty.
+*
+*  "Get IT0050
+*  SELECT pernr,
+*         begda,
+*         endda,
+*         zausw FROM pa0050 INTO CORRESPONDING FIELDS OF TABLE @p0050 WHERE pernr IN @pernr AND
+*                                                                           begda LE @endda AND
+*                                                                           endda GE @begda.
+*
+*  "Get IT0001
+*  SELECT pernr,
+*         begda,
+*         endda,
+*         bukrs FROM pa0001 INTO CORRESPONDING FIELDS OF TABLE @p0001 WHERE pernr IN @pernr AND
+*                                                                           begda LE @endda AND
+*                                                                           endda GE @begda.
 ENDMETHOD.
 
 

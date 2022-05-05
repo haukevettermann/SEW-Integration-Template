@@ -195,7 +195,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
     DATA(period) = CONV char6( int_bal_upd_tmp[ 1 ]-begda+0(6) ).
     DATA(tmp_period) = period.
     DATA(xml_pernr_node) = xml_document->create_element( name = 'Person' ).
-*    DATA(parent_node) = xml_document->create_element( name = 'PayrollInterfaceInboundRecord' ).
     DATA(parent_node) = /sew/cl_time_changes=>create_parent_node( name         = 'PayrollInterfaceInboundRecord'
                                                                   xml_document = xml_document
                                                                   oraclepernr  = oraclepernr
@@ -520,17 +519,15 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
     rval->append_child( new_child = xml_single_node ).
 
     xml_single_node = xml_document->create_element( name = 'DocumentCode' ).
-*    xml_single_node->set_value( value = 'ORA_HRY_INBD_PAYROLL').
     rval->append_child( new_child = xml_single_node ).
 
     xml_single_node = xml_document->create_element( name = 'DocumentType' ).
-*    xml_single_node->set_value( value = 'ORA_HRY_INBD_PAYROLL').
     rval->append_child( new_child = xml_single_node ).
 
     xml_single_node = xml_document->create_element( name = 'SourceSystemId' ).
     DATA(ssid_part) = /sew/cl_time_changes=>get_ssid_component( ztart   = int_bal_upd-ztart
                                                                 tabname = int_bal_upd-tabname ).
-    xml_single_node->set_value( value = 'PER_' && pernr && '_PAY_' && begda+4(2) && '_' && begda+0(4) ). "PER_23860_PAY_12_2020_TS_2021/06/01_2021/06/30
+    xml_single_node->set_value( value = 'PER_' && pernr && '_PAY_' && begda+4(2) && '_' && begda+0(4) ).
     rval->append_child( new_child = xml_single_node ).
 
     xml_single_node = xml_document->create_element( name = 'SourceSystemOwner' ).
@@ -541,7 +538,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD DETECT_CHANGES.
+  METHOD detect_changes.
 
     DATA: change_date        TYPE dats,
           bal_upd_t          TYPE STANDARD TABLE OF /sew/int_bal_upd,
@@ -556,7 +553,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
           bal_upd_no_changes TYPE STANDARD TABLE OF /sew/int_bal_upd.
 
 
-*    DATA(oracle_id) = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = pernr ).
+
 
     " read customizing
     SELECT * FROM /sew/int_res_map WHERE begda <= @sy-datum
@@ -598,7 +595,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
       IMPORTING
         bal_upd     = bal_upd_t ).
 
-    CHECK bal_upd_t IS NOT INITIAl.
+    CHECK bal_upd_t IS NOT INITIAL.
 
 
     me->compare_tables(
@@ -620,93 +617,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
     APPEND LINES OF bal_upd_add        TO bal_upd_changes.
     APPEND LINES OF bal_upd_no_changes TO bal_upd_changes.
 
-*    Kein record -> neuen erstellen
-*    record io   -> nichts tun
-*    record nio  -> neuen erstellen
-
-*    IF int_bal_upd IS NOT INITIAL. " falls record da
-*      SORT int_bal_upd BY aenddatum DESCENDING.
-*      READ TABLE int_bal_upd INDEX 1 INTO DATA(int_bal_upd_line).
-*    ENDIF.
-*
-*    change_date = cluster_b2-fs_dates-dneva. " nicht 100 pro sicher
-*
-*    IF sy-subrc NE 0 OR int_bal_upd IS INITIAL. " kein record da -> neuen erstellen
-*      me->create_entries(
-*        EXPORTING
-*          cluster_b2 = cluster_b2
-*          pernr = pernr
-*          int_res_map = int_res_map
-**          change_date = change_date
-*        IMPORTING
-*          bal_upd = bal_upd_t
-*       ).
-*      APPEND LINES OF bal_upd_t TO bal_upd_changes.
-*      RETURN.
-*    ENDIF.
-*
-*
-*    IF change_date EQ sy-datum "neuen record erstellen da cluster sich verändert hat
-*    OR change_date GT int_bal_upd_line-endda. "cluster b2 changed.
-*
-*    me->create_entries(
-*      EXPORTING
-*        cluster_b2  = cluster_b2
-*        pernr       = pernr
-*        int_res_map = int_res_map
-**        change_date = change_date
-*      IMPORTING
-*        bal_upd = bal_upd_t ).
-*
-*    APPEND LINES OF bal_upd_t TO bal_upd_changes.
-*    CLEAR bal_upd_t.
-*    ENDIF.
-
-****
-*****      LOOP AT int_res_map ASSIGNING FIELD-SYMBOL(<line_map>).
-*****
-*****
-*****        ASSIGN COMPONENT <line_map>-tabname OF STRUCTURE cluster_b2 TO <res_tab>.
-*****
-*****        LOOP AT <res_tab> ASSIGNING FIELD-SYMBOL(<tab_line>).
-*****          ASSIGN COMPONENT 'ZTART' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<ztart>).
-*****          ASSIGN COMPONENT 'DATUM' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<datum>).
-*****          ASSIGN COMPONENT 'BEGDA' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<begda>).
-*****          ASSIGN COMPONENT 'ENDDA' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<endda>).
-*****          ASSIGN COMPONENT 'ANZHL' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<anzhl>).
-*****
-*****
-*****          IF <ztart> IS ASSIGNED.
-*****            CHECK <ztart> EQ <line_map>-ztart.
-*****
-*****            IF <datum> IS ASSIGNED.
-*****              bal_upd_l-endda = <datum>.
-*****              bal_upd_l-begda = <datum>.
-*****            ENDIF.
-*****
-*****            IF <begda> IS ASSIGNED.
-*****              bal_upd_l-begda = <begda>.
-*****            ENDIF.
-*****            IF <endda> IS ASSIGNED.
-*****              bal_upd_l-endda = <endda>.
-*****            ENDIF.
-*****
-*****            IF <anzhl> IS ASSIGNED.
-*****              bal_upd_l-anzhl = <anzhl>.
-*****            ENDIF.
-*****
-*****            bal_upd_l-mandt = sy-mandt.
-*****            bal_upd_l-molga = cluster_b2-molga.
-*****            bal_upd_l-pernr = pernr.
-*****            bal_upd_l-oracle_id = <line_map>-oracle_id.
-*****            bal_upd_l-unit = <line_map>-unit.
-*****            bal_upd_l-aenddatum = change_date.
-*****            bal_upd_l-status = '01'.
-*****          ENDIF.
-*****          APPEND bal_upd_l TO bal_upd_t.
-*****          CLEAR bal_upd_l.
-*****        ENDLOOP.
-*****      ENDLOOP.
   ENDMETHOD.
 
 
@@ -740,7 +650,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
                  INTO ssid SEPARATED BY '_'.
 
 
-*    PER_23860_PAY_12_2020_TS_2021/06/01_2021/06/30
+
   ENDMETHOD.
 
 
@@ -806,7 +716,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD POST_FO_AEUP.
+  METHOD post_fo_aeup.
 
     DATA: pernr        TYPE pernr_d,
           it           TYPE REF TO data,
@@ -823,8 +733,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
       me->status_handler->aend_id = <fo_aeup>-aend_id.
       me->status_handler->begda = <fo_aeup>-begda.
       me->status_handler->endda = <fo_aeup>-endda.
-*      me->status_handler->molga = <fo_aeup>-molga.  " molga nicht in /sew/int_fo_aeup vorhanden
-*      me->status_handler->oraclepernr = <fo_aeup>-oraclepernr.
       me->status_handler->sap_id = <fo_aeup>-pernr.
       me->status_handler->int_run = <fo_aeup>-int_run.
 
@@ -861,8 +769,7 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
             CLEAR: return.
 
             APPEND VALUE #( sign = 'I' option = 'EQ' low = <fo_aeup>-pernr ) TO pernr_locked.
-*            APPEND VALUE #( sign = 'I' option = 'EQ' low = <fo_aeup>-cloud_id ) TO pernr_locked.
-*          count = max.
+
             CONTINUE.
           ENDIF.
 
@@ -871,17 +778,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
         ENDIF.
 
       ENDIF.
-
-*      DATA(method) = SWITCH char9( <fo_aeup>-infty " /sew/int_fo_aeup hat kein feld infty
-*        WHEN '2011' THEN 'POST_TEVE'
-*        WHEN '2001' THEN 'POST_OPER'
-*        WHEN '2002' THEN 'POST_OPER'
-*        WHEN '2006' THEN 'POST_OPER'
-*        WHEN '2006' THEN 'POST_OPER' ).
-
-
-
-
     ENDLOOP.
 
 
@@ -915,19 +811,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
                                              THEN TEXT-005
                                              ELSE TEXT-001 ) ).
       ENDIF.
-*
-*      "add error table
-*      IF it_aend_error IS NOT INITIAL.
-*        message_handler->if_hrpay00_pal_services~add_table(
-*          EXPORTING
-*            i_parent_node_key = root_node
-*            it_fcat           = fcat_it_aend
-*            it_append_table   = it_aend_error
-*            is_layout         = layout
-*            i_node_txt        = COND string( WHEN simu EQ abap_true
-*                                             THEN TEXT-006
-*                                             ELSE TEXT-002 ) ).
-*      ENDIF.
 
       "add skipped pernr's
       IF skipped_pernrs IS NOT INITIAL.
@@ -951,55 +834,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
       CALL METHOD message_handler->display_pal.
 
     ENDIF.
-
-***    FIELD-SYMBOLS: <append_table> TYPE any.
-***
-***    "Check message handler
-***    IF message_handler IS BOUND.
-***
-***      "prepare layout options
-***      DATA(layout) = VALUE slis_layout_alv( zebra = 'X'
-***                                               colwidth_optimize = 'X' ).
-***
-***      DATA: root_node TYPE hrpad_pal_node_key VALUE 'ROOT'.
-***
-***      "Define structure of successful and failed IT_AEND entries ALV table
-***      message_handler->if_hrpay00_pal_services~create_fcat( EXPORTING i_structure_name = '/SEW/INT_FO_AEUP'
-***                                                            IMPORTING et_fcat          = DATA(fcat_it_aend) ).
-***
-****      <append_table> = me->int_fo_aeup.
-***
-***      message_handler->if_hrpay00_pal_services~add_table(
-***        EXPORTING
-***          i_parent_node_key = root_node
-***          it_fcat           = fcat_it_aend
-***          it_append_table   = <append_table>
-***          is_layout         = layout
-***          i_node_txt        = COND string( WHEN simu EQ abap_true
-***                                           THEN TEXT-009
-***                                           ELSE TEXT-010 ) ).
-***      "add skipped pernr's
-***      IF skipped_pernrs IS NOT INITIAL.
-***        message_handler->if_hrpay00_pal_services~add_table(
-***        EXPORTING
-***          i_parent_node_key = root_node
-***          it_append_table   = skipped_pernrs
-***          is_layout         = layout
-***          i_node_txt        = COND string( WHEN simu EQ abap_true
-***                                             THEN TEXT-008
-***                                             ELSE TEXT-004 ) ).
-***      ENDIF.
-***
-***      "add message table
-***      message_handler->if_hrpay00_pal_services~add_messages(
-***        EXPORTING
-***          i_parent_node_key = root_node
-***      ).
-***
-***      "show pals
-***      CALL METHOD message_handler->display_pal.
-***
-***    ENDIF.
 
   ENDMETHOD.
 
@@ -1050,13 +884,6 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
             cluster_archieved     = 3
             technical_error       = 4.
 
-*        CALL FUNCTION 'HR_TIME_RESULTS_GET'
-*          EXPORTING
-*            get_pernr = pernr
-*            get_pabrj = pabrj
-*            get_pabrp = pabrp
-*          TABLES
-*            get_zes   = ft_zes.
 
         CHECK cluster_b2 IS NOT INITIAL AND sy-subrc IS INITIAL.
 
@@ -1154,11 +981,10 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD SAVE_ENTRIES.
+  METHOD save_entries.
 
     IF bal_upd IS NOT INITIAL AND me->simu NE 'X'.
       MODIFY /sew/int_bal_upd FROM TABLE bal_upd.
-*      INSERT /sew/int_bal_upd FROM TABLE bal_upd. "DBSQL_DUPLICATE_KEY_ERROR tritt auf -> aendtm zu key machen?
       COMMIT WORK.
       IF sy-subrc NE 0.
         is_ok = abap_false.
@@ -1200,67 +1026,14 @@ CLASS /SEW/CL_TIME_CHANGES IMPLEMENTATION.
         <line>-status = '02'.
       ENDLOOP.
 
-*        MODIFY /sew/int_bal_upd FROM TABLE int_bal_upd.
-*        COMMIT WORK.
-*        status = '02'.
+
     ELSE.
-*      status = '03'.
+
     ENDIF.
 
     cl_abap_browser=>show_xml(
       EXPORTING
         xml_xstring =  xml_string  ).
-
-
-*      CALL FUNCTION 'DISPLAY_XML_STRING'
-*        EXPORTING
-*          xml_string      = xml_string
-*        EXCEPTIONS
-*          no_xml_document = 1
-*          OTHERS          = 2.
-
-
-
-
-
-
-*    DATA: is_ok     TYPE flag,
-*          periods   TYPE /sew/cl_time_changes=>periods_t,
-*          begda     TYPE dats,
-*          endda     TYPE dats,
-*          pcl2_temp TYPE STANDARD TABLE OF pcl2,
-*          pcl2      TYPE STANDARD TABLE OF pcl2.
-**    FIELD-SYMBOLS: <periods> TYPE ANY TABLE.
-*
-*    begda = '20210101'.
-*    endda = '20210731'.
-*
-*
-*
-*    CALL METHOD /sew/cl_forms_utils=>get_periods
-*      EXPORTING
-*        begda   = begda
-*        endda   = endda
-*      IMPORTING
-*        periods = periods.
-*
-*
-**      DATA(oracle_con) = VALUE rsdsselopt_t( FOR <res_map> IN int_res_map ( sign = 'I' option = 'EQ' low = <res_map>-oracle_id ) ).
-**    DATA(periods_range) = VALUE rsdsselopt_t( FOR <periods> IN periods ( sign = 'I' option = 'EQ' low = <periods>-datuv+0(6) ) ).
-*    DATA(srtfd) = VALUE rsdsselopt_t( FOR <periods> IN periods ( sign = 'I' option = 'EQ' low = pernr && <periods>-datuv+0(6) && '1' ) ).
-**    LOOP AT periods_range ASSIGNING FIELD-SYMBOL(<line>).
-**      CONCATENATE pernr <line>-low INTO DATA(srtfd).
-**      APPEND srtfd
-**    ENDLOOP.
-*    SELECT * FROM pcl2 WHERE relid = 'B2'
-*                       AND   srtfd IN @srtfd
-*                       INTO TABLE @pcl2_temp.
-*    IF pcl2 IS NOT INITIAL.
-*      is_ok = abap_true.
-*      APPEND LINES OF pcl2_temp TO pcl2.
-*    ENDIF.
-**    ENDLOOP.
-
 
   ENDMETHOD.
 ENDCLASS.

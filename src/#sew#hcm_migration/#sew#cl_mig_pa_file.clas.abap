@@ -16,7 +16,8 @@ public section.
 
   methods DOWNLOAD_FILES
     importing
-      !FILES type /IWBEP/T_MGW_NAME_VALUE_PAIR .
+      !FILES type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !ZIP_FILES type /IWBEP/T_MGW_NAME_VALUE_PAIR optional .
   methods CONSTRUCTOR
     importing
       !COGL type BOOLEAN
@@ -41,6 +42,7 @@ public section.
       !DISABILITY type STRING
       !CONTACT type STRING
       !SALARY type STRING
+      !BANK type STRING
     returning
       value(CONTENT) type STRING .
   PROTECTED SECTION.
@@ -86,6 +88,12 @@ private section.
   data CONTACT_NAME type ref to /SEW/CL_MIG_CONTACT_NAME .
   data CONTACT_REL type ref to /SEW/CL_MIG_CONTACT_RELATION .
   data SALARY type ref to /SEW/CL_MIG_SALARY .
+  data CONTACT_PHONE type ref to /SEW/CL_MIG_CONTACT_PHONE .
+  constants PURGE_FUTURE type STRING value 'SET PURGE_FUTURE_CHANGES N' ##NO_TEXT.
+  data EXT_BANK type ref to /SEW/CL_MIG_EXT_BANK_ACC .
+  data EXT_BANK_OWN type ref to /SEW/CL_MIG_EXT_BANK_OWN .
+  data CONTACT_CITIZENSHIP type ref to /SEW/CL_MIG_CONTAC_CITIZENSHIP .
+  data GRADE_STEP type ref to /SEW/CL_MIG_ASSIGN_GRADESTEP .
 
   methods GET_MOLGA .
   methods BUILD_OUTPUT
@@ -106,6 +114,7 @@ private section.
       !META_DISABILITY type STRING
       !META_CONTACT type STRING
       !META_SALARY type STRING
+      !META_EXT_BANK type STRING
     returning
       value(METADATA) type STRING .
   methods GET_DATA
@@ -120,6 +129,7 @@ private section.
       !DATA_EXTERNAL type STRING
       !DATA_CONTACT type STRING
       !DATA_SALARY type STRING
+      !DATA_EXT_BANK type STRING
     returning
       value(DATA) type STRING .
   methods GET_COGL_METADATA
@@ -144,6 +154,7 @@ private section.
       !META_DISABILITY type STRING
       !META_CONTACT type STRING
       !META_SALARY type STRING
+      !META_EXT_BANK type STRING
     returning
       value(METADATA) type STRING .
   methods GET_COGU_METADATA
@@ -169,6 +180,7 @@ private section.
       !DATA_DISABILITY type STRING
       !DATA_CONTACT type STRING
       !DATA_SALARY type STRING
+      !DATA_EXT_BANK type STRING
     returning
       value(DATA) type STRING .
   methods GET_COGU_DATA
@@ -316,7 +328,7 @@ METHOD constructor.
                                                    molga = molga ).
 
   person_citizenship      = NEW /sew/cl_mig_person_citizenship( pernr = pernr
-                                                                begda = begda
+                                                                begda = pn_begda "JMB20211202 I - Isn´t date-effective
                                                                 endda = endda
                                                                 cogl  = cogl
                                                                 cofu  = cofu
@@ -324,8 +336,8 @@ METHOD constructor.
                                                                 molga = molga ).
 
   person_address  = NEW /sew/cl_mig_person_address( pernr = pernr "BS20211021 added
-                                                    begda = begda
-                                                    endda = endda
+                                                    begda = sy-datum "JMB20220314 I - Mailing address must start on start date of employee "JMB20220211 I - C400129651-6650
+                                                    endda = endda "sy-datum "JMB20220211 I - C400129651-6650
                                                     cogl  = cogl
                                                     cofu  = cofu
                                                     cogu  = cogu
@@ -374,13 +386,31 @@ METHOD constructor.
                                                zip   = zip
                                                al11  = al11   ).
 
+  ext_bank = NEW /sew/cl_mig_ext_bank_acc( pernr = pernr
+                                           begda = sy-datum
+                                           endda = endda
+                                           cogl  = cogl
+                                           cofu  = cofu
+                                           cogu  = cogu
+                                           molga = molga ).
+
+  ext_bank_own = NEW /sew/cl_mig_ext_bank_own( pernr = pernr
+                                               begda = sy-datum
+                                               endda = endda
+                                               cogl  = cogl
+                                               cofu  = cofu
+                                               cogu  = cogu
+                                               molga = molga ).
+
   person_pay = NEW /sew/cl_mig_person_pay_method( pernr = pernr
-                                                  begda = begda
-                                                  endda = endda
-                                                  cogl  = cogl
-                                                  cofu  = cofu
-                                                  cogu  = cogu
-                                                  molga = molga ).
+                                                 begda = sy-datum
+                                                 endda = endda
+                                                 cogl  = cogl
+                                                 cofu  = cofu
+                                                 cogu  = cogu
+                                                 molga = molga
+                                                 bank_acc = ext_bank
+                                                 bank_own = ext_bank_own ).
 
   natio_identifier = NEW /sew/cl_mig_natio_identifier( pernr = pernr  "IFT20211026 I
                                                        begda = begda
@@ -424,7 +454,15 @@ METHOD constructor.
                                                   molga = molga ).
 
   assign_ext_inf = NEW /sew/cl_mig_assign_extra_info( pernr = pernr
-                                                      begda = pn_begda
+                                                      begda = sy-datum "JMB20220211 I - C400129651-6651
+                                                      endda = endda
+                                                      cogl  = cogl
+                                                      cofu  = cofu
+                                                      cogu  = cogu
+                                                      molga = molga ).
+
+  grade_step      = NEW /sew/cl_mig_assign_gradestep( pernr = pernr
+                                                      begda = begda
                                                       endda = endda
                                                       cogl  = cogl
                                                       cofu  = cofu
@@ -443,7 +481,7 @@ METHOD constructor.
 **IFT20211109 Start Insert
 *
   contact = NEW /sew/cl_mig_contact( pernr = pernr
-                                     begda = begda
+                                     begda = sy-datum
                                      endda = endda
                                      cogl  = cogl
                                      cofu  = cofu
@@ -451,26 +489,43 @@ METHOD constructor.
                                      molga = molga ).
 
   contact_leg_data = NEW /sew/cl_mig_contact_leg_data( pernr = pernr
-                                                       begda = begda
+                                                       begda = sy-datum
                                                        endda = endda
                                                        cogl  = cogl
                                                        cofu  = cofu
                                                        cogu  = cogu
                                                        molga = molga ).
   contact_name = NEW /sew/cl_mig_contact_name( pernr = pernr
-                                               begda = begda
+                                               begda = sy-datum
                                                endda = endda
                                                cogl  = cogl
                                                cofu  = cofu
                                                cogu  = cogu
                                                molga = molga ).
   contact_rel = NEW /sew/cl_mig_contact_relation( pernr = pernr
-                                                  begda = begda
+                                                  begda = sy-datum
                                                   endda = endda
                                                   cogl  = cogl
                                                   cofu  = cofu
                                                   cogu  = cogu
                                                   molga = molga ).
+
+  contact_phone = NEW /sew/cl_mig_contact_phone( pernr = pernr
+                                                 begda = sy-datum
+                                                 endda = endda
+                                                 cogl  = cogl
+                                                 cofu  = cofu
+                                                 cogu  = cogu
+                                                 molga = molga ).
+
+  contact_citizenship      = NEW /sew/cl_mig_contac_citizenship( pernr = pernr
+                                                                 begda = sy-datum
+                                                                 endda = endda
+                                                                 cogl  = cogl
+                                                                 cofu  = cofu
+                                                                 cogu  = cogu
+                                                                 molga = molga ).
+
 *IFT20211109 End Insert
 ENDMETHOD.
 
@@ -541,8 +596,83 @@ METHOD download_files.
       ENDLOOP.
       CLOSE DATASET filename.
     WHEN abap_false.
+**IFT20211207 Start Insert
+*
+      IF zip_files IS NOT INITIAL.
+        DATA: components TYPE TABLE OF string.
+        DATA(zip_2) = NEW cl_abap_zip( ).
+        DATA(zip_3) = NEW cl_abap_zip( ).
 
-      LOOP AT files ASSIGNING FIELD-SYMBOL(<files>).
+        LOOP AT files ASSIGNING FIELD-SYMBOL(<files>).
+          SPLIT <files>-name AT '\' INTO TABLE components.
+          LOOP AT components ASSIGNING FIELD-SYMBOL(<components>).
+          ENDLOOP. " get last part of filepath
+          CHECK sy-subrc IS INITIAL.
+
+          CASE <components>.
+            WHEN 'Worker_Supervisor.dat' OR 'Worker_Termination.dat'.
+              CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+                EXPORTING
+                  text   = <files>-value
+                IMPORTING
+                  buffer = content_x.
+
+              zip_2->add( name    = <components>
+                          content = content_x    ).
+
+            WHEN 'Worker_ExternalIdentifier.dat'.
+              CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+                EXPORTING
+                  text   = <files>-value
+                IMPORTING
+                  buffer = content_x.
+
+              zip_3->add( name    = <components>
+                          content = content_x ).
+            WHEN OTHERS.
+              CALL FUNCTION 'SCMS_STRING_TO_XSTRING'
+                EXPORTING
+                  text   = <files>-value
+                IMPORTING
+                  buffer = content_x.
+              zip->add( name    = <components>
+                        content = content_x ).
+          ENDCASE.
+        ENDLOOP.
+
+        LOOP AT zip_files ASSIGNING FIELD-SYMBOL(<zip_file>).
+          CASE <zip_file>-name.
+            WHEN 1.
+              zip_xstring = zip->save( ).
+            WHEN 2.
+              zip_xstring = zip_2->save( ).
+            WHEN 3.
+              zip_xstring = zip_3->save( ).
+          ENDCASE.
+
+          CHECK zip_xstring IS NOT INITIAL.
+
+          CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+            EXPORTING
+              buffer     = zip_xstring
+            TABLES
+              binary_tab = zip_tab.
+
+          CALL METHOD cl_gui_frontend_services=>gui_download
+            EXPORTING
+              filename = <zip_file>-value
+              filetype = 'BIN'
+            CHANGING
+              data_tab = zip_tab
+            EXCEPTIONS
+              OTHERS   = 1.
+
+          CLEAR zip_xstring.
+        ENDLOOP.
+        RETURN. " IFT20211210, only download zip but filenames are needed
+      ENDIF.
+
+      LOOP AT files ASSIGNING <files>.
         APPEND <files>-value TO content.
         CALL FUNCTION 'GUI_DOWNLOAD'
           EXPORTING
@@ -554,19 +684,21 @@ METHOD download_files.
         CLEAR: content.
       ENDLOOP.
   ENDCASE.
-
 ENDMETHOD.
 
 
 METHOD get_cofu_data.
   DATA: data_term_tmp   TYPE string,
         data_assign_man TYPE string,
+        data_assign_ext TYPE string,
+        data_bank_acc   TYPE string,
+        data_bank_own   TYPE string,
         vp_src_id       TYPE /iwbep/t_mgw_name_value_pair,
         vp_wkr_id       TYPE /sew/cl_mig_work_relation=>vp_wkr_id_t,
         vp_wterm_id     TYPE /sew/cl_mig_work_terms=>vp_wterm_id_t.
 
   DATA(data_work)       = worker->proceed_cofu_worker( IMPORTING vp_src_id = vp_src_id ).
-  DATA(data_ext)        = external_ident->proceed_cofu_external_ident( worker       = worker
+  data_external         = external_ident->proceed_cofu_external_ident( worker       = worker
                                                                        vp_src_id    = vp_src_id
                                                                        vp_lcl_pernr = worker->vp_lcl_pernr ).
   DATA(data_ext_info)   = extra_info->proceed_cofu_extra_info( worker       = worker
@@ -618,17 +750,21 @@ METHOD get_cofu_data.
                                                                     vp_src_id = vp_src_id ).
   DATA(data_ft) = person_image->proceed_cogl_person_image( vp_src_id = vp_src_id ).
 
-  data_pay          = person_pay->proceed_cofu_person_pay_method( worker    = worker
-                                                                  vp_src_id = vp_src_id ).
+  data_pay          = person_pay->proceed_cofu_person_pay_method( EXPORTING worker    = worker
+                                                                            vp_src_id = vp_src_id
+                                                                  IMPORTING ext_bank_acc = data_bank_acc
+                                                                            ext_bank_own = data_bank_own ).
 
   DATA(data_natio)      = natio_identifier->proceed_cofu_natio_identifier( worker    = worker "IFT20211016 I
                                                                            vp_src_id = vp_src_id ).
 
   DATA(data_drivers_licence)       = drivers_licence->proceed_cofu_drivers_licence( vp_src_id = vp_src_id "BS20211029 I
                                                                                     worker    = worker ).
-
-  DATA(data_passport)       = passport->proceed_cofu_passport( vp_src_id = vp_src_id "BS20211027 I
-                                                               worker    = worker ).
+**JMB20220118 start delete - Functional team has decided to remove passport data from migration file
+*
+*  DATA(data_passport)       = passport->proceed_cofu_passport( vp_src_id = vp_src_id "BS20211027 I
+*                                                               worker    = worker ).
+*JMB20220118 delete end
 
   DATA(data_visa) = visa->proceed_cofu_per_visa( vp_src_id = vp_src_id "IFT20211029 I
                                                  worker    = worker ).
@@ -636,8 +772,11 @@ METHOD get_cofu_data.
   data_disability = disability->proceed_cofu_per_disability( vp_src_id = vp_src_id
                                                              worker    = worker ).
 
-  DATA(data_assign_ext) = assign_ext_inf->proceed_cofu_extra_info( worker    = worker
-                                                                   vp_src_id = vp_src_id ).
+**JMB20211130 start delete - AssignmentExtraInfo will be created in Assignment class
+*
+*  DATA(data_assign_ext) = assign_ext_inf->proceed_cofu_extra_info( worker    = worker
+*                                                                   vp_src_id = vp_src_id ).
+*JMB20211130 delete end
 
 **IFT20211109 Start Insert
 *
@@ -651,6 +790,12 @@ METHOD get_cofu_data.
 
   DATA(data_contact_rel) = contact_rel->proceed_cofu_con_relationship( worker    = worker
                                                                        vp_src_id = vp_src_id ).
+
+  DATA(data_contact_phone) = contact_phone->proceed_cofu_per_contact_phone( worker    = worker
+                                                                            vp_src_id = vp_src_id ).
+
+  DATA(data_contact_citiz) = contact_citizenship->proceed_cofu_per_citizenship( worker    = worker
+                                                                                vp_src_id = vp_src_id ).
 *IFT20211109 End Insert
 
   data_salary             = salary->proceed_cofu_salary( worker    = worker
@@ -669,20 +814,14 @@ METHOD get_cofu_data.
               data_addr "BS20211021 I
               data_cs
               data_drivers_licence "BS20211029 I
-              data_passport "BS20211027 I
+*              data_passport "BS20211027 I    "JMB20220118 D
               data_natio "IFT20211026 I
               data_ft
               data_visa "IFT20211029 I
-              data_assign_ext
+*              data_assign_ext    "JMB20211130 D - In data_assign
   INTO        data SEPARATED BY cl_abap_char_utilities=>newline.
 
-  CONCATENATE data_work
-              data_assign_man
-  INTO        data_super SEPARATED BY cl_abap_char_utilities=>newline.
-
-  CONCATENATE data_work
-              data_ext
-  INTO        data_external SEPARATED BY cl_abap_char_utilities=>newline.
+  data_super = data_assign_man.
 
   CONCATENATE data_disability
               '' " Placeholder DO NOT USE
@@ -694,8 +833,14 @@ METHOD get_cofu_data.
               data_contact_leg_data
               data_contact_name
               data_contact_rel
+              data_contact_phone
+              data_contact_citiz
   INTO data_contact SEPARATED BY cl_abap_char_utilities=>newline.
 *IFT20211109 End insert
+
+  CONCATENATE data_bank_acc
+              data_bank_own
+  INTO data_ext_bank SEPARATED BY cl_abap_char_utilities=>newline.
 
   data_term = data_term_tmp.
 ENDMETHOD.
@@ -706,7 +851,7 @@ METHOD get_cofu_metadata.
   DATA(meta_assign)     = assignment->create_metadata( ).
   DATA(meta_workterms)  = workterms->create_metadata( ).
   DATA(meta_contract)   = contract->create_metadata( ).
-  DATA(meta_ext)        = external_ident->create_metadata( ).
+  meta_external         = external_ident->create_metadata( ).
   DATA(meta_ext_info)   = extra_info->create_metadata( ).
   DATA(meta_eml)        = person_email->create_metadata( ).
   DATA(meta_leg)        = person_leg_data->create_metadata( ).
@@ -716,6 +861,8 @@ METHOD get_cofu_metadata.
   DATA(meta_cs)         = person_citizenship->create_metadata( ).
   DATA(meta_addr)       = person_address->create_metadata( ). "BS20211022 added
   DATA(meta_assign_man) = assignment_man->create_metadata( ).
+  DATA(meta_grade_step) = grade_step->create_metadata( ).
+  DATA(meta_work_meas)  = work_measure->create_metadata( ).
   meta_user             = user->create_metadata( ).
   meta_account          = account->create_metadata( ).
   meta_allocation       = allocation->create_metadata( ).
@@ -731,7 +878,12 @@ METHOD get_cofu_metadata.
   DATA(meta_contact_leg_data) = contact_leg_data->create_metadata( ). "IFT20211109 I
   DATA(meta_contact_name) = contact_name->create_metadata( ). "IFT20211109 I
   DATA(meta_contact_rel) = contact_rel->create_metadata( ). "IFT20211109 I
+  DATA(meta_contact_phone) = contact_phone->create_metadata( ). "IFT20211109 I
+  DATA(meta_contact_citiz) = contact_citizenship->create_metadata( ). "IFT20211109 I
   meta_salary = salary->create_metadata( ).
+
+  DATA(meta_bank_acc) = ext_bank->create_metadata( ).
+  DATA(meta_bank_own) = ext_bank_own->create_metadata( ).
 
   CONCATENATE meta_work
               meta_eml
@@ -743,6 +895,7 @@ METHOD get_cofu_metadata.
               meta_wkr
               meta_workterms
               meta_assign
+              meta_work_meas
               meta_contract
               meta_cs
               meta_addr "BS20211022 added
@@ -752,34 +905,23 @@ METHOD get_cofu_metadata.
               meta_image
               meta_visa "IFT20211029 I
               meta_assign_ext_inf "JMB20211108 I
+              meta_grade_step
   INTO        metadata SEPARATED BY cl_abap_char_utilities=>newline.
 
-  CONCATENATE meta_work
-              meta_assign_man
-  INTO        meta_super  SEPARATED BY cl_abap_char_utilities=>newline.
+  meta_super = meta_assign_man.
 
-  CONCATENATE meta_work
-              meta_ext
-  INTO        meta_external SEPARATED BY cl_abap_char_utilities=>newline.
-
-
-**IFT20211123 Start delete
-*
-***IFT20211105 Start insert
-**
-*  CONCATENATE meta_work
-*              meta_disability
-*  INTO        meta_disability SEPARATED BY cl_abap_char_utilities=>newline.
-**IFT20211109 End insert
-*IFT20211123 End delete
-**IFT20211109 Start insert
-*
   CONCATENATE meta_contact
               meta_contact_leg_data
               meta_contact_name
               meta_contact_rel
+              meta_contact_phone
+              meta_contact_citiz
   INTO        meta_contact SEPARATED BY cl_abap_char_utilities=>newline.
-*IFT20211109 End insert
+
+  CONCATENATE meta_bank_acc
+              meta_bank_own
+  INTO        meta_ext_bank SEPARATED BY cl_abap_char_utilities=>newline.
+
   meta_term = meta_wkr.
 ENDMETHOD.
 
@@ -1061,6 +1203,7 @@ METHOD get_data.
                                     data_account    = data_account
                                     data_allocation = data_allocation
                                     data_pay        = data_pay
+                                    data_ext_bank   = data_ext_bank
                                     data_external   = data_external
                                     data_salary     = data_salary
                                     data_disability = data_disability "IFT20211105 I
@@ -1094,6 +1237,7 @@ METHOD get_metadata.
                                             meta_allocation = meta_allocation
                                             meta_external   = meta_external
                                             meta_pay        = meta_pay
+                                            meta_ext_bank   = meta_ext_bank
                                             meta_disability = meta_disability
                                             meta_salary     = meta_salary
                                             meta_contact    = meta_contact ). "IFT20211109 I
@@ -1130,6 +1274,7 @@ METHOD proceed_file_construction.
         meta_account    TYPE string,
         meta_allocation TYPE string,
         meta_pay        TYPE string,
+        meta_ext_bank   TYPE string,
         meta_salary     TYPE string,
         meta_external   TYPE string,
         meta_disability TYPE string, "IFT20211105 I
@@ -1140,6 +1285,7 @@ METHOD proceed_file_construction.
         data_account    TYPE string,
         data_allocation TYPE string,
         data_pay        TYPE string,
+        data_ext_bank   TYPE string,
         data_salary     TYPE string,
         data_external   TYPE string,
         data_disability TYPE string, "IFT20211105 I
@@ -1153,6 +1299,7 @@ METHOD proceed_file_construction.
                                            meta_pay        = meta_pay
                                            meta_external   = meta_external
                                            meta_salary     = meta_salary
+                                           meta_ext_bank   = meta_ext_bank
                                            meta_disability = meta_disability   "IFT20211105 I
                                            meta_contact    = meta_contact  ).  "IFT20211109 I
 
@@ -1162,12 +1309,15 @@ METHOD proceed_file_construction.
                                        data_account    = data_account
                                        data_allocation = data_allocation
                                        data_pay        = data_pay
+                                       data_ext_bank   = data_ext_bank
                                        data_external   = data_external
                                        data_salary     = data_salary
                                        data_disability = data_disability "IFT20211105 I
                                        data_contact    = data_contact ). "IFT20211109 I
 
-  CONCATENATE calc_fte metadata INTO metadata SEPARATED BY cl_abap_char_utilities=>newline. "JMB20210705 I Ticket 4999
+  CONCATENATE calc_fte
+              purge_future
+              metadata INTO metadata SEPARATED BY cl_abap_char_utilities=>newline. "JMB20210705 I Ticket 4999
 
   content        = build_output( metadata = metadata
                                  data     = data ).
@@ -1183,6 +1333,8 @@ METHOD proceed_file_construction.
                                  data     = data_allocation ).
   pay            = build_output( metadata = meta_pay
                                  data     = data_pay ).
+  bank           = build_output( metadata = meta_ext_bank
+                                 data     = data_ext_bank ).
   external       = build_output( metadata = meta_external
                                  data     = data_external ).
   disability     = build_output( metadata = meta_disability   "IFT20211105 I

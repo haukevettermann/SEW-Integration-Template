@@ -1,16 +1,27 @@
 "Name: \TY:CL_HRPA_UI_CONVERT_0002_XX\IN:IF_HRPA_UI_CONVERT_STANDARD\ME:INPUT_CONVERSION\SE:END\EI
 ENHANCEMENT 0 /SEW/HCM_ORACLE_INT_SEC_INFT.
 *
-  FIELD-SYMBOLS <p3346>      TYPE p3346.
-  FIELD-SYMBOLS <p0002_1>      TYPE p0002.
-  FIELD-SYMBOLS <r0002_2>      TYPE hcmt_bsp_pa_xx_r0002.
+    FIELD-SYMBOLS <p0002_1>      TYPE p0002.
+    FIELD-SYMBOLS <r0002_2>      TYPE hcmt_bsp_pa_xx_r0002.
 
-  ASSIGN screen_structure TO <r0002_2>.
+ ASSIGN screen_structure TO <r0002_2>.
+ ASSIGN pnnnn TO <p0002_1>.
   IF <r0002_2>-molga = '08'.
-      ASSIGN pnnnn2 TO <p3346>.
-      ASSIGN pnnnn TO <p0002_1>.
-      IF <p3346> IS ASSIGNED AND <p0002_1> IS ASSIGNED.
+    FIELD-SYMBOLS <p3346>      TYPE p3346.
+
+    ASSIGN pnnnn2 TO <p3346>.
+
+    IF <p3346> IS ASSIGNED AND <p0002_1> IS ASSIGNED.
       <p3346>-begda = <p0002_1>-gbdat.
+    ENDIF.
+
+    ELSEIF <r0002_2>-molga = '28'.
+      FIELD-SYMBOLS <p3527>      TYPE p3527.
+
+      ASSIGN pnnnn2 TO <p3527>.
+
+      IF <p3527> IS ASSIGNED AND <p0002_1> IS ASSIGNED.
+        <p3527>-begda = <p0002_1>-gbdat.
       ENDIF.
   ENDIF.
 

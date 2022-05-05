@@ -52,7 +52,6 @@ public section.
   PROTECTED SECTION.
 private section.
 
-  data P0001 type P0001_TAB .
   data COGU type BOOLEAN .
 
   methods GET_COFU_DATA .
@@ -166,8 +165,6 @@ ENDMETHOD.
 
       "default
       src_id = <src_id>-value.
-*      CHECK datum BETWEEN begda AND endda.
-*      src_id = <src_id>-value && '_' && begda && '_' && endda.
       EXIT.
 
     ENDLOOP.
@@ -184,17 +181,13 @@ METHOD map_cofu_data.
 
   CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
 
-
-
-  LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>) WHERE begda LE endda
-                                                  AND endda GE begda.
+  LOOP AT p0002 ASSIGNING FIELD-SYMBOL(<p0002>) WHERE begda LE endda AND
+                                                      endda GE begda AND
+                                                      natio IS NOT INITIAL.
 
     DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0002>-begda ).
     DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <p0002>-endda ).
 
-**IFT20211022 Start Insert - Change src_id from PER_9340000_Citizenship to 9340000_Citizen
-*
-*    CONCATENATE <p0002>-pernr citizen INTO src_id. " IFT20211026 D
     CONCATENATE citizen <p0002>-pernr INTO src_id SEPARATED BY '_'." IFT 20211026 I
 
     DATA(src_sys_id) = /sew/cl_mig_person_citizenship=>get_src_id( pernr     = <p0002>-pernr
@@ -202,7 +195,7 @@ METHOD map_cofu_data.
                                                                    endda     = <p0002>-endda
                                                                    vp_src_id = vp_src_id ).
 
-*IFT20211022 End Insert
+
 
     CONCATENATE /sew/cl_mig_utils=>merge
                 person_citizenship
@@ -263,6 +256,7 @@ METHOD proceed_cofu_per_citizenship.
   get_cofu_data( ).
   /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = worker->p0000
                                          CHANGING p0002 = p0002 ).
+  /sew/cl_mig_utils=>summarize_it0002( CHANGING p0002 = p0002 ).
   data = map_cofu_data( vp_src_id ).
 ENDMETHOD.
 

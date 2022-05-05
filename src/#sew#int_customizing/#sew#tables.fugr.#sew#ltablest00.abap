@@ -55,6 +55,24 @@ DATA:  BEGIN OF STATUS_/SEW/INT_DCIF_CO              .   "state vector
 DATA:  END OF STATUS_/SEW/INT_DCIF_CO              .
 CONTROLS: TCTRL_/SEW/INT_DCIF_CO
             TYPE TABLEVIEW USING SCREEN '0021'.
+*...processing: /SEW/INT_FC_V...................................*
+TABLES: /SEW/INT_FC_V, */SEW/INT_FC_V. "view work areas
+CONTROLS: TCTRL_/SEW/INT_FC_V
+TYPE TABLEVIEW USING SCREEN '0035'.
+DATA: BEGIN OF STATUS_/SEW/INT_FC_V. "state vector
+          INCLUDE STRUCTURE VIMSTATUS.
+DATA: END OF STATUS_/SEW/INT_FC_V.
+* Table for entries selected to show on screen
+DATA: BEGIN OF /SEW/INT_FC_V_EXTRACT OCCURS 0010.
+INCLUDE STRUCTURE /SEW/INT_FC_V.
+          INCLUDE STRUCTURE VIMFLAGTAB.
+DATA: END OF /SEW/INT_FC_V_EXTRACT.
+* Table for all entries loaded from database
+DATA: BEGIN OF /SEW/INT_FC_V_TOTAL OCCURS 0010.
+INCLUDE STRUCTURE /SEW/INT_FC_V.
+          INCLUDE STRUCTURE VIMFLAGTAB.
+DATA: END OF /SEW/INT_FC_V_TOTAL.
+
 *...processing: /SEW/INT_FO_V...................................*
 TABLES: /SEW/INT_FO_V, */SEW/INT_FO_V. "view work areas
 CONTROLS: TCTRL_/SEW/INT_FO_V
@@ -337,6 +355,7 @@ TABLES: /SEW/INT_AWA_MAP               .
 TABLES: /SEW/INT_CONVERS               .
 TABLES: /SEW/INT_DCIF_CO               .
 TABLES: /SEW/INT_FIELDS                .
+TABLES: /SEW/INT_FIE_GEN               .
 TABLES: /SEW/INT_FOLDERS               .
 TABLES: /SEW/INT_FOUP                  .
 TABLES: /SEW/INT_GENERAL               .

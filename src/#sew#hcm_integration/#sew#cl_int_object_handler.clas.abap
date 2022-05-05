@@ -35,6 +35,7 @@ public section.
   data DELIMIT_DATE type DATS .
   data BUKRS type BUKRS .
   data OBJECT_SEQ type SEQNR .
+  data PROJECTED_START_DATE type DATS .
 
   methods CONSTRUCTOR
     importing
@@ -46,7 +47,8 @@ public section.
       !INT_RUN type GUID_32 optional
       !OBJECT_TYPE type OTYPE
       !BUKRS type BUKRS
-      !SEQNR type SEQNR .
+      !SEQNR type SEQNR
+      !PROJECTED_START_DATE type DATS optional .
   methods READ_CUSTOMIZING
     importing
       !OBJECT_TYPE type OTYPE
@@ -75,6 +77,7 @@ CLASS /SEW/CL_INT_OBJECT_HANDLER IMPLEMENTATION.
     me->int_run = int_run.
     me->bukrs = bukrs.
     me->object_seq = seqnr.
+    me->projected_start_date = projected_start_date.
   ENDMETHOD.
 
 
@@ -134,6 +137,8 @@ CLASS /SEW/CL_INT_OBJECT_HANDLER IMPLEMENTATION.
 *     Process customer specific action handling
 *     Make sure actions are assigned to correct infotypes
     /sew/cl_int_action_handler=>process_action(
+      EXPORTING
+        cloud_id      = me->cloud_id
       IMPORTING
         has_error   = DATA(has_error)
       CHANGING

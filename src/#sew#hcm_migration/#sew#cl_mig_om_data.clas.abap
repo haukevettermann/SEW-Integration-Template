@@ -560,7 +560,7 @@ METHOD get_account_assignment.
     APPEND LINES OF VALUE p1008_tab( FOR <struc_br> IN struc WHERE ( otype EQ 'IC' ) ( objid = <objec>-objid
                                                                                        begda = <struc_br>-vbegda
                                                                                        endda = <struc_br>-vendda
-                                                                                       bukrs = <struc_br>-objid ) ) to hrp1008_com.
+                                                                                       bukrs = <struc_br>-objid ) ) TO hrp1008_com.
 
     CLEAR: struc.
   ENDLOOP.
@@ -941,31 +941,32 @@ ENDMETHOD.
 METHOD map_hr_periods.
   DATA: value      TYPE /sew/dd_value,
         plvar      TYPE plvar,
-        manager_id TYPE realo.
+        manager_id TYPE realo,
+        cost_center TYPE kostl.
 
   "get mapping fields for locationcode
-  /sew/cl_mig_utils=>get_mapping_fields( EXPORTING molga        = CONV #( VALUE #( ( sign = 'I' option = 'EQ' low = '*' ) ) )
-                                                   infty        = /sew/cl_mig_utils=>it0001
-                                                   sap_field    = /sew/cl_mig_utils=>btrtl
-                                                   oracle_field = /sew/cl_mig_utils=>locationcode
-                                                   export       = abap_true
-                                         IMPORTING mapping_fields = DATA(mapping_fields_btrtl) ).
+/sew/cl_mig_utils=>get_mapping_fields( EXPORTING molga        = CONV #( VALUE #( ( sign = 'I' option = 'EQ' low = '*' ) ) )
+infty        = /sew/cl_mig_utils=>it0001
+sap_field    = /sew/cl_mig_utils=>btrtl
+oracle_field = /sew/cl_mig_utils=>locationcode
+export       = abap_true
+IMPORTING mapping_fields = DATA(mapping_fields_btrtl) ).
 
 **JMB20210706 start insert - store exception departments
 *
-  DATA(company_0021) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '00050379' )
-                                           ( sign = 'I' option = 'EQ' low = '00000003' )
-                                           ( sign = 'I' option = 'EQ' low = '00000002' )
-                                           ( sign = 'I' option = 'EQ' low = '00000004' )
-                                           ( sign = 'I' option = 'EQ' low = '00071312' )
-                                           ( sign = 'I' option = 'EQ' low = '00071313' )
-                                           ( sign = 'I' option = 'EQ' low = '00000005' )
-                                           ( sign = 'I' option = 'EQ' low = '00000011' )
-                                           ( sign = 'I' option = 'EQ' low = '00074183' ) ).
+DATA(company_0021) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '00050379' )
+( sign = 'I' option = 'EQ' low = '00000003' )
+( sign = 'I' option = 'EQ' low = '00000002' )
+( sign = 'I' option = 'EQ' low = '00000004' )
+( sign = 'I' option = 'EQ' low = '00071312' )
+( sign = 'I' option = 'EQ' low = '00071313' )
+( sign = 'I' option = 'EQ' low = '00000005' )
+( sign = 'I' option = 'EQ' low = '00000011' )
+( sign = 'I' option = 'EQ' low = '00074183' ) ).
 
-  DATA(company_0028) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '00000012' )
-                                           ( sign = 'I' option = 'EQ' low = '00069298' )
-                                           ( sign = 'I' option = 'EQ' low = '00069299' ) ).
+DATA(company_0028) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '00000012' )
+( sign = 'I' option = 'EQ' low = '00069298' )
+( sign = 'I' option = 'EQ' low = '00069299' ) ).
 *JMB20210706 end insert
 
   CALL FUNCTION 'RH_GET_PLVAR'
@@ -973,11 +974,11 @@ METHOD map_hr_periods.
       plvar = plvar.
 
   LOOP AT hr_periods ASSIGNING FIELD-SYMBOL(<hr_periods>).
-    om_data_entry-effective_start_date = /sew/cl_mig_utils=>convert_date( <hr_periods>-begda ).
-    om_data_entry-effective_end_date   = /sew/cl_mig_utils=>convert_date( <hr_periods>-endda ).
+om_data_entry-effective_start_date = /sew/cl_mig_utils=>convert_date( <hr_periods>-begda ).
+om_data_entry-effective_end_date   = /sew/cl_mig_utils=>convert_date( <hr_periods>-endda ).
 
-    LOOP AT pa0001_tmp ASSIGNING FIELD-SYMBOL(<pa0001>) WHERE begda LE <hr_periods>-endda AND
-                                                              endda GE <hr_periods>-begda.
+LOOP AT pa0001_tmp ASSIGNING FIELD-SYMBOL(<pa0001>) WHERE begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
 
       CALL FUNCTION 'RH_GET_LEADER'
         EXPORTING
@@ -995,9 +996,9 @@ METHOD map_hr_periods.
 
       IF manager_id IS NOT INITIAL.
         om_data_entry-manager              = manager_id.
-        LOOP AT pa9400_pernr ASSIGNING FIELD-SYMBOL(<p9400>) WHERE pernr EQ manager_id         AND
-                                                                   begda LE <hr_periods>-endda AND
-                                                                   endda GE <hr_periods>-begda.
+LOOP AT pa9400_pernr ASSIGNING FIELD-SYMBOL(<p9400>) WHERE pernr EQ manager_id         AND
+begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
           om_data_entry-oracleid = <p9400>-oracleid.
           EXIT.
         ENDLOOP.
@@ -1006,15 +1007,16 @@ METHOD map_hr_periods.
       EXIT.
     ENDLOOP.
 
-    LOOP AT hrp1001_up_tmp ASSIGNING FIELD-SYMBOL(<hrp1001_up>) WHERE begda LE <hr_periods>-endda AND
-                                                                      endda GE <hr_periods>-begda.
+LOOP AT hrp1001_up_tmp ASSIGNING FIELD-SYMBOL(<hrp1001_up>) WHERE begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
       om_data_entry-parent_integration_key = <hrp1001_up>-sobid.
       EXIT.
     ENDLOOP.
 
 **JMB20210819 start insert - in case no parent integration key was found, pass entry
 *
-    IF om_data_entry-parent_integration_key IS NOT INITIAL.
+    IF om_data_entry-parent_integration_key IS NOT INITIAL OR
+       om_data_entry-oracleid               EQ '00000001'.
 *JMB20210819 end insert
 
 **JMB20210706 start insert - check mandant and departments for CoFu countries and set Department_SET
@@ -1050,10 +1052,10 @@ METHOD map_hr_periods.
 *JMB20210706 end insert
 
       IF om_data_entry-company IS INITIAL.
-        LOOP AT hrp1008_com_tmp ASSIGNING FIELD-SYMBOL(<hrp1008_com>) WHERE begda LE <hr_periods>-endda AND
-                                                                            endda GE <hr_periods>-begda.
+LOOP AT hrp1008_com_tmp ASSIGNING FIELD-SYMBOL(<hrp1008_com>) WHERE begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
           "get bukrs text
-          READ TABLE bukrs_txt INTO DATA(butxt) WITH KEY bukrs = <hrp1008_com>-bukrs.
+READ TABLE bukrs_txt INTO DATA(butxt) WITH KEY bukrs = <hrp1008_com>-bukrs.
           om_data_entry-company_name = butxt-butxt.
           om_data_entry-company = <hrp1008_com>-bukrs.    "JMB20210526 I
 
@@ -1061,8 +1063,8 @@ METHOD map_hr_periods.
         ENDLOOP.
       ENDIF.
 
-      LOOP AT cost_centers_tmp ASSIGNING FIELD-SYMBOL(<cost_center>) WHERE begda LE <hr_periods>-endda AND
-                                                                           endda GE <hr_periods>-begda.
+LOOP AT cost_centers_tmp ASSIGNING FIELD-SYMBOL(<cost_center>) WHERE begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
 
 **JMB20210939 start insert - in case of cost center 0018070000, pass company code 0021
 *
@@ -1072,7 +1074,32 @@ METHOD map_hr_periods.
         ENDIF.
 *JMB20210939 insert end
 
-        om_data_entry-cost_center = om_data_entry-company && '-' && <cost_center>-sobid.
+        cost_center = <cost_center>-sobid.
+        SELECT SINGLE *
+          FROM csks
+          INTO @DATA(ls_csks)
+          WHERE bukrs = @om_data_entry-company
+          AND kostl = @cost_center
+          AND datbi GE @<cost_center>-begda
+          AND datab LE @<cost_center>-endda.
+
+        IF sy-subrc NE 0.
+          SELECT SINGLE *
+             FROM csks
+            INTO @ls_csks
+*            WHERE bukrs = om_data_entry-company
+             WHERE kostl = @cost_center
+             AND datbi GE @<cost_center>-begda
+             AND datab LE @<cost_center>-endda.
+          DATA(lv_flag) = 'X'.
+        ENDIF.
+
+        IF lv_flag IS NOT INITIAL.
+          CLEAR lv_flag.
+om_data_entry-cost_center = ls_csks-bukrs && '-' && <cost_center>-sobid.
+        ELSE.
+om_data_entry-cost_center = om_data_entry-company && '-' && <cost_center>-sobid.
+        ENDIF.
         EXIT.
       ENDLOOP.
 
@@ -1080,9 +1107,9 @@ METHOD map_hr_periods.
 *
       IF  om_data_entry-cost_center IS INITIAL.
 
-        DATA(kostl) = get_kostl_of_first_emp( objid = om_data_entry-integration_key
-                                              begda = <hr_periods>-begda
-                                              endda = <hr_periods>-endda ).
+DATA(kostl) = get_kostl_of_first_emp( objid = om_data_entry-integration_key
+           begda = <hr_periods>-begda
+           endda = <hr_periods>-endda ).
 
         IF kostl IS NOT INITIAL.
 **JMB20210939 start insert - in case of cost center 0018070000, pass company code 0021
@@ -1093,22 +1120,46 @@ METHOD map_hr_periods.
           ENDIF.
 *JMB20210939 insert end
 
-          om_data_entry-cost_center = om_data_entry-company && '-' && kostl.
+          SELECT SINGLE *
+            FROM csks
+            INTO @ls_csks
+            WHERE bukrs = @om_data_entry-company
+            AND kostl = @om_data_entry-cost_center
+            AND datbi GE @<hr_periods>-begda
+            AND datab LE @<hr_periods>-endda.
+
+          IF sy-subrc NE 0.
+            SELECT SINGLE *
+               FROM csks
+              INTO @ls_csks
+*            WHERE bukrs = om_data_entry-company
+               WHERE kostl = @om_data_entry-cost_center
+               AND datbi GE @<hr_periods>-begda
+               AND datab LE @<hr_periods>-endda.
+            lv_flag = 'X'.
+          ENDIF.
+
+          IF lv_flag IS NOT INITIAL.
+            CLEAR lv_flag.
+            om_data_entry-cost_center = ls_csks-bukrs && '-' && kostl.
+          ELSE.
+      om_data_entry-cost_center = om_data_entry-company && '-' && kostl.
+          ENDIF.
           CLEAR: kostl.
         ENDIF.
       ENDIF.
 *JMB20210526 end insert
 
-      LOOP AT hrp1008_br_tmp ASSIGNING FIELD-SYMBOL(<hrp1008_br>) WHERE begda LE <hr_periods>-endda AND
-                                                                        endda GE <hr_periods>-begda.
+LOOP AT hrp1008_br_tmp ASSIGNING FIELD-SYMBOL(<hrp1008_br>) WHERE begda LE <hr_periods>-endda AND
+endda GE <hr_periods>-begda.
 **JMB20210805 start insert - check complex mapping
 *
-        DATA(fields) = VALUE /sew/cl_int_infty_proc_xml=>t_fields( ( infty = /sew/cl_mig_utils=>it0001
-                                                                     field_sap = /sew/cl_mig_utils=>btrtl
-                                                                     value = <hrp1008_br>-btrtl )
-                                                                   ( infty = /sew/cl_mig_utils=>it0001
-                                                                     field_sap = /sew/cl_mig_utils=>werks
-                                                                     value = om_data_entry-company ) ).
+DATA(fields) = VALUE /sew/cl_int_infty_proc_xml=>t_fields( ( infty = /sew/cl_mig_utils=>it0001
+field_sap = /sew/cl_mig_utils=>btrtl
+value = <hrp1008_br>-btrtl )
+( infty = /sew/cl_mig_utils=>it0001
+field_sap = /sew/cl_mig_utils=>werks
+value = om_data_entry-company ) ).
         "Process WERKS/BTRTL mapping (LocationCode)
         /sew/cl_int_mapping=>process_mapping(
           EXPORTING
@@ -1132,8 +1183,8 @@ METHOD map_hr_periods.
 
 **JMB20211031 start insert - in case of PowerSystem company code (0028) pass specific set code
 *
-      IF om_data_entry-company EQ '0028' and
-         sy-mandt              EQ /sew/cl_int_constants=>cofu_mandant-germany.
+      IF om_data_entry-company EQ '0028' AND
+   sy-mandt              EQ /sew/cl_int_constants=>cofu_mandant-germany.
         om_data_entry-department_set = 'DE_PS' && set.
       ENDIF.
 *JMB20211031 insert end
@@ -1149,7 +1200,7 @@ METHOD map_hr_periods.
            om_data_entry-company,
            om_data_entry-cost_center.
   ENDLOOP.
-  CLEAR: cost_centers_tmp, hrp1008_br_tmp, hrp1008_com_tmp, hrp1001_pr_tmp, hrp1001_up_tmp, pa0001_tmp.
+CLEAR: cost_centers_tmp, hrp1008_br_tmp, hrp1008_com_tmp, hrp1001_pr_tmp, hrp1001_up_tmp, pa0001_tmp.
 ENDMETHOD.
 
 

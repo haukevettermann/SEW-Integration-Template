@@ -50,6 +50,8 @@ private section.
   data P0001 type P0001_TAB .
   data LAND1_MAP type /IWBEP/T_MGW_NAME_VALUE_PAIR .
   data COGU type BOOLEAN .
+  data P0027 type P0027_TAB .
+  data P0000 type P0000_TAB .
 
   methods MAP_MIG_VALUES
     importing
@@ -148,7 +150,7 @@ METHOD create_metadata.
 ENDMETHOD.
 
 
-METHOD GET_COFU_DATA.
+METHOD get_cofu_data.
 
   "Get BUKRS for LegislationCode
   SELECT pernr,
@@ -159,8 +161,15 @@ METHOD GET_COFU_DATA.
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
 
+  IF sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands.
+    "Get cost account distribution for Netherlands
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE @p0027 FROM pa0027 WHERE pernr IN @pernr AND
+                                                                         begda LE @endda AND
+                                                                         endda GE @begda.
+  ENDIF.
+
   DATA(bukrs) = VALUE rsdsselopt_t( FOR <p0001> IN p0001 ( sign = 'I' option = 'EQ' low = <p0001>-bukrs ) ).
-  SORT bukrs by low.
+  SORT bukrs BY low.
   DELETE ADJACENT DUPLICATES FROM bukrs COMPARING low.
   land1_map = /sew/cl_mig_utils=>get_legislation_codes( bukrs ).
 ENDMETHOD.
@@ -218,9 +227,129 @@ METHOD map_cofu_data.
         src_asn_id     TYPE string,
         count          TYPE int8,
         kostl          TYPE string,
+        src_sys_id     TYPE string,
+        pernr_old      TYPE rsdsselopt_t,
+        p0001_tmp      TYPE p0001,
         land1          TYPE /iwbep/s_mgw_name_value_pair.
 
+  FIELD-SYMBOLS: <p0000> type p0000.
+
   CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
+
+  LOOP AT p0027 ASSIGNING FIELD-SYMBOL(<p0027>).
+
+    count = count + 1.
+    IF pernr_tmp IS INITIAL OR
+       pernr_tmp NE <p0027>-pernr.
+      count = 1.
+      pernr_tmp = <p0027>-pernr.
+      APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0027>-pernr ) TO pernr_old.
+    ENDIF.
+
+**JMB20210811 start insert - check for worker entry
+*
+    "get source id
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0027>-pernr
+                                                begda = <p0027>-begda
+                                                endda = <p0027>-endda
+                                                vp_src_id = vp_src_id ).
+
+    CHECK src_sys_id IS NOT INITIAL.  "JMB20210811 I
+*JMB20210811 end insert
+
+    DATA(all_accounts) = abap_false.
+    DATA(counter) = 1.
+    WHILE all_accounts EQ abap_false.
+      DATA(kbu) = CONV string( 'KBU' ).
+      DATA(kst) = CONV string( 'KST' ).
+      DATA(kpr) = CONV string( 'KPR' ).
+
+      IF counter LT 10.
+        kbu = kbu && '0' && counter.
+        kst = kst && '0' && counter.
+        kpr = kpr && '0' && counter.
+      ELSE.
+        kbu = kbu && counter.
+        kst = kst && counter.
+        kpr = kpr && counter.
+      ENDIF.
+      CONDENSE: kbu, kst, kpr.
+
+      ASSIGN COMPONENT kbu OF STRUCTURE <p0027> TO FIELD-SYMBOL(<kbu>).
+      ASSIGN COMPONENT kst OF STRUCTURE <p0027> TO FIELD-SYMBOL(<kst>).
+      ASSIGN COMPONENT kpr OF STRUCTURE <p0027> TO FIELD-SYMBOL(<kpr>).
+
+      IF <kst> IS ASSIGNED AND
+         <kbu> IS ASSIGNED AND
+         <kpr> IS ASSIGNED.
+
+        IF <kst> IS INITIAL.
+          all_accounts = abap_true.
+          CONTINUE.
+        ENDIF.
+
+        "get legislationcode
+        CLEAR: land1, leg_grp_name.
+        READ TABLE land1_map INTO land1 WITH KEY name = <kbu>.
+
+        CONCATENATE land1-value leg_data_group_name INTO leg_grp_name SEPARATED BY space.
+
+        "set start date to migration date
+        LOOP AT p0000 ASSIGNING <p0000> WHERE pernr EQ <p0027>-pernr.
+          IF <p0027>-begda LT <p0000>-begda.
+            <p0027>-begda = <p0000>-begda.
+          ENDIF.
+        ENDLOOP.
+
+        DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0027>-begda ).
+
+        CLEAR: p0001_tmp.
+        p0001_tmp-bukrs = <kbu>.
+        map_mig_values( EXPORTING p0001 = p0001_tmp
+                        IMPORTING company_code = DATA(company_code) ).
+
+        "get source id
+        CONCATENATE /sew/cl_mig_utils=>assign <p0027>-pernr INTO src_asn_id.
+
+        src_id = src_asn_id && '_' && account && '_' && counter.
+        pernr_sequence = CONV #( counter ).
+        DATA(prz) = CONV string( <kpr> / 100 ).
+
+        CONDENSE: pernr_sequence, src_id, prz.
+
+        CONCATENATE <kbu> '-' <kst> INTO kostl.
+
+        CONCATENATE /sew/cl_mig_utils=>merge
+                    cost_account_data
+                    source_sub_type
+                    src_id
+                    sys_id
+                    pernr_sequence
+                    leg_grp_name
+                    begda_tmp
+                    source_type
+                    src_asn_id
+                    prz
+                    <kbu>
+                    kostl
+                    ''
+                    company_code
+                    ''
+        INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+        CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+      ELSE.
+        all_accounts = abap_true.
+      ENDIF.
+      counter = counter + 1.
+    ENDWHILE.
+  ENDLOOP.
+
+  count = 0.
+
+  IF pernr_old IS NOT INITIAL.
+    DELETE p0001 WHERE pernr IN pernr_old.
+  ENDIF.
 
   LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>).
 
@@ -234,10 +363,10 @@ METHOD map_cofu_data.
 **JMB20210811 start insetr - check for worker entry
 *
     "get source id
-    DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0001>-pernr
-                                                      begda = <p0001>-begda
-                                                      endda = <p0001>-endda
-                                                      vp_src_id = vp_src_id ).
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0001>-pernr
+                                                begda = <p0001>-begda
+                                                endda = <p0001>-endda
+                                                vp_src_id = vp_src_id ).
 
     CHECK src_sys_id IS NOT INITIAL.  "JMB20210811 I
 *JMB20210811 end insert
@@ -248,10 +377,17 @@ METHOD map_cofu_data.
 
     CONCATENATE land1-value leg_data_group_name INTO leg_grp_name SEPARATED BY space.
 
-    DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0001>-begda ).
+    "set start date to migration date
+    LOOP AT p0000 ASSIGNING <p0000> WHERE pernr EQ <p0001>-pernr.
+      IF <p0001>-begda LT <p0000>-begda.
+        <p0001>-begda = <p0000>-begda.
+      ENDIF.
+    ENDLOOP.
+
+    DATA(begda_0001) = /sew/cl_mig_utils=>convert_date( <p0001>-begda ).
 
     map_mig_values( EXPORTING p0001 = <p0001>
-                    IMPORTING company_code = DATA(company_code) ).
+                    IMPORTING company_code = DATA(company_code_0001) ).
 
     "get source id
     CONCATENATE /sew/cl_mig_utils=>assign <p0001>-pernr INTO src_asn_id.
@@ -272,18 +408,18 @@ METHOD map_cofu_data.
                 sys_id
                 pernr_sequence
                 leg_grp_name
-                begda_tmp
+                begda_0001
                 source_type
                 src_asn_id
                 '1'
                 <p0001>-bukrs
                 kostl
                 ''
-                company_code
+                company_code_0001
                 ''
-    INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+    INTO DATA(data_0001) SEPARATED BY /sew/cl_mig_utils=>separator.
 
-    CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+    CONCATENATE data cl_abap_char_utilities=>newline data_0001 INTO data.
   ENDLOOP.
 ENDMETHOD.
 
@@ -388,6 +524,8 @@ METHOD PROCEED_COFU_COST_ACCOUNT.
   get_cofu_data( ).
   get_mapping_fields( ).
   get_mapping_values( ).
+  p0000 = worker->p0000.
+  DELETE p0000 WHERE massn NE 'ZO'. "Keep only migration action to set start date
   data = map_cofu_data( vp_src_id ).
 ENDMETHOD.
 

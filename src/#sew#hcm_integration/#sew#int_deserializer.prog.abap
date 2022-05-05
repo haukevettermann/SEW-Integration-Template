@@ -24,7 +24,8 @@ DATA:
   otype            TYPE hrotype,
   sequence         TYPE seqnr,
   pernr            TYPE pernr_d,
-  oracle_id        TYPE /sew/dd_element.
+  oracle_id        TYPE /sew/dd_element,
+  country_code     TYPE intca.
 * Begin of selection Screen
 SELECTION-SCREEN BEGIN OF BLOCK frame1.
 PARAMETERS: p_file   TYPE string OBLIGATORY,
@@ -73,7 +74,8 @@ START-OF-SELECTION.
     otype = p_scenar+3(2).
     IF otype+1 = '-'.
       otype = p_scenar+3(1).
-      sequence = p_scenar+4(3).
+*      sequence = p_scenar+4(3).
+      sequence = p_scenar+6(3).
     ELSE.
       sequence = p_scenar+6(3).
     ENDIF.
@@ -120,14 +122,25 @@ START-OF-SELECTION.
   ENDIF.
 
   IF file_list IS NOT INITIAL.
+    SELECT SINGLE intca FROM t500l WHERE molga = @molga INTO @DATA(country).
 *  build sortable list with timestamp.  EXTRACT timestamp from name.
     LOOP AT file_list ASSIGNING FIELD-SYMBOL(<file>).
-      APPEND INITIAL LINE TO file_list_sorted ASSIGNING FIELD-SYMBOL(<file_sorted>).
-      <file_sorted>-file_name = <file>-name.
+
       SPLIT <file>-name AT '_' INTO DATA(dont_care) DATA(dont_care2).
+
       SPLIT dont_care2 AT '.' INTO DATA(dont_care3) timestamp.
-      <file_sorted>-timestamp = timestamp.
-      CLEAR timestamp.
+      IF otype = /sew/cl_int_constants=>person.
+        SPLIT dont_care3 AT '_' INTO DATA(dont_care4) DATA(dont_care5) country_code DATA(dont_care7) DATA(dont_care9).
+      ELSEIF otype = /sew/cl_int_constants=>orgunit.
+        SPLIT dont_care3 AT '_' INTO DATA(dont_care8) country_code DATA(dont_care10).
+      ENDIF.
+
+      IF ( ( ( country_code = country ) OR ( molga = '*' AND dont_care7 = 'ROW' ) ) OR ( otype = /sew/cl_int_constants=>person AND sequence = 001 ) ).
+        APPEND INITIAL LINE TO file_list_sorted ASSIGNING FIELD-SYMBOL(<file_sorted>).
+        <file_sorted>-file_name = <file>-name.
+        <file_sorted>-timestamp = timestamp.
+      ENDIF.
+      CLEAR: timestamp, country_code.
     ENDLOOP.
 * Sort list by timestamp oldest to newest and ignore files that have no timestamp
     SORT file_list_sorted BY timestamp ASCENDING.
@@ -196,7 +209,8 @@ START-OF-SELECTION.
                                                                   cloud_pernr = <object>-pernr_cloud
                                                                   sap_id      = CONV #( <object>-id_sap )
                                                                   int_run     = <object>-int_run
-                                                                  seqnr       = <object>-object_seqnr ).
+                                                                  seqnr       = <object>-object_seqnr
+                                                                  projected_start_date = <object>-projected_start_date ).
 
         "Read customizing (customizing is a singleton object and will only be read once per object and molga
         <object>-object_handler->read_customizing( object_type = <object>-object object_seqnr = <object>-object_seqnr ).
@@ -248,7 +262,8 @@ START-OF-SELECTION.
   DATA(alv) = NEW /sew/cl_int_alv( testrun = p_test ).
   IF sy-batch IS INITIAL.
     alv->build_alv_structure( ).
-    alv->display_alv( ).
+*    alv->display_alv( ).
+    WRITE: space.
   ELSE.
     alv->build_log( ).
   ENDIF.

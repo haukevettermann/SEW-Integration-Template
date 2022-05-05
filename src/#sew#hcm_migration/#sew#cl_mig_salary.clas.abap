@@ -100,8 +100,28 @@ ENDMETHOD.
 
 METHOD constructor.
 
+  DATA: mig_date TYPE datum.
+
   me->pernr = pernr.
   me->begda = begda.
+
+**JMB20220211 start insert - Only the last 5 years will be migrated
+*
+  DATA(first_of_year) = CONV datum( sy-datum(4) && '01' && '01' ).
+
+  CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
+    EXPORTING
+      date      = first_of_year
+      days      = 0
+      months    = 0
+      signum    = '-'
+      years     = 5
+    IMPORTING
+      calc_date = mig_date.
+
+  me->begda = mig_date.
+*JMB20220211 insert end
+
   me->pn_begda = pn_begda. "JMB20211011 I - C400129651-5882
   me->endda = endda.
   me->cofu = cofu.
@@ -224,6 +244,7 @@ METHOD map_cofu_data.
   DATA: src_id           TYPE string,
         sys_id           TYPE string,
         salary_base_name TYPE string,
+        count            TYPE i,
         betrg            TYPE maxbt,
         ppbwla           TYPE hreg_t_pbwla.
 
@@ -232,6 +253,7 @@ METHOD map_cofu_data.
   LOOP AT pernr ASSIGNING FIELD-SYMBOL(<pernr>).
     CLEAR: hr_periods.
     collect_hr_periods( CONV #( <pernr>-low ) ).
+    count = 1.
 
     LOOP AT hr_periods ASSIGNING FIELD-SYMBOL(<period>).
       LOOP AT p0008 ASSIGNING FIELD-SYMBOL(<p0008>) WHERE pernr EQ <pernr>-low    AND
@@ -248,18 +270,21 @@ METHOD map_cofu_data.
         EXIT.
       ENDLOOP.
 
+      CHECK sy-subrc IS INITIAL.
+
       CALL FUNCTION 'RP_FILL_WAGE_TYPE_TABLE'
         EXPORTING
-          begda  = <period>-begda
-          endda  = <period>-endda
-          pernr  = <p0008>-pernr
+          begda                        = <period>-begda
+          endda                        = <period>-endda
+          pernr                        = <p0008>-pernr
         TABLES
-          ppbwla = ppbwla.
+          ppbwla                       = ppbwla
+        EXCEPTIONS
+          error_at_indirect_evaluation = 1.
+
+      CHECK sy-subrc IS INITIAL.
 
       CONCATENATE 'E' <p0008>-pernr INTO DATA(assign_number).
-
-      DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <period>-begda ).
-      DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <period>-endda ).
 
       DATA(comp_num) = lines( ppbwla ).
       DATA(multiple) = 'N'.
@@ -269,14 +294,22 @@ METHOD map_cofu_data.
 
       "build components structure
       LOOP AT ppbwla ASSIGNING FIELD-SYMBOL(<ppbwla>).
+        "For Italy only overall sum code is necessary
+        IF '15'           IN molga AND
+           <ppbwla>-lgart NE '1250'.
+          CONTINUE.
+        ENDIF.
+
         <p0008>-lga01 = <ppbwla>-lgart.
 
         map_mig_values( EXPORTING p0008 = <p0008>
                         IMPORTING componentcode  = DATA(componentcode) ).
 
-        betrg = betrg + <ppbwla>-betrg.
+        betrg = betrg + ( <ppbwla>-betrg * 13 ).
 
-        DATA(datum_comp) = /sew/cl_mig_utils=>convert_date( <ppbwla>-begda ).
+        DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <ppbwla>-begda ).
+        DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <ppbwla>-endda ).
+
         DATA(amount) = CONV string( <ppbwla>-betrg ).
 
         CONDENSE: amount.
@@ -286,34 +319,45 @@ METHOD map_cofu_data.
                     componentcode
                     amount
                     '100'
-                    datum_comp
+                    begda_tmp
                     assign_number
                     INTO DATA(data_comp_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
         CONCATENATE data_comp cl_abap_char_utilities=>newline data_comp_tmp INTO data_comp.
+
+        CASE sy-mandt.
+          WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
+
+            salary_base_name = SWITCH #( <p0001>-persk
+                                         WHEN '10' THEN 'NL_Employee'
+                                         WHEN '12' THEN 'NL_Trainee/Stagiaires' ).
+
+            salary_base_name = SWITCH #( <p0001>-pernr
+                                         WHEN '00200307' THEN 'NL_Director'
+                                         ELSE salary_base_name ).
+
+            IF sy-sysid EQ 'D02'.
+              salary_base_name = 'NL_Employee_New1'.
+            ENDIF.
+
+          WHEN /sew/cl_int_constants=>cofu_mandant-austria.
+            IF '03' IN molga.
+              salary_base_name = SWITCH #( <p0001>-persk
+                                            WHEN '1B' THEN 'AT_Wage_New'
+                                            WHEN 'A3' THEN 'AT_Pension'
+                                            ELSE 'AT_Salary' ).
+            ELSEIF '15' IN molga.
+              salary_base_name = 'IT_Salary'.
+            ENDIF.
+
+        ENDCASE.
       ENDLOOP.
 
-      CASE sy-mandt.
-        WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
+      begda_tmp = /sew/cl_mig_utils=>convert_date( <period>-begda ).
+      endda_tmp = /sew/cl_mig_utils=>convert_date( <period>-endda ).
 
-          salary_base_name = SWITCH #( <p0001>-persk
-                                       WHEN '10' THEN 'NL_Employee'
-                                       WHEN '12' THEN 'NL_Trainee/Stagiaires' ).
-
-          salary_base_name = SWITCH #( <p0001>-pernr
-                                       WHEN '00020037' THEN 'NL_Director'
-                                       ELSE salary_base_name ).
-
-        WHEN /sew/cl_int_constants=>cofu_mandant-austria.
-          IF '03' IN molga.
-            salary_base_name = SWITCH #( <p0001>-persk
-                                          WHEN '1B' OR 'A1' THEN 'AT_Wage'
-                                          WHEN 'A3'         THEN 'AT_Pension'
-                                          ELSE 'AT_Salary' ).
-          ENDIF.
-
-      ENDCASE.
-
-      src_id = salary_base_name && '_' && assign_number && '_' && sy-tabix.
+      DATA(count_s) = CONV string( count ).
+      CONDENSE count_s.
+      src_id = salary_base_name && '_' && assign_number && '_' && count_s.
       DATA(sum) = CONV string( betrg ).
       CONDENSE sum.
 
@@ -326,12 +370,13 @@ METHOD map_cofu_data.
                   multiple
                   assign_number
                   salary_base_name
-                  'HIRE'
+                  'SEW_MIGRATION' "JMB20220311 D - 'HIRE'
                   src_id
                   sys_id
       INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
       CLEAR: sum, betrg.
+      count = count + 1.
 
     ENDLOOP.
   ENDLOOP.
@@ -355,6 +400,14 @@ METHOD map_mig_values.
       value          = value_tmp ).
 
   componentcode = value_tmp.
+
+**JMB20211207 start insert - due to configuration issues in DEV1 use own componentCode
+*
+  IF sy-sysid EQ 'D02' AND
+     sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands.
+    componentcode = '1000-Salary'.
+  ENDIF.
+*JMB20211207 insert end
 ENDMETHOD.
 
 

@@ -75,6 +75,8 @@ public section.
     changing
       !HR_PERIODS type HRPERIODS_TAB .
   class-methods SUMMARIZE_PAST
+    importing
+      !MIG_DATE type DATUM optional
     changing
       !HR_PERIODS type HRPERIODS_TAB .
   class-methods CHECK_ACTIVE_EMP_STATUS
@@ -244,6 +246,13 @@ METHOD check_assign_supervisor.
           root_error         = 3.
 
       DELETE manager_info WHERE otype NE 'P'.
+      READ TABLE manager_info INTO DATA(pernr_found) WITH KEY objid = <p0001>-pernr. "JMB20220110 I
+
+**JMB20220127 start insert - in case employee is manager itself of the OrgUnit, get manager from OrgUnit above
+*
+      READ TABLE manager_info INTO DATA(manager) WITH KEY objid = <p0001>-pernr.
+      DELETE manager_info WHERE objid EQ <p0001>-pernr. "JMB20220110 I
+*JMB20220127 insert end
 
       LOOP AT manager_info ASSIGNING FIELD-SYMBOL(<mngr_info>).
         APPEND VALUE #( begda = <mngr_info>-begda
@@ -258,16 +267,26 @@ METHOD check_assign_supervisor.
 
 **JMB20211129 start insert - in case no manager was found, check assignment of OrgUnit to get time range
 *
-        SELECT begda, endda FROM hrp1001 INTO TABLE @DATA(o1001_orgunit) WHERE otype EQ 'O'            AND
-                                                                               objid EQ @<p0001>-orgeh AND
-                                                                               rsign EQ 'A'            AND
-                                                                               relat EQ '002'          AND
-                                                                               begda LE @endda         AND
-                                                                               endda GE @begda
-                                                                         ORDER BY begda ASCENDING.
+        SELECT begda, endda, sobid FROM hrp1001 INTO TABLE @DATA(o1001_orgunit) WHERE otype EQ 'O'            AND
+                                                                                      objid EQ @<p0001>-orgeh AND
+                                                                                      rsign EQ 'A'            AND
+                                                                                      relat EQ '002'          AND
+                                                                                      begda LE @endda         AND
+                                                                                      endda GE @begda
+                                                                                ORDER BY begda ASCENDING.
 
         IF o1001_orgunit IS NOT INITIAL.
           READ TABLE o1001_orgunit ASSIGNING FIELD-SYMBOL(<o1001_a002>) INDEX 1.
+
+**JMB20220127 start insert - in case employee is manager itself of the OrgUnit, get manager from OrgUnit above
+*
+          IF manager IS NOT INITIAL.
+            DATA(org_orgeh) = <p0001>-orgeh.
+            <p0001>-orgeh   = <o1001_a002>-sobid.
+            CONTINUE.
+          ENDIF.
+*JMB20220127 insert end
+
           IF <o1001_a002>-endda LT endda.
             endda = <o1001_a002>-endda.
           ENDIF.
@@ -286,6 +305,15 @@ METHOD check_assign_supervisor.
       ENDIF.
 *JMB20210802 end insert
 
+**JMB20220127 start insert - in case employee is manager itself of the OrgUnit, get manager from OrgUnit above
+*
+      CLEAR: manager.
+      IF org_orgeh IS NOT INITIAL.
+        <p0001>-orgeh = org_orgeh.
+        CLEAR: org_orgeh.
+      ENDIF.
+*JMB20220127 insert end
+
       "build periods
       CALL FUNCTION 'RHXPROVIDE_PERIODS'
         TABLES
@@ -302,8 +330,13 @@ METHOD check_assign_supervisor.
          manager_info IS INITIAL.
         DATA(hr_period) = VALUE hrperiods( begda = begda
                                            endda = endda ).
-        DELETE TABLE hr_periods FROM hr_period.
+        IF pernr_found IS INITIAL.  "JMB20220110 I
+          DELETE TABLE hr_periods FROM hr_period.
+        ENDIF.
+
       ENDIF.
+
+      CLEAR: pernr_found.
 *JMB20210527 insert end
 
       "get next period to be checked
@@ -521,16 +554,19 @@ METHOD check_assign_supervisor_v2.
 ENDMETHOD.
 
 
-  METHOD convert_date.
-    DATA(datum_tmp) = datum.
+METHOD convert_date.
+  CHECK datum IS NOT INITIAL AND
+        datum NE '00000000'.
 
-    "for oracle highdate is 31.12.4712
-    IF datum_tmp GT oracle_hd.
-      datum_tmp = oracle_hd.
-    ENDIF.
+  DATA(datum_tmp) = datum.
 
-    CONCATENATE datum_tmp+0(4) datum+4(2) datum+6(2) INTO form_datum SEPARATED BY '/'.
-  ENDMETHOD.
+  "for oracle highdate is 31.12.4712
+  IF datum_tmp GT oracle_hd.
+    datum_tmp = oracle_hd.
+  ENDIF.
+
+  CONCATENATE datum_tmp+0(4) datum+4(2) datum+6(2) INTO form_datum SEPARATED BY '/'.
+ENDMETHOD.
 
 
 METHOD get_hr_periods.
@@ -746,11 +782,16 @@ METHOD summarize_it0000_cofu.
                                           ELSE VALUE #( ( sign = 'I' option = 'EQ' low = '01' )
                                                         ( sign = 'I' option = 'EQ' low = '10' ) ) ).
 
+  DATA(massn_mig) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = 'ZO' ) ).  "JMB20211201 I
+
   "keep only terminations/hire in past
   DATA(p0000_term) = p0000.
   DATA(p0000_hire) = p0000.
+  DATA(p0000_mig)  = p0000.
+
   DELETE p0000_term WHERE massn NOT IN massn_term.
   DELETE p0000_hire WHERE massn NOT IN massn_hire.
+  DELETE p0000_mig  WHERE massn NOT IN massn_mig.
 
   DELETE p0000_term WHERE begda GE sy-datum.
   DELETE p0000_hire WHERE begda GE sy-datum.
@@ -873,10 +914,19 @@ METHOD summarize_past.
     EXIT.
   ENDLOOP.
 
+  "in case migration date is available, pass all periods from date to future
+  IF mig_date IS NOT INITIAL.
+    LOOP AT hr_periods ASSIGNING <period> WHERE begda LE mig_date AND
+                                                endda GE mig_date.
+      EXIT.
+    ENDLOOP.
+  ENDIF.
+
   CHECK <period> IS ASSIGNED.
 
   "get past entries
   LOOP AT hr_periods ASSIGNING FIELD-SYMBOL(<period_old>) WHERE endda LT <period>-begda.
+
     IF ( period_old-begda IS INITIAL AND
          <period>-begda   NE <period_old>-begda ) OR
        ( period_old-begda IS NOT INITIAL AND
@@ -900,7 +950,7 @@ METHOD summarize_past.
 
   APPEND period_old TO hr_periods.
 
-  SORT hr_periods by begda ASCENDING.
+  SORT hr_periods BY begda ASCENDING.
 
 ENDMETHOD.
 
@@ -930,7 +980,13 @@ ENDMETHOD.
         IF create_hire   EQ abap_true AND
            <p0001>-begda GT <p0000>-begda.
 
-          <p0001>-begda = <p0000>-begda. "JMB20211030 I
+          p0001_tmp = <p0001>.
+          p0001_tmp-endda = <p0001>-begda - 1.
+          p0001_tmp-begda = <p0000>-begda.
+          APPEND p0001_tmp TO p0001.
+          CLEAR p0001_tmp.
+
+*          <p0001>-begda = <p0000>-begda. "JMB20211030 I  "JMB20220502 D
 **JMB20211030 start deletion - pass new date as begin date, due to each PERNR will be proceeded only once
 *
 *          p0001_tmp = <p0001>.
@@ -941,7 +997,15 @@ ENDMETHOD.
 *JMB20211030 deletion end
 
         ELSE.
-          <p0001>-begda = <p0000>-begda.
+          IF <p0001>-begda GT <p0000>-begda.
+            p0001_tmp = <p0001>.
+            p0001_tmp-endda = <p0001>-begda - 1.
+            p0001_tmp-begda = <p0000>-begda.
+            APPEND p0001_tmp TO p0001.
+            CLEAR p0001_tmp.
+          ELSE.
+            <p0001>-begda = <p0000>-begda.
+          ENDIF.
         ENDIF.
 
         EXIT.

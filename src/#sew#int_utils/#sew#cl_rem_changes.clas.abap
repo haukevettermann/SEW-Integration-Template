@@ -128,7 +128,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
       ELSE.
         IF <rem_upd_new>-waers NE rem_upd_old_line-waers OR
            <rem_upd_new>-betrg NE rem_upd_old_line-betrg OR
-*          <rem_upd_new>-aedtm NE rem_upd_old_line-aedtm OR
            <rem_upd_new>-cumty NE rem_upd_old_line-cumty.
 
           APPEND <rem_upd_new> TO rem_upd_mod.
@@ -186,10 +185,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
         ASSIGN COMPONENT 'INTER-VERSC-WAERS'   OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<waers>).
         ASSIGN COMPONENT <line_map>-tabname    OF STRUCTURE <inter>             TO <res_tab>.
 
-*        IF <res_tab> IS NOT ASSIGNED.
-*          ASSIGN COMPONENT 'NAT'               OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<nat>).
-*          ASSIGN COMPONENT <line_map>-tabname  OF STRUCTURE <nat>               TO <res_tab>.
-*        ENDIF.
 
         CHECK <res_tab> IS ASSIGNED.
 
@@ -247,96 +242,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
     ENDLOOP.
 
 
-*    LOOP AT int_rem_map ASSIGNING FIELD-SYMBOL(<line_map>).
-*
-*      LOOP AT payxx_result ASSIGNING FIELD-SYMBOL(<payxx_result_line>).
-*
-*        ASSIGN COMPONENT 'EVP-FPEND'           OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<fpend>).
-*        ASSIGN COMPONENT 'EVP-FPBEG'           OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<fpbeg>).
-*        ASSIGN COMPONENT 'EVP-SRTZA'           OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<srtza>).
-*
-*        CHECK <srtza> EQ 'A'.
-**
-*        ASSIGN COMPONENT 'INTER'               OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<inter>).
-*        ASSIGN COMPONENT 'INTER-VERSION-DATUM' OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<aedtm>).
-*        ASSIGN COMPONENT 'INTER-VERSC-WAERS'   OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<waers>).
-*        ASSIGN COMPONENT <line_map>-tabname    OF STRUCTURE <inter>             TO <res_tab>.
-*
-*        IF <res_tab> IS NOT ASSIGNED.
-*          ASSIGN COMPONENT 'NAT'               OF STRUCTURE <payxx_result_line> TO FIELD-SYMBOL(<nat>).
-*          ASSIGN COMPONENT <line_map>-tabname  OF STRUCTURE <nat>               TO <res_tab>.
-*        ENDIF.
-*
-*        CHECK <res_tab> IS ASSIGNED.
-*
-*
-*        LOOP AT <res_tab> ASSIGNING FIELD-SYMBOL(<tab_line>).
-*          ASSIGN COMPONENT 'LGART' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<lgart>).
-*          ASSIGN COMPONENT 'BETRG' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<betrg>).
-*          IF <line_map>-tabname EQ 'CRT'.
-*            ASSIGN COMPONENT 'CUMTY' OF STRUCTURE <tab_line> TO FIELD-SYMBOL(<cumty>).
-*          ENDIF.
-*          CHECK <lgart> EQ <line_map>-lgart.
-*
-*          IF <lgart> IS ASSIGNED.
-*            rem_upd_l-mandt     = sy-mandt.
-*            rem_upd_l-molga     = molga.
-*            rem_upd_l-pernr     = pernr.
-*            rem_upd_l-oracle_id = <line_map>-oracle_id.
-*            rem_upd_l-tabname   = <line_map>-tabname.
-*            rem_upd_l-lgart     = <lgart>.
-*            rem_upd_l-status    = '02'.
-*
-*            IF <fpend> IS ASSIGNED.
-*              rem_upd_l-endda = <fpend>.
-*            ENDIF.
-*
-*            IF <fpbeg> IS ASSIGNED.
-*              rem_upd_l-begda = <fpbeg>.
-*            ENDIF.
-*
-*            IF <waers> IS ASSIGNED.
-*              rem_upd_l-waers = <waers>.
-*            ENDIF.
-*
-*            IF <betrg> IS ASSIGNED.
-*              rem_upd_l-betrg = <betrg>.
-*            ENDIF.
-*
-*            IF <aedtm> IS ASSIGNED.
-*              rem_upd_l-aedtm = <aedtm>.
-*            ENDIF.
-*
-*            IF <cumty> IS ASSIGNED.
-*
-*              rem_upd_l-cumty = <cumty>.
-*              rem_upd_l-endda = <fpend>.
-*              rem_upd_l-begda = <fpbeg>.
-*              IF <cumty> EQ 'Y'.
-**                rem_upd_l-endda = <fpend>+0(4) && '1231'.
-**                rem_upd_l-begda = <fpbeg>+0(4) && '0101'.
-*              ELSEIF <cumty> EQ 'Q'.
-**                me->get_quarter_period(
-**                  EXPORTING
-**                    endda = <fpend>
-**                    begda = <fpbeg>
-**                  IMPORTING
-**                    fpbeg = rem_upd_l-begda
-**                    fpend = rem_upd_l-endda ).
-*
-*              ENDIF.
-*            ENDIF.
-*            UNASSIGN: <lgart>, <betrg>, <cumty>.
-*
-*            APPEND rem_upd_l TO rem_upd_t.
-*            CLEAR rem_upd_l.
-*
-*          ENDIF.
-*
-*        ENDLOOP.
-*      ENDLOOP.
-*    ENDLOOP.
-
     int_rem_upd = rem_upd_t.
 
   ENDMETHOD.
@@ -370,7 +275,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
                                    AND   pernr     = @pernr
                                    AND   oracle_id IN @oracle_con
                                    AND   status    = '02'
-*                                  AND   status    = '01' " only for testing
                                    AND   begda     IN @period_range
                                    AND   endda     IN @period_range
                                    INTO  TABLE     @DATA(rem_upd_old).
@@ -426,19 +330,10 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD DETERMINE_STRUKNAME.
+  METHOD determine_strukname.
 
     DATA: exists        TYPE dd02l-actflag,
           strukname_tmp TYPE e071-obj_name.
-
-*    " dont use this code except for testing purpose
-*    strukname = SWITCH #( molga
-*                            WHEN 1  THEN 'payde_result'
-*                            WHEN 5  THEN 'paynl_result'
-*                            WHEN 15 THEN 'payit_result'
-*                            ELSE 'pay99_result' ).
-*    RETURN.
-*    " end of dont use this code
 
     DATA(country_iso) = /sew/cl_forms_utils=>get_country_by_molga( molga ).
 
@@ -457,16 +352,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
     ELSE.
       strukname = 'PAY99_RESULT'.
     ENDIF.
-
-*    *    SELECT SINGLE strukname FROM /sew/int_rem_map WHERE molga = @molga INTO @strukname.
-*    SELECT strukname FROM /sew/int_rem_map WHERE molga = @molga INTO TABLE @DATA(struknames).
-*
-*
-*    IF  lines( struknames ) = 0.
-*      strukname = 'pay99_result'.
-*    ELSEIF lines( struknames ) = 1.
-*      strukname = struknames[ 1 ].
-*    ENDIF.
 
   ENDMETHOD.
 
@@ -582,19 +467,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
                                              THEN TEXT-005
                                              ELSE TEXT-001 ) ).
       ENDIF.
-*
-*      "add error table
-*      IF it_aend_error IS NOT INITIAL.
-*        message_handler->if_hrpay00_pal_services~add_table(
-*          EXPORTING
-*            i_parent_node_key = root_node
-*            it_fcat           = fcat_it_aend
-*            it_append_table   = it_aend_error
-*            is_layout         = layout
-*            i_node_txt        = COND string( WHEN simu EQ abap_true
-*                                             THEN TEXT-006
-*                                             ELSE TEXT-002 ) ).
-*      ENDIF.
 
       "add skipped pernr's
       IF skipped_pernrs IS NOT INITIAL.
@@ -777,7 +649,6 @@ CLASS /SEW/CL_REM_CHANGES IMPLEMENTATION.
 
     IF rem_upd IS NOT INITIAL AND me->simu NE 'X'.
       MODIFY /sew/int_rem_upd FROM TABLE rem_upd.
-*      INSERT /sew/int_rem_upd FROM TABLE rem_upd. "DBSQL_DUPLICATE_KEY_ERROR tritt auf -> aendtm zu key machen?
       COMMIT WORK.
       IF sy-subrc NE 0.
         is_ok = abap_false.

@@ -798,6 +798,7 @@ ENDMETHOD.
         "Set simu status
         IF me->simu_it_aend IS NOT INITIAL.
           MODIFY /sew/int_it_aend FROM TABLE me->simu_it_aend.
+
         ENDIF.
         IF me->simu_om_aend IS NOT INITIAL.
           MODIFY /sew/int_om_aend FROM TABLE me->simu_om_aend.

@@ -72,6 +72,10 @@
        <PARAMETER>STATUS</PARAMETER>
        <TYP>CHAR1</TYP>
       </RSEXP>
+      <RSEXP>
+       <PARAMETER>XML_OUT</PARAMETER>
+       <TYP>STRING</TYP>
+      </RSEXP>
      </EXPORT>
      <DOCUMENTATION>
       <RSFDO>
@@ -87,6 +91,10 @@
        <PARAMETER>STATUS</PARAMETER>
        <KIND>P</KIND>
        <STEXT>Einstelliges Kennzeichen</STEXT>
+      </RSFDO>
+      <RSFDO>
+       <PARAMETER>XML_OUT</PARAMETER>
+       <KIND>P</KIND>
       </RSFDO>
      </DOCUMENTATION>
     </item>

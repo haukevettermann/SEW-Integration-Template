@@ -62,9 +62,10 @@ METHOD constructor.
   me->cogu  = cogu.
   me->molga = molga.
 
-  IF cogl EQ abap_true OR
-     cogu EQ abap_true.
-    " add later?
+  IF cogl EQ abap_true.
+
+  ELSEIF cogu EQ abap_true.
+
   ELSEIF cofu EQ abap_true.
     vp_natio_identifier_struc = VALUE #( ( name = 1  value = /sew/cl_mig_utils=>merge  )
                                          ( name = 2  value = national_identifier )
@@ -112,9 +113,6 @@ METHOD get_cofu_data.
     FROM pa0002 INTO CORRESPONDING FIELDS OF TABLE @p0002 WHERE pernr IN @pernr
                                                             AND begda LE @endda
                                                             AND endda GE @begda.
-*  SORT p0002 BY pernr ASCENDING endda DESCENDING.
-*  DELETE ADJACENT DUPLICATES FROM p0002 COMPARING pernr.
-
   SELECT pernr,
          begda,
          endda,
@@ -123,16 +121,6 @@ METHOD get_cofu_data.
                                                             AND begda LE @endda
                                                             AND endda GE @begda.
 
-  SELECT pernr,
-         begda,
-         endda,
-         fpdat,
-         expid,
-         isspl,
-         ictyp
-    FROM pa0185 INTO CORRESPONDING FIELDS OF TABLE @p0185 WHERE pernr IN @pernr
-                                                            AND begda LE @endda
-                                                            AND endda GE @begda.
 
 ENDMETHOD.
 
@@ -167,7 +155,7 @@ METHOD map_cofu_data.
       WHEN /sew/cl_int_constants=>cofu_mandant-italy.
         IF '15' IN molga.
           lega_code = 'IT'.
-          type      = ''.
+          type      = 'ORA_HRX_FISCAL_CODE'.
           number = CONV #( <p0002>-perid ).
         ELSE.
           CONTINUE.

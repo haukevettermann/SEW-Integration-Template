@@ -109,6 +109,12 @@ FUNCTION /sew/int_document_sender.
 
   status = '02'.
 
+"Use only for local download
+*  CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+*    EXPORTING
+*      buffer     = zip_xstring
+*    TABLES
+*      binary_tab = zip_tab.
 *
 *  CALL METHOD cl_gui_frontend_services=>gui_download
 *    EXPORTING

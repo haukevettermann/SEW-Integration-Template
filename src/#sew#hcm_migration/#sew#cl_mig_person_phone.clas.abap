@@ -23,18 +23,18 @@ public section.
   methods GET_COFU_PHONE_TYPE
     importing
       !SUBTY type SUBTY
-      !PERNR type PERNR_D
-      !BEGDA type BEGDA
+      !PERNR type PERNR_D optional
+      !BEGDA type BEGDA optional
     changing
-      !NUMBER type SYSID
+      !NUMBER type SYSID optional
     returning
       value(PHONE_TYPE) type STRING .
   methods SPLIT_PHONE_NUMBER_COFU
     importing
       !NUMBER type STRING
       !LEG_CODE type LAND1
-      !WERKS type PERSA
-      !BTRTL type BTRTL
+      !WERKS type PERSA optional
+      !BTRTL type BTRTL optional
       !PHONE_TYPE type STRING
     exporting
       !COUNTRY_CODE type STRING
@@ -75,30 +75,58 @@ public section.
     returning
       value(METADATA) type STRING .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+private section.
 
-    DATA p0001 TYPE p0001_tab .
-    DATA land1_map TYPE /iwbep/t_mgw_name_value_pair .
-    DATA cogu TYPE boolean .
+  data P0001 type P0001_TAB .
+  data LAND1_MAP type /IWBEP/T_MGW_NAME_VALUE_PAIR .
+  data COGU type BOOLEAN .
+  data P0006 type P0006_TAB .
 
-    METHODS update_begda_it0105 .
-    METHODS get_cofu_data .
-    METHODS get_cogl_data .
-    METHODS map_cofu_data
-      IMPORTING
-        !vp_src_id  TYPE /iwbep/t_mgw_name_value_pair
-      RETURNING
-        VALUE(data) TYPE string .
-    METHODS map_cogl_data
-      IMPORTING
-        !vp_src_id  TYPE /iwbep/t_mgw_name_value_pair
-      RETURNING
-        VALUE(data) TYPE string .
+  methods CHECK_TEL2
+    importing
+      !P0006 type P0006
+    returning
+      value(NUMBER) type STRING .
+  methods UPDATE_BEGDA_IT0105 .
+  methods GET_COFU_DATA .
+  methods GET_COGL_DATA .
+  methods MAP_COFU_DATA
+    importing
+      !VP_SRC_ID type /IWBEP/T_MGW_NAME_VALUE_PAIR
+    returning
+      value(DATA) type STRING .
+  methods MAP_COGL_DATA
+    importing
+      !VP_SRC_ID type /IWBEP/T_MGW_NAME_VALUE_PAIR
+    returning
+      value(DATA) type STRING .
 ENDCLASS.
 
 
 
 CLASS /SEW/CL_MIG_PERSON_PHONE IMPLEMENTATION.
+
+
+METHOD check_tel2.
+  DATA: i           TYPE i VALUE 1,
+        max_counter TYPE i VALUE 6.
+
+  WHILE i LE max_counter.
+    DATA(com) = 'COM0' && i.
+    ASSIGN COMPONENT com OF STRUCTURE p0006 TO FIELD-SYMBOL(<com>).
+
+    IF <com> EQ 'TEL2'.
+      DATA(num) = 'NUM0' && i.
+      ASSIGN COMPONENT num OF STRUCTURE p0006 TO FIELD-SYMBOL(<num>).
+      number = <num>.
+      i = max_counter.
+    ENDIF.
+
+    i = i + 1.
+
+  ENDWHILE.
+
+ENDMETHOD.
 
 
   METHOD constructor.
@@ -244,6 +272,33 @@ METHOD get_cofu_data.
                                                                                 begda LE @sy-datum AND "only actual entry
                                                                                 endda GE @sy-datum AND "only actual entry
                                                                                 subty IN @subty.
+
+  "check IT0006
+  DATA(country_0006) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>cofu_mandant-netherlands )
+                                           ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>cofu_mandant-austria )
+                                           ( sign = 'I' option = 'EQ' low = /sew/cl_int_constants=>cofu_mandant-italy ) ).
+  CHECK sy-mandt IN country_0006.
+
+  SELECT pernr,
+         begda,
+         endda,
+         telnr,
+         com01,
+         num01,
+         com02,
+         num02,
+         com03,
+         num03,
+         com04,
+         num04,
+         com05,
+         num05,
+         com06,
+         num06 FROM pa0006 INTO CORRESPONDING FIELDS OF TABLE @p0006 WHERE pernr IN @pernr             AND "JMB20211124 I - Australia / New Zealand
+                                                                                    begda LE @sy-datum AND "only actual entry
+                                                                                    endda GE @sy-datum and
+                                                                                    subty EQ '0001'.          "JMB20211213 I - Only phone numbers from SUBTY 1 relevant
+
 ENDMETHOD.
 
 
@@ -281,17 +336,17 @@ ENDMETHOD.
            /sew/cl_int_constants=>cofu_mandant-austria.
 
         phone_type = SWITCH #( subty
-                               WHEN 9901 THEN 'W1'
-                               WHEN 9902 THEN 'WF'
-                               WHEN 9905 THEN 'WM'
-                               WHEN 9906 THEN 'W2' ).
+                               WHEN 9901   THEN 'W1'
+                               WHEN 9902   THEN 'WF'
+                               WHEN 9905   THEN 'WM'
+                               WHEN 9906   THEN 'W2' ).
 
       WHEN /sew/cl_int_constants=>cofu_mandant-netherlands.
 
         phone_type = SWITCH #( subty
-                               WHEN 9901 THEN 'W1'
-                               WHEN 9902 THEN 'WF'
-                               WHEN 9905 THEN 'WM' ).
+                               WHEN 9901   THEN 'W1'
+                               WHEN 9902   THEN 'WF'
+                               WHEN 9905   THEN 'WM').
 
       WHEN /sew/cl_int_constants=>cofu_mandant-australia OR
            /sew/cl_int_constants=>cofu_mandant-newzealand.
@@ -351,98 +406,225 @@ ENDMETHOD.
   ENDMETHOD.
 
 
-  METHOD map_cofu_data.
+METHOD map_cofu_data.
 
-    DATA: ad_pn      TYPE string VALUE /sew/cl_mig_utils=>no,
-          phone_type TYPE string,
-          number     TYPE string,
-          src_id     TYPE string,
-          sys_id     TYPE string,
-          land1      TYPE /iwbep/s_mgw_name_value_pair.
+  DATA: ad_pn        TYPE string VALUE /sew/cl_mig_utils=>no,
+        phone_type   TYPE string,
+        number       TYPE string,
+        src_id       TYPE string,
+        src_sys_id   TYPE string,
+        begda_tmp    TYPE string,
+        endda_tmp    TYPE string,
+        sys_id       TYPE string,
+        country_code TYPE string,
+        area_code    TYPE string,
+        phone_number TYPE string,
+        extension    TYPE string,
+        land1        TYPE /iwbep/s_mgw_name_value_pair.
 
-    CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
+  FIELD-SYMBOLS: <p0001> TYPE p0001.
 
-    LOOP AT p0105 ASSIGNING FIELD-SYMBOL(<p0105>).
+  CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
 
-      DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0105>-begda ).
-      DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <p0105>-endda ).
+  LOOP AT p0105 ASSIGNING FIELD-SYMBOL(<p0105>).
 
-      ad_pn = /sew/cl_mig_utils=>no.
+    begda_tmp = /sew/cl_mig_utils=>convert_date( <p0105>-begda ).
+    endda_tmp = /sew/cl_mig_utils=>convert_date( <p0105>-endda ).
 
-      "Get phone type
-      phone_type = get_cofu_phone_type( EXPORTING subty  = <p0105>-subty
-                                                  pernr  = <p0105>-pernr
-                                                  begda  = <p0105>-begda
-                                        CHANGING  number = <p0105>-usrid  ).
+    ad_pn = /sew/cl_mig_utils=>no.
 
-      IF phone_type EQ 'W1'.
-        ad_pn = /sew/cl_mig_utils=>yes.
-      ENDIF.
+    "Get phone type
+    phone_type = get_cofu_phone_type( EXPORTING subty  = <p0105>-subty
+                                                pernr  = <p0105>-pernr
+                                                begda  = <p0105>-begda
+                                      CHANGING  number = <p0105>-usrid  ).
 
-      CHECK phone_type IS NOT INITIAL.
+    IF phone_type EQ 'W1'.
+      ad_pn = /sew/cl_mig_utils=>yes.
+    ENDIF.
 
-      CONCATENATE phone <p0105>-pernr '_' phone_type INTO src_id.
+    CHECK phone_type IS NOT INITIAL.
 
-      "get source id
-      DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0105>-pernr
-                                                        begda = <p0105>-begda
-                                                        endda = <p0105>-endda
-                                                        vp_src_id = vp_src_id ).
+    CONCATENATE phone <p0105>-pernr '_' phone_type INTO src_id.
 
-      "get legislationcode
-      CLEAR land1.
-      LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE pernr EQ <p0105>-pernr AND
-                                                          begda LE <p0105>-endda AND
-                                                          endda GE <p0105>-begda.
+    "get source id
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0105>-pernr
+                                                begda = <p0105>-begda
+                                                endda = <p0105>-endda
+                                                vp_src_id = vp_src_id ).
 
-        READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
-        EXIT.
-      ENDLOOP.
+    "get legislationcode
+    CLEAR land1.
+    LOOP AT p0001 ASSIGNING <p0001> WHERE pernr EQ <p0105>-pernr AND
+                                          begda LE <p0105>-endda AND
+                                          endda GE <p0105>-begda.
 
-      CHECK <p0001> IS ASSIGNED.
-
-      number = CONV #( <p0105>-usrid ).
-
-      IF number IS INITIAL AND
-         ( sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-australia OR
-           sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-newzealand ).
-        number = CONV #( <p0105>-usrid_long ).
-      ENDIF.
-
-      split_phone_number_cofu( EXPORTING number       = number
-                                         werks        = <p0001>-werks
-                                         btrtl        = <p0001>-btrtl
-                                         leg_code     = CONV #( land1-value )
-                                         phone_type   = phone_type
-                               IMPORTING country_code = DATA(country_code)
-                                         area_code    = DATA(area_code)
-                                         phone_number = DATA(phone_number)
-                                         extension    = DATA(extension) ).
-
-      "in case no country code and phone number is provided, skip entry
-      CHECK country_code IS NOT INITIAL AND
-            phone_number IS NOT INITIAL.
-
-      CONCATENATE /sew/cl_mig_utils=>merge
-                  person_phone
-                  src_id
-                  sys_id
-                  src_sys_id
-                  begda_tmp
-                  endda_tmp
-                  ad_pn
-                  phone_type
-                  country_code
-                  area_code
-                  phone_number
-                  extension
-                  land1-value
-      INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
-
-      CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
-      CLEAR: phone_type.
+      READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
+      EXIT.
     ENDLOOP.
-  ENDMETHOD.
+
+    CHECK <p0001> IS ASSIGNED.
+
+    number = CONV #( <p0105>-usrid ).
+
+    IF number IS INITIAL AND
+       ( sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-australia OR
+         sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-newzealand ).
+      number = CONV #( <p0105>-usrid_long ).
+    ENDIF.
+
+    CLEAR: country_code, area_code, phone_number, extension.      "JMB20220126 I
+    split_phone_number_cofu( EXPORTING number       = number
+                                       werks        = <p0001>-werks
+                                       btrtl        = <p0001>-btrtl
+                                       leg_code     = CONV #( land1-value )
+                                       phone_type   = phone_type
+                             IMPORTING country_code = country_code
+                                       area_code    = area_code
+                                       phone_number = phone_number
+                                       extension    = extension ).
+
+    "in case no country code and phone number is provided, skip entry
+    CHECK country_code IS NOT INITIAL AND
+          phone_number IS NOT INITIAL.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                person_phone
+                src_id
+                sys_id
+                src_sys_id
+                begda_tmp
+                endda_tmp
+                ad_pn
+                phone_type
+                country_code
+                area_code
+                phone_number
+                extension
+                land1-value
+    INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
+    CLEAR: phone_type, number.
+  ENDLOOP.
+
+  LOOP AT p0006 ASSIGNING FIELD-SYMBOL(<p0006>).
+    CLEAR: country_code, area_code, phone_number, extension.    "JMB20220126 I
+
+    begda_tmp = /sew/cl_mig_utils=>convert_date( <p0006>-begda ).
+    endda_tmp = /sew/cl_mig_utils=>convert_date( <p0006>-endda ).
+
+    ad_pn = /sew/cl_mig_utils=>no.
+
+    phone_type = 'H1'.
+    number = CONV #( <p0006>-telnr ).
+    IF <p0006>-telnr IS INITIAL.
+      CLEAR: number.
+      phone_type = 'HM'.
+      number = check_tel2( <p0006> ).
+    ENDIF.
+
+    CHECK number IS NOT INITIAL.
+
+    CONCATENATE phone <p0006>-pernr '_' phone_type INTO src_id.
+
+    "get source id
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0006>-pernr
+                                                begda = <p0006>-begda
+                                                endda = <p0006>-endda
+                                                vp_src_id = vp_src_id ).
+
+    "get legislationcode
+    CLEAR land1.
+    LOOP AT p0001 ASSIGNING <p0001> WHERE pernr EQ <p0006>-pernr AND
+                                          begda LE <p0006>-endda AND
+                                          endda GE <p0006>-begda.
+
+      READ TABLE land1_map INTO land1 WITH KEY name = <p0001>-bukrs.
+      EXIT.
+    ENDLOOP.
+
+    CHECK <p0001> IS ASSIGNED.
+
+    phone_number = number.
+    split_phone_number_cofu( EXPORTING number       = number
+                                       werks        = <p0001>-werks
+                                       btrtl        = <p0001>-btrtl
+                                       leg_code     = CONV #( land1-value )
+                                       phone_type   = phone_type
+                             IMPORTING country_code = country_code
+*                                       area_code    = area_code
+*                                       phone_number = phone_number
+*                                       extension    = extension
+                                        ).
+
+    "in case no country code and phone number is provided, skip entry
+    CHECK country_code IS NOT INITIAL AND
+          phone_number IS NOT INITIAL.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                person_phone
+                src_id
+                sys_id
+                src_sys_id
+                begda_tmp
+                endda_tmp
+                ad_pn
+                phone_type
+                country_code
+                area_code
+                phone_number
+                extension
+                land1-value
+    INTO DATA(data_p0006) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_p0006 INTO data.
+    CLEAR: number.
+
+    CHECK phone_type NE 'HM'.
+
+    phone_type  = 'HM'.
+    number = check_tel2( <p0006> ).
+
+    CHECK number IS NOT INITIAL.
+
+    CONCATENATE phone <p0006>-pernr '_' phone_type INTO src_id.
+
+    split_phone_number_cofu( EXPORTING number       = number
+                                   werks        = <p0001>-werks
+                                   btrtl        = <p0001>-btrtl
+                                   leg_code     = CONV #( land1-value )
+                                   phone_type   = phone_type
+                         IMPORTING country_code = country_code
+                                   area_code    = area_code
+                                   phone_number = phone_number
+                                   extension    = extension ).
+
+    "in case no country code and phone number is provided, skip entry
+    CHECK country_code IS NOT INITIAL AND
+          phone_number IS NOT INITIAL.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                person_phone
+                src_id
+                sys_id
+                src_sys_id
+                begda_tmp
+                endda_tmp
+                ad_pn
+                phone_type
+                country_code
+                area_code
+                phone_number
+                extension
+                land1-value
+    INTO data_p0006 SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_p0006 INTO data.
+    CLEAR: phone_type, number.
+
+  ENDLOOP.
+ENDMETHOD.
 
 
   METHOD map_cogl_data.
@@ -547,7 +729,12 @@ METHOD split_phone_number_cofu.
   CHECK number IS NOT INITIAL.
 
   "fallback: pass country code in phone number
-  country_code = number+0(3).
+  IF strlen( number ) GE 3.
+    country_code = number+0(3).
+  ELSE.
+    DATA(len_number) = strlen( number ).
+    country_code = number+0(len_number).
+  ENDIF.
   phone_number = number.
   REPLACE ALL OCCURRENCES OF country_code IN phone_number WITH ''.
 

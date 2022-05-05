@@ -1043,7 +1043,11 @@ CLASS /SEW/CL_OM_AEND_POST IMPLEMENTATION.
         CALL FUNCTION 'RHOM_ALL_BUFFER_INIT'.
         "get all om_aend entries with same sap_id run id
 *        IF <om_aend>-action NE /sew/cl_int_constants=>hire.
-        om_aend_tmp = VALUE /sew/tt_om_aend( FOR ls_om_aend IN me->status_handler->om_aend WHERE ( sap_id EQ <om_aend>-sap_id  AND cloud_id = <om_aend>-cloud_id ) ( ls_om_aend ) ).
+        IF me->book_manager_relation = abap_true.
+          om_aend_tmp = VALUE /sew/tt_om_aend( FOR ls_om_aend IN me->status_handler->om_aend WHERE ( sap_id EQ <om_aend>-sap_id  AND cloud_id = <om_aend>-cloud_id AND subty EQ /sew/cl_int_constants=>relations-manager ) ( ls_om_aend ) ).
+        ELSE.
+          om_aend_tmp = VALUE /sew/tt_om_aend( FOR ls_om_aend IN me->status_handler->om_aend WHERE ( sap_id EQ <om_aend>-sap_id  AND cloud_id = <om_aend>-cloud_id ) ( ls_om_aend ) ).
+        ENDIF.
 *        ELSE.
 *          om_aend_tmp = VALUE /sew/tt_om_aend( FOR ls_om_aend IN om_aend WHERE ( int_run = <om_aend>-int_run AND
 *                                                                               cloud_id = <om_aend>-cloud_id ) ( ls_om_aend ) ).
@@ -1290,7 +1294,7 @@ CLASS /SEW/CL_OM_AEND_POST IMPLEMENTATION.
                 DATA(parent) = /sew/cl_int_utility=>build_object( begda = <om_aend>-begda endda = <om_aend>-endda objid = <objid>
                                                    otype = <om_aend>-otype ).
 
-                DATA(child) = /sew/cl_int_utility=>build_object( begda = <om_aend>-begda endda = <om_aend>-endda objid = CONV #( <sobid> )
+                DATA(child) = /sew/cl_int_utility=>build_object( begda = <om_aend>-begda endda = <om_aend>-endda objid = CONV #( <sobid> ) sobid = <sobid>
                                                    otype = <sclas> bukrs = <om_aend>-legal_entity ).
                 infty_operation->otype = <om_aend>-otype.
                 "utility=>maintain_relation

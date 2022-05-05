@@ -104,7 +104,7 @@ CLASS /SEW/CL_FORMS_CHANGES IMPLEMENTATION.
   METHOD create_fo_aeup_entries.
     DATA: fo_aeup_line TYPE /sew/int_fo_aeup.
 
-*    LOOP AT results ASSIGNING FIELD-SYMBOL(result).
+
     fo_aeup_line-mandt        = sy-mandt.
 
     fo_aeup_line-pernr        = pernr.
@@ -117,15 +117,10 @@ CLASS /SEW/CL_FORMS_CHANGES IMPLEMENTATION.
     fo_aeup_line-xstring      = result-xstring.
     fo_aeup_line-aedtm        = aedtm.
     GET TIME STAMP FIELD fo_aeup_line-timestamp.
-*     fo_aeup_line-operation =
-*      fo_aeup_line-int_run  =
-*      fo_aeup_line-aend_id  =
 
-
-*    APPEND fo_aeup_line TO fo_aeup.
     fo_aeup = fo_aeup_line.
     CLEAR  fo_aeup_line.
-*    ENDLOOP.
+
 
   ENDMETHOD.
 
@@ -155,8 +150,7 @@ METHOD detect_changes.
   ENDIF.
 
   IF begda >= sy-datum.
-*      l_endda = sy-datum.
-*      RAISE EXCEPTION 'WHICH E
+
   ELSE.
     l_begda = begda.
   ENDIF.
@@ -255,7 +249,6 @@ ENDMETHOD.
 
   METHOD detect_rem_changes.
     DATA: pernr        TYPE pernr_d,
-*          oracle_id    TYPE /sew/dd_element,
           oraclepernr  TYPE /sew/dd_objectnumber,
           period       TYPE char6,
           aedtm        TYPE aedtm,
@@ -267,7 +260,6 @@ ENDMETHOD.
     LOOP AT ir_pernr ASSIGNING FIELD-SYMBOL(<pernr>).
 
       pernr     = CONV #( <pernr>-low ).
-*      oracle_id = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = pernr ).
       oraclepernr = /sew/cl_forms_utils=>get_oraclepernr( pernr ).
 
       LOOP AT periods ASSIGNING FIELD-SYMBOL(<period>).
@@ -294,7 +286,6 @@ ENDMETHOD.
               begda       = <period>-datuv
               endda       = <period>-datub
               pernr       = pernr
-*             worker_id   = oracle_id
               oraclepernr = oraclepernr
             IMPORTING
               payresult   = tmp_result.
@@ -306,7 +297,6 @@ ENDMETHOD.
             EXPORTING
               result      = tmp_result
               pernr       = pernr
-*             worker_id   = oracle_id
               oraclepernr = oraclepernr
               aedtm       = aedtm
               otype       = /sew/cl_forms_utils=>rem_statement
@@ -317,7 +307,6 @@ ENDMETHOD.
 
         ELSE.
 
-*          LOOP AT int_fo_aeup ASSIGNING FIELD-SYMBOL(<fo_aeup_line>).
           READ TABLE int_fo_aeup WITH KEY pernr = pernr
                                           begda = <period>-datuv
                                           endda = <period>-datub
@@ -331,7 +320,6 @@ ENDMETHOD.
                                                           begda  = <period>-datuv
                                                           endda  = <period>-datub ).
 
-*          oracle_id = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = pernr ).
           oraclepernr = /sew/cl_forms_utils=>get_oraclepernr( pernr ).
 
           IF fo_aeup_old-aedtm NE aedtm.
@@ -341,7 +329,6 @@ ENDMETHOD.
                 begda       = fo_aeup_old-begda
                 endda       = fo_aeup_old-endda
                 pernr       = pernr
-*               worker_id   = oracle_id
                 oraclepernr = oraclepernr
               IMPORTING
                 payresult   = tmp_result.
@@ -353,7 +340,6 @@ ENDMETHOD.
               EXPORTING
                 result      = tmp_result
                 pernr       = pernr
-*               worker_id   = oracle_id
                 oraclepernr = oraclepernr
                 aedtm       = aedtm
                 otype       = /sew/cl_forms_utils=>rem_statement
@@ -363,7 +349,7 @@ ENDMETHOD.
             APPEND fo_aeup_line TO fo_aeup.
 
           ENDIF.
-*          ENDLOOP.
+
 
         ENDIF.
         CLEAR int_fo_aeup.
@@ -390,7 +376,6 @@ ENDMETHOD.
 
   METHOD detect_time_changes.
     DATA: pernr        TYPE pernr_d,
-*          oracle_id    TYPE /sew/dd_element,
           oraclepernr  TYPE /sew/dd_objectnumber,
           period       TYPE char6,
           aedtm        TYPE aedtm,
@@ -402,7 +387,6 @@ ENDMETHOD.
 
     LOOP AT ir_pernr ASSIGNING FIELD-SYMBOL(<pernr>).
       pernr = CONV #( <pernr>-low ).
-*      oracle_id = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = pernr ).
       oraclepernr = /sew/cl_forms_utils=>get_oraclepernr( pernr ).
 
       LOOP AT periods ASSIGNING FIELD-SYMBOL(<period>).
@@ -438,17 +422,15 @@ ENDMETHOD.
             EXPORTING
               result      = tmp_result
               pernr       = pernr
-*             worker_id   = oracle_pernr
               oraclepernr = oraclepernr
               aedtm       = aedtm
               otype       = /sew/cl_forms_utils=>time_statement
             IMPORTING
-              fo_aeup     = fo_aeup_line. " create initial records
+              fo_aeup     = fo_aeup_line.
 
           APPEND fo_aeup_line TO fo_aeup.
 
         ELSE.
-*          LOOP AT int_fo_aeup ASSIGNING FIELD-SYMBOL(<fo_aeup_line>).
           READ TABLE int_fo_aeup WITH KEY pernr = pernr
                                           begda = <period>-datuv
                                           endda = <period>-datub
@@ -460,7 +442,6 @@ ENDMETHOD.
           aedtm  = /sew/cl_time_changes=>get_change_date(  pernr  = pernr
                                                           period = period ).
 
-*          oracle_id = /sew/cl_int_employee_xml_up=>read_oracle_id( pernr = pernr ).
           oraclepernr = /sew/cl_forms_utils=>get_oraclepernr( pernr ).
           IF fo_aeup_old-aedtm NE aedtm.
 
@@ -469,7 +450,6 @@ ENDMETHOD.
                 begda       = fo_aeup_old-begda
                 endda       = fo_aeup_old-endda
                 pernr       = pernr
-*               worker_id   = oracle_id
                 oraclepernr = oraclepernr
               IMPORTING
                 timeresult  = tmp_result.
@@ -481,7 +461,6 @@ ENDMETHOD.
               EXPORTING
                 result      = tmp_result
                 pernr       = pernr
-*               worker_id   = oracle_id
                 oraclepernr = oraclepernr
                 aedtm       = aedtm
                 otype       = /sew/cl_forms_utils=>time_statement
@@ -491,7 +470,6 @@ ENDMETHOD.
             APPEND fo_aeup_line TO fo_aeup.
 
           ENDIF.
-*          ENDLOOP.
         ENDIF.
         CLEAR int_fo_aeup.
       ENDLOOP.
@@ -547,7 +525,6 @@ ENDMETHOD.
             begda       = <period>-datuv
             endda       = <period>-datub
             pernr       = pernr
-*           worker_id   = oracle_id
             oraclepernr = oraclepernr
           IMPORTING
             payresult   = tmp_result.
@@ -559,7 +536,6 @@ ENDMETHOD.
           EXPORTING
             result      = tmp_result
             pernr       = pernr
-*           worker_id   = oracle_id
             oraclepernr = oraclepernr
             aedtm       = aedtm
             otype       = /sew/cl_forms_utils=>rem_statement
@@ -624,7 +600,6 @@ ENDMETHOD.
           EXPORTING
             result      = tmp_result
             pernr       = pernr
-*           worker_id   = oracle_pernr
             oraclepernr = oraclepernr
             aedtm       = aedtm
             otype       = /sew/cl_forms_utils=>time_statement
@@ -680,19 +655,6 @@ ENDMETHOD.
                                              THEN TEXT-005
                                              ELSE TEXT-001 ) ).
       ENDIF.
-*
-*      "add error table
-*      IF it_aend_error IS NOT INITIAL.
-*        message_handler->if_hrpay00_pal_services~add_table(
-*          EXPORTING
-*            i_parent_node_key = root_node
-*            it_fcat           = fcat_it_aend
-*            it_append_table   = it_aend_error
-*            is_layout         = layout
-*            i_node_txt        = COND string( WHEN simu EQ abap_true
-*                                             THEN TEXT-006
-*                                             ELSE TEXT-002 ) ).
-*      ENDIF.
 
       "add skipped pernr's
       IF skipped_pernrs IS NOT INITIAL.
@@ -716,54 +678,7 @@ ENDMETHOD.
       CALL METHOD message_handler->display_pal.
 
     ENDIF.
-*      FIELD-SYMBOLS: <append_table> TYPE any table.
-*
-*    "Check message handler
-*    IF message_handler IS BOUND.
-*
-*      "prepare layout options
-*      DATA(layout) = VALUE slis_layout_alv( zebra = 'X'
-*                                               colwidth_optimize = 'X' ).
-*
-*      DATA: root_node TYPE hrpad_pal_node_key VALUE 'ROOT'.
-*
-*      "Define structure of successful and failed IT_AEND entries ALV table
-*      message_handler->if_hrpay00_pal_services~create_fcat( EXPORTING i_structure_name = '/SEW/INT_FO_AEUP'
-*                                                            IMPORTING et_fcat          = DATA(fcat_it_aend) ).
-*
-*      <append_table> = me->int_fo_aeup.
-*
-*      message_handler->if_hrpay00_pal_services~add_table(
-*        EXPORTING
-*          i_parent_node_key = root_node
-*          it_fcat           = fcat_it_aend
-*          it_append_table   = <append_table>
-*          is_layout         = layout
-*          i_node_txt        = COND string( WHEN simu EQ abap_true
-*                                           THEN TEXT-009
-*                                           ELSE TEXT-010 ) ).
-*      "add skipped pernr's
-*      IF skipped_pernrs IS NOT INITIAL.
-*        message_handler->if_hrpay00_pal_services~add_table(
-*        EXPORTING
-*          i_parent_node_key = root_node
-*          it_append_table   = skipped_pernrs
-*          is_layout         = layout
-*          i_node_txt        = COND string( WHEN simu EQ abap_true
-*                                             THEN TEXT-008
-*                                             ELSE TEXT-004 ) ).
-*      ENDIF.
-*
-*      "add message table
-*      message_handler->if_hrpay00_pal_services~add_messages(
-*        EXPORTING
-*          i_parent_node_key = root_node
-*      ).
-*
-*      "show pals
-*      CALL METHOD message_handler->display_pal.
-*
-*    ENDIF.
+
   ENDMETHOD.
 
 
@@ -777,7 +692,7 @@ ENDMETHOD.
       IF sy-subrc NE 0.
         is_ok = abap_false.
         msg_cont->add_message( iv_msg_type         = /iwbep/cl_cos_logger=>error
-                         iv_msg_id                 = 'it_aend_mc' " it_aend_mc nicht bekannt
+                         iv_msg_id                 = 'it_aend_mc'
                          iv_msg_number             = '001'
                          iv_add_to_response_header = abap_true ).
       ENDIF.

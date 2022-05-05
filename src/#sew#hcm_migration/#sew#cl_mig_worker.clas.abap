@@ -58,6 +58,7 @@ private section.
   data MAPPING_VALUES_SPRSL type /SEW/CL_MIG_UTILS=>/SEW/TT_INT_MAPPING .
   data MAPPING_VALUES_MASSN type /SEW/CL_MIG_UTILS=>/SEW/TT_INT_MAPPING .
   data COGU type BOOLEAN .
+  data T005S_TMP type RCF_T_T005U .
 
   methods CREATE_LCL_PERNR
     importing
@@ -135,7 +136,9 @@ METHOD constructor.
                                    ( name = 9  value = 'StartDate' )
                                    ( name = 10 value = 'DateOfBirth' )
                                    ( name = 11 value = 'CountryOfBirth' )
-                                   ( name = 12 value = 'ActionCode' ) ).
+                                   ( name = 12 value = 'ActionCode' )
+                                   ( name = 13 value = 'TownOfBirth' )
+                                   ( name = 13 value = 'RegionOfBirth' ) ).
   ENDIF.
 ENDMETHOD.
 
@@ -148,14 +151,18 @@ METHOD create_lcl_pernr.
   CONCATENATE begda timestamp INTO DATA(begda_tmp) SEPARATED BY space.
   CONCATENATE endda timestamp INTO DATA(endda_tmp) SEPARATED BY space.
 
-  "JMB20211012 I - different externalIdentifiers per client
-  DATA(ext_id_type) = SWITCH string( sy-mandt
-                                     WHEN /sew/cl_int_constants=>cofu_mandant-germany     THEN 'SEW_LOCAL_PERSON_NO_DE'
-                                     WHEN /sew/cl_int_constants=>cofu_mandant-france      THEN 'SEW_LOCAL_PERSON_NO_FR'
-                                     WHEN /sew/cl_int_constants=>cofu_mandant-netherlands THEN 'SEW_LOCAL_PERSON_NO_NL'
-                                     WHEN /sew/cl_int_constants=>cofu_mandant-newzealand  THEN 'SEW_LOCAL_PERSON_NO_NZ'
-                                     WHEN /sew/cl_int_constants=>cofu_mandant-australia   THEN 'SEW_LOCAL_PERSON_NO_AU'
-                                     ELSE 'SEW_LOCAL_PERSONAL_NO' ).
+  "JMB20211012 I - different externalIdentifiers per client - JMB20211210 I - Only default Id for all countries
+  DATA(ext_id_type) = 'SEW_LOCAL_PERSONAL_NO'.
+*JMB20211210 start delete - only one Id per country
+*
+*                     SWITCH string( sy-mandt
+*                                     WHEN /sew/cl_int_constants=>cofu_mandant-germany     THEN 'SEW_LOCAL_PERSON_NO_DE'
+*                                     WHEN /sew/cl_int_constants=>cofu_mandant-france      THEN 'SEW_LOCAL_PERSON_NO_FR'
+*                                     WHEN /sew/cl_int_constants=>cofu_mandant-netherlands THEN 'SEW_LOCAL_PERSON_NO_NL'
+*                                     WHEN /sew/cl_int_constants=>cofu_mandant-newzealand  THEN 'SEW_LOCAL_PERSON_NO_NZ'
+*                                     WHEN /sew/cl_int_constants=>cofu_mandant-australia   THEN 'SEW_LOCAL_PERSON_NO_AU'
+*                                     ELSE 'SEW_LOCAL_PERSONAL_NO' ).
+*JMB20211210 delete end
 
   DATA(ext_id_0105) = CONV string( 1 ).
   CONDENSE ext_id_0105.
@@ -163,15 +170,15 @@ METHOD create_lcl_pernr.
 **JMB20210805 start insert - in case of CoGu old SourceId syntax can be used
 *
   CLEAR: src_id.
-  IF cogu EQ abap_true.
+  IF cogu EQ abap_true OR
+     cofu EQ abap_true.
     CONCATENATE /sew/cl_mig_external_ident=>ext pernr '_' 'D' INTO src_id. "JMB20210712 D - pass only OracleId
   ENDIF.
 *JMB20210805 insert end
 
 **JMB20210712 start insert - Import in a second step with Oracle Id
 *
-  IF cogl EQ abap_true OR
-     cofu EQ abap_true.
+  IF cogl EQ abap_true.
     LOOP AT p9400 ASSIGNING FIELD-SYMBOL(<p9400>) WHERE pernr EQ pernr AND
                                                         begda LE endda AND
                                                         endda GE begda.
@@ -254,9 +261,16 @@ METHOD get_cofu_data.
          endda,
          sprsl,
          gblnd,
-         gbdat INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr AND
+         gbdat,
+         gbort,
+         gbdep INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr AND
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
+
+  DATA(land1) = VALUE rsdsselopt_t( FOR <p0002> IN p0002 ( sign = 'I' option = 'EQ' low = <p0002>-gblnd ) ).
+
+  SELECT land1, bland, bezei INTO CORRESPONDING FIELDS OF TABLE @t005s_tmp FROM t005u WHERE land1 IN @land1 AND
+                                                                                            spras EQ @sy-langu.
 
   "Get IT9400 - JMB20210712 I
   SELECT pernr,
@@ -278,9 +292,11 @@ METHOD get_cofu_data.
   CLEAR: p0041.
 
   "Get IT0016
-  SELECT pernr, begda, endda, kondt INTO CORRESPONDING FIELDS OF TABLE @p0016 FROM pa0016 WHERE pernr IN @pernr AND
-                                                                                                begda LE @endda AND
-                                                                                                endda GE @begda.
+  SELECT pernr, begda, endda, kondt INTO CORRESPONDING FIELDS OF TABLE @p0016 FROM pa0016 WHERE pernr IN @pernr    AND
+                                                                                                begda LE @sy-datum AND "JMB20220207 I
+                                                                                                endda GE @sy-datum.    "JMB20220207 I
+  "begda LE @endda AND  "JMB20220207 D
+  "endda GE @begda.     "JMB20220207 D
 
 ENDMETHOD.
 
@@ -417,9 +433,10 @@ METHOD map_cofu_data.
     LOOP AT p0016 ASSIGNING FIELD-SYMBOL(<p0016>) WHERE pernr EQ <p0000>-pernr AND
                                                         begda LE <p0002>-endda AND
                                                         endda GE <p0002>-begda AND
-                                                        kondt IS NOT INITIAL.
-      IF senior_date   IS INITIAL OR
-         <p0016>-kondt LT senior_date.
+                                                        ( kondt IS NOT INITIAL OR
+                                                          kondt NE '' ).
+      IF senior_date     IS INITIAL OR
+         ( <p0016>-kondt LT senior_date ).
         senior_date = <p0016>-kondt.
       ENDIF.
     ENDLOOP.
@@ -489,6 +506,8 @@ METHOD map_cofu_data.
                 gbdat_tmp
                 <p0002>-gblnd
                 massn
+                <p0002>-gbort
+                <p0002>-gbdep
     INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
 
     CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
@@ -827,12 +846,12 @@ METHOD PROCEED_COGU_WORKER.
   get_cofu_data( ).
   get_mapping_fields( ).
   get_mapping_values( ).
-  /sew/cl_mig_utils=>summarize_it0000_cogl( CHANGING p0000 = p0000 ).
+  /sew/cl_mig_utils=>summarize_it0000_cofu( CHANGING p0000 = p0000 ).
   /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = p0000
                                          CHANGING p0001 = p0001
                                                   p0002 = p0002 ).
   /sew/cl_mig_utils=>summarize_it0002( CHANGING p0002 = p0002 ).
-  data = map_cogl_data( IMPORTING vp_src_id = vp_src_id ).
+  data = map_cogu_data( IMPORTING vp_src_id = vp_src_id ).
   SORT p0000 BY pernr begda.
 ENDMETHOD.
 ENDCLASS.

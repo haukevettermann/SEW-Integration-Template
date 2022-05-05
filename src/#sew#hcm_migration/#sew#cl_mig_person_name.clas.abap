@@ -19,6 +19,7 @@ public section.
   constants NAMEINFORMATION1 type /SEW/DD_FIELD value 'NAMEINFORMATION1' ##NO_TEXT.
   constants SAP_TITEL type /SEW/DD_FIELD value 'TITEL' ##NO_TEXT.
   constants ANRED type /SEW/DD_FIELD value 'ANRED' ##NO_TEXT.
+  data P0105 type P0105_TB .
 
   methods PROCEED_COFU_PERSON_NAME
     importing
@@ -138,7 +139,8 @@ METHOD constructor.
                                         ( name = 20 value = 'NameInformation5' )
                                         ( name = 21 value = 'NameInformation6' )
                                         ( name = 22 value = 'NameInformation7' )
-                                        ( name = 23 value = 'PreNameAdjunct' ) ).
+                                        ( name = 23 value = 'PreNameAdjunct' )
+                                        ( name = 24 value = 'NameInformation15' ) ).
   ENDIF.
 ENDMETHOD.
 
@@ -166,7 +168,7 @@ ENDMETHOD.
   ENDMETHOD.
 
 
-METHOD GET_COFU_DATA.
+METHOD get_cofu_data.
   "Get IT0002
   SELECT pernr,
          begda,
@@ -187,6 +189,14 @@ METHOD GET_COFU_DATA.
          titl2 INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr AND
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
+  "JMB20220207 I: Get ReferenceCode
+  SELECT pernr,
+         begda,
+         endda,
+         usrid INTO CORRESPONDING FIELDS OF TABLE @p0105 FROM pa0105 WHERE pernr IN @pernr AND
+                                                                           subty EQ '9017' AND
+                                                                           begda LE @endda AND
+                                                                           endda GE @begda.
 
   "get BUKRS for LegislationCode
   SELECT pernr,
@@ -197,7 +207,7 @@ METHOD GET_COFU_DATA.
                                                                            endda GE @begda.
 
   DATA(bukrs) = VALUE rsdsselopt_t( FOR <p0001> IN p0001 ( sign = 'I' option = 'EQ' low = <p0001>-bukrs ) ).
-  SORT bukrs by low.
+  SORT bukrs BY low.
   DELETE ADJACENT DUPLICATES FROM bukrs COMPARING low.
   land1_map = /sew/cl_mig_utils=>get_legislation_codes( bukrs ).
 ENDMETHOD.
@@ -303,6 +313,7 @@ METHOD map_cofu_data.
         nameinfo5   TYPE string,
         nameinfo6   TYPE string,
         nameinfo7   TYPE string,
+        nameinfo15  TYPE string,
         nameadjunct TYPE string,
         land1       TYPE /iwbep/s_mgw_name_value_pair.
 
@@ -371,6 +382,14 @@ METHOD map_cofu_data.
         nameinfo2   = title_tmp.
         TRANSLATE nameadjunct TO UPPER CASE. "JMB20211011 I - C400129651-5856
         TRANSLATE nameinfo6   TO UPPER CASE. "JMB20211015 I - C400129651-5856
+
+        LOOP AT p0105 ASSIGNING FIELD-SYMBOL(<p0105>) WHERE pernr EQ <p0002>-pernr AND
+                                                            begda LE <p0002>-endda AND
+                                                            endda GE <p0002>-begda.
+          nameinfo15 = <p0105>-usrid.
+          EXIT.
+        ENDLOOP.
+
       WHEN /sew/cl_int_constants=>cofu_mandant-austria OR
            /sew/cl_int_constants=>cofu_mandant-italy.
         nameinfo1   = title_tmp.
@@ -390,9 +409,10 @@ METHOD map_cofu_data.
                 nameinfo6
                 nameinfo7
                 nameadjunct
+                nameinfo15
     INTO        data_tmp SEPARATED BY /sew/cl_mig_utils=>separator.
 
-    CLEAR: nameinfo1, nameinfo2, nameinfo3, nameinfo4, nameinfo5, nameinfo6, nameinfo7, nameadjunct.
+    CLEAR: nameinfo1, nameinfo2, nameinfo3, nameinfo4, nameinfo5, nameinfo6, nameinfo7, nameinfo15, nameadjunct.
 
     "local names
     IF <p0002>-fnamr IS NOT INITIAL OR
@@ -421,6 +441,7 @@ METHOD map_cofu_data.
                   nameinfo6
                   nameinfo7
                   nameadjunct
+                  nameinfo15
       INTO DATA(data_lclname) SEPARATED BY /sew/cl_mig_utils=>separator.
       CONCATENATE data_tmp
                   cl_abap_char_utilities=>newline

@@ -242,16 +242,6 @@ METHOD get_cofu_data.
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
 
-  "Get all IT0016
-  SELECT pernr,
-         begda,
-         endda,
-         kondt,
-         eindt,
-         persg INTO CORRESPONDING FIELDS OF TABLE @p0016 FROM pa0016 WHERE pernr IN @pernr AND
-                                                                           begda LE @endda AND
-                                                                           endda GE @begda.
-
   "Get IT0701
   SELECT pernr,
          begda,
@@ -259,6 +249,25 @@ METHOD get_cofu_data.
          tdate INTO CORRESPONDING FIELDS OF TABLE @p0701 FROM pa0701 WHERE pernr IN @pernr AND
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
+
+**JMB20220207 start insert - get seniority date
+*
+  "Get IT0041
+  SELECT * INTO CORRESPONDING FIELDS OF TABLE @p0041 FROM pa0041 WHERE pernr IN @pernr    AND
+                                                                       begda LE @sy-datum AND
+                                                                       endda GE @sy-datum.
+
+  "in case of Germany and netherlands entry date should be read from IT0016
+  CHECK sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-germany OR
+        sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands.
+
+  CLEAR: p0041.
+
+  "Get IT0016
+  SELECT pernr, begda, endda, eindt, kondt INTO CORRESPONDING FIELDS OF TABLE @p0016 FROM pa0016 WHERE pernr IN @pernr    AND
+                                                                                                       begda LE @sy-datum AND "JMB20220207 I
+                                                                                                       endda GE @sy-datum.    "JMB20220207 I
+*JMB20220207 insert end
 ENDMETHOD.
 
 
@@ -304,7 +313,7 @@ METHOD get_date_start.
     EXIT.
   ENDLOOP.
 
-  CHECK datum is INITIAL.
+  CHECK datum IS INITIAL.
   datum = begda.
 ENDMETHOD.
 
@@ -473,12 +482,16 @@ ENDMETHOD.
 
 METHOD map_cofu_data.
 
-  DATA: src_id         TYPE string,
-        sys_id         TYPE string,
-        seniority_date TYPE string,
-        tdate          TYPE string,
-        hire_date      TYPE string,
-        pernr_old      TYPE rsdsselopt_t.
+  DATA: src_id          TYPE string,
+        sys_id          TYPE string,
+        seniority_date  TYPE string,
+        tdate           TYPE string,
+        hire_date       TYPE string,
+        pernr_old       TYPE rsdsselopt_t,
+        senior_date     TYPE dardt,
+        message_handler TYPE REF TO if_hrpa_message_handler.
+
+  CREATE OBJECT message_handler TYPE cl_hrpa_message_list.
 
   DATA(massn_term) = VALUE rsdsselopt_t( ( sign = 'I' option = 'EQ' low = '03' ) ).
 
@@ -496,7 +509,7 @@ METHOD map_cofu_data.
             pernr_old     IS INITIAL.
 
       "set hire date
-      seniority_date = hire_date = /sew/cl_mig_utils=>convert_date( <p0000>-begda ).
+      hire_date = /sew/cl_mig_utils=>convert_date( <p0000>-begda ).
     ENDIF.
 
     DATA(term_flag) = /sew/cl_mig_utils=>no.
@@ -506,11 +519,19 @@ METHOD map_cofu_data.
       DATA(last_date) = CONV datum( <p0000>-begda - 1 ).
       tdate = /sew/cl_mig_utils=>convert_date( last_date ).
       term_flag = /sew/cl_mig_utils=>yes.
+
+      "get relevant P0701
+      LOOP AT p0701 ASSIGNING FIELD-SYMBOL(<p0701>) WHERE begda LE <p0000>-endda AND
+                                                          endda GE <p0000>-begda AND
+                                                          pernr EQ <p0000>-pernr.
+        tdate = /sew/cl_mig_utils=>convert_date( <p0701>-tdate ).
+        EXIT.
+      ENDLOOP.
     ENDIF.
 
-    "get relevant P0000
-    LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE begda LE sy-datum AND
-                                                        endda GE sy-datum AND
+    "get relevant P0001
+    LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>) WHERE begda LE sy-datum AND "<p0000>-endda AND "JMB20210416 D: Only pass the actual worker type (Poland)
+                                                        endda GE sy-datum AND "<p0000>-begda AND "JMB20210416 D: Only pass the actual worker type (Poland)
                                                         pernr EQ <p0000>-pernr.
       EXIT.
     ENDLOOP.
@@ -526,34 +547,59 @@ METHOD map_cofu_data.
 
     CHECK sy-subrc EQ 0.
 
-    map_mig_values( EXPORTING p0000       = <p0000>
-                              p0001       = <p0001>
-                    IMPORTING massg       = DATA(massg)
-                              massn       = DATA(massn)
-                              worker_type = DATA(worker_type)
-                              legal_emp_name = DATA(legal_emp_name) ).
+    map_mig_cogu_values( EXPORTING p0000       = <p0000>
+                                   p0001       = <p0001>
+                         IMPORTING massg       = DATA(massg)
+                                   massn       = DATA(massn)
+                                   worker_type = DATA(worker_type)
+                                   legal_emp_name = DATA(legal_emp_name) ).
 
     CONCATENATE wr <p0000>-pernr INTO src_id.
 
     "store work relationship for assignment entity
     APPEND VALUE #( pernr  = <p0000>-pernr
                     begda  = <p0000>-begda
-                    endda  = <p0000>-endda
+                    endda  = cl_hcp_global_constants=>c_highdate "JMB20210408 I - pass highdate instead of <p0000>-endda, due to that onyl one WR can exist
                     wkr_id = src_id ) TO vp_wrk_id.
-
-    "get relevant P0701
-    LOOP AT p0701 ASSIGNING FIELD-SYMBOL(<p0701>) WHERE begda LE <p0000>-endda AND
-                                                        endda GE <p0000>-begda AND
-                                                        pernr EQ <p0000>-pernr.
-      tdate = /sew/cl_mig_utils=>convert_date( <p0701>-tdate ).
-      EXIT.
-    ENDLOOP.
 
     "get source id
     DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0000>-pernr
                                                       begda = <p0000>-begda
                                                       endda = <p0000>-endda
                                                       vp_src_id = vp_src_id ).
+
+**JMBJMB20220207 start insert - read seniority date from IT0016/IT0041
+*
+    LOOP AT p0041 ASSIGNING FIELD-SYMBOL(<p0041>) WHERE pernr EQ <p0000>-pernr AND
+                                                        begda LE sy-datum      AND
+                                                        endda GE sy-datum.
+
+      DATA(senior_datar) = SWITCH datar( sy-mandt
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-austria THEN '99'
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-italy   THEN '99'
+                                         WHEN /sew/cl_int_constants=>cofu_mandant-france  THEN '30' ).
+
+      CALL FUNCTION 'HR_ECM_READ_IT0041_DATE_TYPE'
+        EXPORTING
+          datar           = senior_datar
+          p0041           = <p0041>
+          message_handler = message_handler
+        IMPORTING
+          date            = senior_date.
+
+      seniority_date = /sew/cl_mig_utils=>convert_date( senior_date ).
+      EXIT.
+    ENDLOOP.
+
+    LOOP AT p0016 ASSIGNING FIELD-SYMBOL(<p0016>) WHERE pernr EQ <p0000>-pernr AND
+                                                        begda LE sy-datum      AND
+                                                        endda GE sy-datum      AND
+                                                        ( kondt IS NOT INITIAL OR
+                                                          kondt NE '' ).
+      seniority_date = /sew/cl_mig_utils=>convert_date( <p0016>-kondt ).
+      EXIT.
+    ENDLOOP.
+*JMB20220207 insert end
 
     CONCATENATE /sew/cl_mig_utils=>merge
                 work_relationship
@@ -1014,7 +1060,7 @@ METHOD map_mig_values.
 ENDMETHOD.
 
 
-METHOD PROCEED_COFU_WORK_RELATION.
+METHOD proceed_cofu_work_relation.
   p0000 = worker->p0000.
 
   get_cofu_data( ).
@@ -1024,7 +1070,7 @@ METHOD PROCEED_COFU_WORK_RELATION.
                                                   create_hire = abap_true
                                          CHANGING p0001 = p0001 ).
 
-  data = map_cogu_data( EXPORTING vp_src_id = vp_src_id
+  data = map_cofu_data( EXPORTING vp_src_id = vp_src_id
                         IMPORTING data_term = data_term ).
   vp_wkr_id = me->vp_wrk_id.
 ENDMETHOD.

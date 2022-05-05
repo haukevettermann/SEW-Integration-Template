@@ -183,7 +183,7 @@ METHOD map_cofu_data.
     DATA(email) = <p0105>-usrid_long.
 
     email = SWITCH #( sy-sysid
-                      WHEN 'D02' OR 'Q02' THEN 'DUMMY' && <p0105>-pernr
+                      WHEN 'D02' OR 'Q02' THEN 'DUMMY' && <p0105>-pernr && '@Dummy' && <p0105>-pernr && '.test'
                       ELSE email ).
 
     CONCATENATE /sew/cl_mig_utils=>merge

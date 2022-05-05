@@ -122,7 +122,7 @@ CLASS /SEW/CL_MIG_PERSON_DISABILITY IMPLEMENTATION.
            INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
                                                                    AND begda LE @endda
                                                                    AND endda GE @begda.
-    " read infotype 0004
+    "read infotype 0004
     SELECT pernr,
            begda,
            endda,
@@ -155,9 +155,6 @@ CLASS /SEW/CL_MIG_PERSON_DISABILITY IMPLEMENTATION.
                                                      oracle_field   = /sew/cl_mig_utils=>disability_category
                                                      export         = abap_true
                                            IMPORTING mapping_values = mapping_values_sbgru ).
-
-
-
 
   ENDMETHOD.
 
@@ -219,16 +216,15 @@ CLASS /SEW/CL_MIG_PERSON_DISABILITY IMPLEMENTATION.
 
       CONCATENATE /sew/cl_mig_utils=>merge
                   person_disability
-*                  ''                       " IFT20211130 D
-                  disability_code           " DisabilityCode MIGRATION TODO
+                  disability_code           " DisabilityCode
                   start_date                " EffectiveStartDate
                   ''                        " EffectiveEndDate
                   sbgru                     " Category
                   '1'                       " Quota FTE
                   natio                     " Legislation Code
                   <p0004>-pernr             " PersonNumber
-                  ''                        " Reason MIGRATION TODO
-                  ''                        " SelfDisclosedType MIGRATION TODO
+                  ''                        " Reason
+                  ''                        " SelfDisclosedType
                   'A'                       " Status MIGRATION TODO after clarification
       INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
 
@@ -268,8 +264,6 @@ CLASS /SEW/CL_MIG_PERSON_DISABILITY IMPLEMENTATION.
     get_cofu_data( ).
     get_mapping_cofu_values( ).
     get_mapping_cofu_fields( ).
-*    /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = worker->p0000
-*                                           CHANGING p0002 = p0002 ).
     data = map_cofu_data( vp_src_id ).
 
   ENDMETHOD.

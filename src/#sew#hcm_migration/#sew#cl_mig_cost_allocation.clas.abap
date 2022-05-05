@@ -48,6 +48,8 @@ private section.
   data P0001 type P0001_TAB .
   data LAND1_MAP type /IWBEP/T_MGW_NAME_VALUE_PAIR .
   data COGU type BOOLEAN .
+  data P0027 type P0027_TAB .
+  data P0000 type P0000_TAB .
 
   methods GET_COFU_DATA .
   methods GET_COGL_DATA .
@@ -125,7 +127,7 @@ METHOD CREATE_METADATA.
 ENDMETHOD.
 
 
-METHOD GET_COFU_DATA.
+METHOD get_cofu_data.
 
   "Get BUKRS for LegislationCode
   SELECT pernr,
@@ -135,8 +137,15 @@ METHOD GET_COFU_DATA.
                                                                            begda LE @endda AND
                                                                            endda GE @begda.
 
+  IF sy-mandt EQ /sew/cl_int_constants=>cofu_mandant-netherlands.
+    "Get cost account distribution for Netherlands
+    SELECT * INTO CORRESPONDING FIELDS OF TABLE @p0027 FROM pa0027 WHERE pernr IN @pernr AND
+                                                                         begda LE @endda AND
+                                                                         endda GE @begda.
+  ENDIF.
+
   DATA(bukrs) = VALUE rsdsselopt_t( FOR <p0001> IN p0001 ( sign = 'I' option = 'EQ' low = <p0001>-bukrs ) ).
-  SORT bukrs by low.
+  SORT bukrs BY low.
   DELETE ADJACENT DUPLICATES FROM bukrs COMPARING low.
   land1_map = /sew/cl_mig_utils=>get_legislation_codes( bukrs ).
 ENDMETHOD.
@@ -165,20 +174,94 @@ METHOD map_cofu_data.
         sys_id       TYPE string,
         leg_grp_name TYPE string,
         src_asn_id   TYPE string,
+        src_sys_id   TYPE string,
+        begda_tmp    TYPE string,
+        endda_tmp    TYPE string,
         count        TYPE int8,
+        pernr_old    TYPE rsdsselopt_t,
         land1        TYPE /iwbep/s_mgw_name_value_pair.
+
+  FIELD-SYMBOLS: <p0000> TYPE p0000.
 
   CONCATENATE /sew/cl_mig_utils=>sap sy-mandt INTO sys_id.
 
-  LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>).
+  LOOP AT p0027 ASSIGNING FIELD-SYMBOL(<p0027>).
+    CHECK <p0027>-pernr NOT IN pernr_old OR
+    pernr_old IS INITIAL.
 
-**JMB20210811 start insetr - check for worker entry
+    APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0027>-pernr ) TO pernr_old.
+
+    <p0027>-endda = cl_hcp_global_constants=>c_highdate. "JMB20220211 I - CostAllocatin isn´t date effective, so only one entry can be passed
+
+**JMB20210811 start insert - check for worker entry
 *
     "get source id
-    DATA(src_sys_id) = /sew/cl_mig_utils=>get_src_id( pernr = <p0001>-pernr
-                                                      begda = <p0001>-begda
-                                                      endda = <p0001>-endda
-                                                      vp_src_id = vp_src_id ).
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0027>-pernr
+                                                begda = <p0027>-begda
+                                                endda = <p0027>-endda
+                                                vp_src_id = vp_src_id ).
+
+    CHECK src_sys_id IS NOT INITIAL.  "JMB20210811 I
+*JMB20210811 end insert
+
+    LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001_tmp>) WHERE pernr = <p0027>-pernr AND
+                                                            begda = <p0027>-begda AND
+                                                            endda = <p0027>-endda.
+      "get legislationcode
+      CLEAR: land1, leg_grp_name.
+      READ TABLE land1_map INTO land1 WITH KEY name = <p0001_tmp>-bukrs.
+      CONCATENATE land1-value leg_data_group_name INTO leg_grp_name SEPARATED BY space.
+      EXIT.
+    ENDLOOP.
+
+    "set start date to migration date
+    LOOP AT p0000 ASSIGNING <p0000> WHERE pernr EQ <p0027>-pernr.
+      IF <p0027>-begda LT <p0000>-begda.
+        <p0027>-begda = <p0000>-begda.
+      ENDIF.
+    ENDLOOP.
+
+    begda_tmp = /sew/cl_mig_utils=>convert_date( <p0027>-begda ).
+    endda_tmp = /sew/cl_mig_utils=>convert_date( <p0027>-endda ).
+
+    "get source id
+    CONCATENATE /sew/cl_mig_utils=>assign <p0027>-pernr INTO src_asn_id.
+
+    CONCATENATE src_asn_id '_' allocation INTO src_id.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                cost_allocation_data
+                endda_tmp
+                begda_tmp
+                src_id
+                sys_id
+                source_type
+                leg_grp_name
+                src_asn_id
+    INTO DATA(data_0027) SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_0027 INTO data.
+  ENDLOOP.
+
+  IF pernr_old IS NOT INITIAL.
+    DELETE p0001 WHERE pernr IN pernr_old.
+  ENDIF.
+
+  LOOP AT p0001 ASSIGNING FIELD-SYMBOL(<p0001>).
+    CHECK <p0001>-pernr NOT IN pernr_old OR
+          pernr_old     IS INITIAL.
+
+    APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0001>-pernr ) TO pernr_old.
+
+    <p0001>-endda = cl_hcp_global_constants=>c_highdate. "JMB20220211 I - CostAllocatin isn´t date effective, so only one entry can be passed
+
+**JMB20210811 start insert - check for worker entry
+*
+    "get source id
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0001>-pernr
+                                                begda = <p0001>-begda
+                                                endda = <p0001>-endda
+                                                vp_src_id = vp_src_id ).
 
     CHECK src_sys_id IS NOT INITIAL.  "JMB20210811 I
 *JMB20210811 end insert
@@ -189,8 +272,15 @@ METHOD map_cofu_data.
 
     CONCATENATE land1-value leg_data_group_name INTO leg_grp_name SEPARATED BY space.
 
-    DATA(begda_tmp) = /sew/cl_mig_utils=>convert_date( <p0001>-begda ).
-    DATA(endda_tmp) = /sew/cl_mig_utils=>convert_date( <p0001>-endda ).
+    "set start date to migration date
+    LOOP AT p0000 ASSIGNING <p0000> WHERE pernr EQ <p0001>-pernr.
+      IF <p0001>-begda LT <p0000>-begda.
+        <p0001>-begda = <p0000>-begda.
+      ENDIF.
+    ENDLOOP.
+
+    begda_tmp = /sew/cl_mig_utils=>convert_date( <p0001>-begda ).
+    endda_tmp = /sew/cl_mig_utils=>convert_date( <p0001>-endda ).
 
     "get source id
     CONCATENATE /sew/cl_mig_utils=>assign <p0001>-pernr INTO src_asn_id.
@@ -258,6 +348,8 @@ ENDMETHOD.
 
 METHOD PROCEED_COFU_COST_ALLOCATION.
   get_cofu_data( ).
+  p0000 = worker->p0000.
+  DELETE p0000 WHERE massn NE 'ZO'. "Keep only migration action to set start date
   data = map_cofu_data( vp_src_id ).
 ENDMETHOD.
 

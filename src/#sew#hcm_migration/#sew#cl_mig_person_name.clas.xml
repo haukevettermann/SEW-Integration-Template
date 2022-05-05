@@ -86,6 +86,12 @@
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CLSNAME>/SEW/CL_MIG_PERSON_NAME</CLSNAME>
+     <CMPNAME>P0105</CMPNAME>
+     <LANGU>E</LANGU>
+     <DESCRIPT>HR Master Record: Infotype 0105 (Communication)</DESCRIPT>
+    </SEOCOMPOTX>
+    <SEOCOMPOTX>
+     <CLSNAME>/SEW/CL_MIG_PERSON_NAME</CLSNAME>
      <CMPNAME>PROCEED_COFU_PERSON_NAME</CMPNAME>
      <LANGU>E</LANGU>
      <DESCRIPT>Proceed person name entity for migration to Oracle HCM</DESCRIPT>

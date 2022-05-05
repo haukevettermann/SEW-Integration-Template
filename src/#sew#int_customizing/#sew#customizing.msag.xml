@@ -20,6 +20,17 @@
      <MSGNR>001</MSGNR>
      <TEXT>Infotypfeld befindet sich bereits in Customizing und wird ersetzt.</TEXT>
     </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/CUSTOMIZING</ARBGB>
+     <MSGNR>002</MSGNR>
+    </T100>
+    <T100>
+     <SPRSL>D</SPRSL>
+     <ARBGB>/SEW/CUSTOMIZING</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>Feld &amp;1 darf nicht geändert werden.</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

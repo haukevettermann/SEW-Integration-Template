@@ -143,10 +143,9 @@ CLASS /SEW/CL_MIG_PERSON_VISA IMPLEMENTATION.
            begda,
            endda,
            fpncd,
-           expid,
+           expdt,
            date2,
            auth1,
-           docn1,
            docn2 INTO CORRESPONDING FIELDS OF TABLE @p0094 FROM pa0094 WHERE pernr IN @pernr
                                                                          AND begda LE @endda
                                                                          AND endda GE @begda
@@ -218,8 +217,8 @@ METHOD map_cofu_data.
     DATA(eff_start_date) = COND string( WHEN <p0094>-begda IS NOT INITIAL
                                         THEN /sew/cl_mig_utils=>convert_date( <p0094>-begda )
                                         ELSE '' ).
-    DATA(visa_permit_number) = COND string( WHEN <p0094>-docn1 IS NOT INITIAL " IFT20211130 I
-                                            THEN <p0094>-docn1
+    DATA(visa_permit_number) = COND string( WHEN <p0094>-docn2 IS NOT INITIAL " IFT20211207 U
+                                            THEN <p0094>-docn2
                                             ELSE '' ).
     CONCATENATE /sew/cl_mig_utils=>merge
                 person_visa
@@ -233,14 +232,14 @@ METHOD map_cofu_data.
                 ''                 " EntryDate
                 expiration_date    " ExpirationDate
                 'Y'                " CurrentVisaPermit
-                issue_date         "IssueDate
+                issue_date         " IssueDate
                 <p0094>-auth1      " IssuingAuthority
                 ''                 " IssuingCountry
                 ''                 " IssuingLocation
                 ''                 " Profession
                 ''                 " VisaPermitCategory
                 visa_permit_number " VisaPermitNumber                " IFT20211130 I
-                ''                 " VisaPermitStatus FUSTION LOOKUP " TODO MIGRATION
+                ''                 " VisaPermitStatus
                 ''                 " VisaPermitStatusDate
     INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
 
@@ -273,13 +272,11 @@ ENDMETHOD.
 
 
 METHOD proceed_cofu_per_visa.
-  get_cofu_data( ).
 
+  get_cofu_data( ).
   get_mapping_fields( ).
   get_mapping_values( ).
-
-*  /sew/cl_mig_utils=>update_begin_date( EXPORTING p0000 = worker->p0000
-*                                         CHANGING p0002 = p0002 ).
   data = map_cofu_data( vp_src_id ).
+
 ENDMETHOD.
 ENDCLASS.

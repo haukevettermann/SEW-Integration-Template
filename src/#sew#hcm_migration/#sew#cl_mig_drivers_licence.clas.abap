@@ -52,44 +52,44 @@ ENDCLASS.
 CLASS /SEW/CL_MIG_DRIVERS_LICENCE IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
+  METHOD constructor.
 
-  me->pernr = pernr.
-  me->begda = begda.
-  me->endda = endda.
-  me->cofu  = cofu.
-  me->cogl  = cogl.
-  me->cogu  = cogu.
-  me->molga = molga.
+    me->pernr = pernr.
+    me->begda = begda.
+    me->endda = endda.
+    me->cofu  = cofu.
+    me->cogl  = cogl.
+    me->cogu  = cogu.
+    me->molga = molga.
 
-  IF cogl EQ abap_true.
-    " add later?
-  ELSEIF cogu EQ abap_true.
-    " add later?
-  ELSEIF cofu EQ abap_true.
+    IF cogl EQ abap_true.
 
-    vp_drivers_licence_structure = VALUE #( ( name = 1   value = /sew/cl_mig_utils=>merge )
-                                            ( name = 2   value = person_drivers_licence )
-                                            ( name = 3   value = 'SourceSystemOwner' )
-                                            ( name = 4   value = 'SourceSystemId' )
-                                            ( name = 5   value = 'DateFrom' )
-                                            ( name = 6   value = 'DateTo' )
-                                            ( name = 7   value = 'PersonId(SourceSystemId)' )
-                                            ( name = 8   value = 'LegislationCode' )
-                                            ( name = 9   value = 'LicenseType' )
-                                            ( name = 10  value = 'LicenseNumber' )
-                                            ( name = 11  value = 'IssuingAuthority' )
-                                            ( name = 12  value = 'IssuingCountry' )
-                                            ( name = 13  value = 'LicenseSuspended' )
-                                            ( name = 14  value = 'SuspendedFromDate' )
-                                            ( name = 15  value = 'SuspendedToDate' )
-                                            ( name = 16  value = 'NumberOfPoints' )
-                                            ( name = 17  value = 'Violations' ) ).
-  ENDIF.
+    ELSEIF cogu EQ abap_true.
+
+    ELSEIF cofu EQ abap_true.
+
+      vp_drivers_licence_structure = VALUE #( ( name = 1   value = /sew/cl_mig_utils=>merge )
+                                              ( name = 2   value = person_drivers_licence )
+                                              ( name = 3   value = 'SourceSystemOwner' )
+                                              ( name = 4   value = 'SourceSystemId' )
+                                              ( name = 5   value = 'DateFrom' )
+                                              ( name = 6   value = 'DateTo' )
+                                              ( name = 7   value = 'PersonId(SourceSystemId)' )
+                                              ( name = 8   value = 'LegislationCode' )
+                                              ( name = 9   value = 'LicenseType' )
+                                              ( name = 10  value = 'LicenseNumber' )
+                                              ( name = 11  value = 'IssuingAuthority' )
+                                              ( name = 12  value = 'IssuingCountry' )
+                                              ( name = 13  value = 'LicenseSuspended' )
+                                              ( name = 14  value = 'SuspendedFromDate' )
+                                              ( name = 15  value = 'SuspendedToDate' )
+                                              ( name = 16  value = 'NumberOfPoints' )
+                                              ( name = 17  value = 'Violations' ) ).
+    ENDIF.
 
 
 
-  endmethod.
+  ENDMETHOD.
 
 
   method CREATE_METADATA.
@@ -116,7 +116,7 @@ CLASS /SEW/CL_MIG_DRIVERS_LICENCE IMPLEMENTATION.
   endmethod.
 
 
-  method GET_COFU_DATA.
+  METHOD get_cofu_data.
 
     "get IT0002
     SELECT pernr,
@@ -124,8 +124,8 @@ CLASS /SEW/CL_MIG_DRIVERS_LICENCE IMPLEMENTATION.
            endda,
            natio INTO CORRESPONDING FIELDS OF TABLE @p0002 FROM pa0002 WHERE pernr IN @pernr
                                                                          AND begda LE @endda
-                                                                         AND endda GE @begda
-                                                                         AND natio IS NOT NULL.
+                                                                         AND endda GE @begda.
+*                                                                         AND natio IS NOT NULL. "IFT20211207 D
 
     "get IT9920
     SELECT pernr,
@@ -133,12 +133,14 @@ CLASS /SEW/CL_MIG_DRIVERS_LICENCE IMPLEMENTATION.
            endda,
            create_date,
            ablauf_date,
+           restrictions,
            nummer,
+           klb_restriction,
            sperre FROM pa9920 INTO CORRESPONDING FIELDS OF TABLE @p9920 WHERE pernr IN @pernr AND
-                                                                         begda LE @endda AND
-                                                                         endda GE @begda.
+                                                                              begda LE @endda AND
+                                                                              endda GE @begda.
 
-  endmethod.
+  ENDMETHOD.
 
 
   METHOD map_cofu_data.
@@ -179,16 +181,16 @@ CLASS /SEW/CL_MIG_DRIVERS_LICENCE IMPLEMENTATION.
                   date_from
                   date_to
                   src_sys_id
-                  <p0002>-natio "LegislationCode
-                  '' "LicenceType
-                  <p9920>-nummer "LicenceNumber
-                  '' "IssuingAuthority
-                  '' "IssuingCountry
-                  <p9920>-sperre "LicenseSuspended
-                  '' "SuspendedFromDate
-                  '' "SuspendedToDate
-                  '' "NumberOfPoints
-                  '' "Violations
+                  <p0002>-natio   "LegislationCode
+                  ''              "LicenceType
+                  <p9920>-klb_restriction  "LicenceNumber
+                  <p9920>-restrictions              "IssuingAuthority
+                  ''              "IssuingCountry
+                  <p9920>-sperre  "LicenseSuspended
+                  ''              "SuspendedFromDate
+                  ''              "SuspendedToDate
+                  ''              "NumberOfPoints
+                  ''              "Violations
       INTO DATA(data_tmp) SEPARATED BY /sew/cl_mig_utils=>separator.
 
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.

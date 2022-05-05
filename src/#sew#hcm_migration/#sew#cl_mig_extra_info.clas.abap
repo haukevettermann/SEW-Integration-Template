@@ -17,6 +17,9 @@ public section.
   data P0050 type PTT_P0050 .
   constants SEW_EXTERNAL_IDS type STRING value 'SEW External IDs' ##NO_TEXT.
   constants SRC_ID_PREFIX type STRING value 'SEW_EFF_' ##NO_TEXT.
+  data P0004 type P0004_TAB .
+  constants IT_DISABILITY type STRING value 'SEW_IT_DISABILITY' ##NO_TEXT.
+  constants AT_DISABILITY type STRING value 'SEW_DISABILITY' ##NO_TEXT.
 
   methods PROCEED_COFU_EXTRA_INFO
     importing
@@ -83,7 +86,7 @@ CLASS /SEW/CL_MIG_EXTRA_INFO IMPLEMENTATION.
                                ( name = 6  value = 'PeiInformationCategory' )
                                ( name = 7  value = 'externalIdentifier(PER_PERSON_EIT_EFF=SEW External IDs)' )
                                ( name = 8  value = 'identifierType(PER_PERSON_EIT_EFF=SEW External IDs)' )
-                               ( name = 9  value = 'endDate(PER_PERSON_EIT_EFF=SEW External IDs)' )
+*                               ( name = 9  value = 'endDate(PER_PERSON_EIT_EFF=SEW External IDs)' )  "JMB20220117 D
                                ( name = 10 value = 'startDate(PER_PERSON_EIT_EFF=SEW External IDs)' )
                                ( name = 11 value = 'PersonId(SourceSystemId)' )
                                ( name = 12 value = 'SourceSystemOwner' )
@@ -99,13 +102,15 @@ CLASS /SEW/CL_MIG_EXTRA_INFO IMPLEMENTATION.
                                ( name = 6  value = 'PeiInformationCategory' )
                                ( name = 7  value = 'externalIdentifier(PER_PERSON_EIT_EFF=SEW External IDs)' )
                                ( name = 8  value = 'identifierType(PER_PERSON_EIT_EFF=SEW External IDs)' )
-                               ( name = 9  value = 'endDate(PER_PERSON_EIT_EFF=SEW External IDs)' )
+*                               ( name = 9  value = 'endDate(PER_PERSON_EIT_EFF=SEW External IDs)' )    "JMB20220117 D
                                ( name = 10 value = 'startDate(PER_PERSON_EIT_EFF=SEW External IDs)' )
                                ( name = 11 value = 'PersonId(SourceSystemId)' )
                                ( name = 12 value = 'SourceSystemOwner' )
                                ( name = 13 value = 'SourceSystemId' )
                                ( name = 14 value = 'EffectiveStartDate' )
-                               ( name = 15 value = 'EffectiveEndDate' ) ).
+                               ( name = 15 value = 'EffectiveEndDate' )
+                               ( name = 16 value = 'sewDisability(PER_PERSON_EIT_EFF=SEW_DISABILITY)' )
+                               ( name = 17 value = 'sewItDisability(PER_PERSON_EIT_EFF=SEW_IT_DISABILITY)' ) ).
     ENDIF.
   ENDMETHOD.
 
@@ -146,6 +151,15 @@ METHOD get_cofu_data.
                                                                            begda LE @endda AND
                                                                            endda GE @begda AND
                                                                            subty IN @subty.
+
+  "read infotype 0004
+  SELECT pernr,
+         begda,
+         endda,
+         sbgru
+         INTO CORRESPONDING FIELDS OF TABLE @p0004 FROM pa0004 WHERE pernr IN @pernr
+                                                                 AND begda LE @endda
+                                                                 AND endda GE @begda.
 
   "Get IT0050
   SELECT pernr,
@@ -193,6 +207,8 @@ METHOD map_cofu_data.
         begda_tmp   TYPE string,
         endda_tmp   TYPE string,
         data_tmp    TYPE string,
+        it_disabil  TYPE string,
+        at_disabil  TYPE string,
         old_9998    TYPE rsdsselopt_t,
         old_9900    TYPE rsdsselopt_t,
         old_0050    TYPE rsdsselopt_t.
@@ -240,13 +256,15 @@ METHOD map_cofu_data.
                 sew_external_ids
                 <p0105>-usrid
                 ext_id_type
-                endda_tmp
+*                endda_tmp  "JMB20220117 D
                 begda_tmp
                 src_sys_id
                 sys_id
                 src_id
                 begda_tmp
                 endda_tmp
+                at_disabil
+                it_disabil
     INTO data_tmp SEPARATED BY /sew/cl_mig_utils=>separator.
 
     CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
@@ -280,13 +298,15 @@ METHOD map_cofu_data.
                   sew_external_ids
                   <p0050>-zpinc
                   ext_id_type
-                  endda_tmp
+*                  endda_tmp  "JMB20220117 D
                   begda_tmp
                   src_sys_id
                   sys_id
                   src_id
                   begda_tmp
                   endda_tmp
+                  at_disabil
+                  it_disabil
              INTO data_tmp SEPARATED BY /sew/cl_mig_utils=>separator.
 
       CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
@@ -310,18 +330,69 @@ METHOD map_cofu_data.
                 sew_external_ids
                 <p0050>-zausw
                 ext_id_type
-                endda_tmp
+*                endda_tmp  "JMB20220117 D
                 begda_tmp
                 src_sys_id
                 sys_id
                 src_id
                 begda_tmp
                 endda_tmp
+                at_disabil
+                it_disabil
     INTO data_tmp SEPARATED BY /sew/cl_mig_utils=>separator.
 
     CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
 
     APPEND VALUE #( sign = 'I' option = 'EQ' low = <p0050>-pernr ) TO old_0050.
+  ENDLOOP.
+
+  LOOP AT p0004 ASSIGNING FIELD-SYMBOL(<p0004>).
+
+    begda_tmp = /sew/cl_mig_utils=>convert_date( <p0004>-begda ).
+    endda_tmp = /sew/cl_mig_utils=>convert_date( <p0004>-endda ).
+
+    "get source id
+    src_sys_id = /sew/cl_mig_utils=>get_src_id( pernr = <p0004>-pernr
+                                                begda = <p0004>-begda
+                                                endda = <p0004>-endda
+                                                vp_src_id = vp_src_id ).
+
+    ext_id_type = ''.
+    src_id = per_eit && <p0004>-pernr && '_DIS' && sy-tabix.
+
+    "ID needs to be unique
+    CONCATENATE src_id_prefix src_id INTO src_id.
+
+    DATA(disability) = it_disability.
+
+    CLEAR: it_disabil, at_disabil, disability.
+    IF '15' IN molga.
+      disability = it_disability.
+      it_disabil = /sew/cl_mig_utils=>yes.
+    ELSEIF '03' IN molga.
+      disability = at_disability.
+      at_disabil = /sew/cl_mig_utils=>yes.
+    ENDIF.
+
+    CONCATENATE /sew/cl_mig_utils=>merge
+                worker_extra_info
+                disability
+                per_eit
+                disability
+                disability
+                ''
+                ext_id_type
+                begda_tmp
+                src_sys_id
+                sys_id
+                src_id
+                begda_tmp
+                endda_tmp
+                at_disabil
+                it_disabil
+    INTO data_tmp SEPARATED BY /sew/cl_mig_utils=>separator.
+
+    CONCATENATE data cl_abap_char_utilities=>newline data_tmp INTO data.
   ENDLOOP.
 ENDMETHOD.
 
@@ -382,7 +453,7 @@ METHOD map_cogl_data.
                 sew_external_ids
                 <p0105>-usrid
                 ext_id_type
-                endda_tmp
+*                endda_tmp    "JMB20220117 D
                 begda_tmp
                 src_sys_id
                 sys_id
@@ -423,7 +494,7 @@ METHOD map_cogl_data.
                 sew_external_ids
                 <p0050>-zausw
                 ext_id_type
-                endda_tmp
+*                endda_tmp    "JMB20220218 D
                 begda_tmp
                 src_sys_id
                 sys_id

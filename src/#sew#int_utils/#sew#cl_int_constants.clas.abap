@@ -7,7 +7,7 @@ public section.
 
   constants EMP type STRING value 'EMP' ##NO_TEXT.
   constants CWK type STRING value 'CWK' ##NO_TEXT.
-  constants PEN type STRING value 'PEN' ##NO_TEXT.
+  constants PEN type STRING value 'Retiree' ##NO_TEXT.
   constants EMPLOYEE type STRING value 'Employee' ##NO_TEXT.
   constants CONTINGENT_WORKER type STRING value 'Contingent Worker' ##NO_TEXT.
   constants EXTERNAL_CONSULTANTS type STRING value 'External Consultants' ##NO_TEXT.
@@ -76,6 +76,7 @@ public section.
   constants LANGU type STRING value 'LANGU' ##NO_TEXT.
   constants SUBTY type STRING value 'SUBTY' ##NO_TEXT.
   constants XPATH_BEGDA type STRING value '/StartDate' ##NO_TEXT.
+  constants XPATH_BEGDA_PENDING type STRING value '/ProjectedStartDate' ##NO_TEXT.
   constants XPATH_ENDDA type STRING value '/EndDate' ##NO_TEXT.
   constants PERSON type OTYPE value 'P' ##NO_TEXT.
   constants ORGUNIT type OTYPE value 'O' ##NO_TEXT.
@@ -113,6 +114,8 @@ public section.
 *  constants PLANS type STRING value 'PLANS' ##NO_TEXT.
   constants KOSTL type STRING value 'KOSTL' ##NO_TEXT.
   constants ORGEH type STRING value 'ORGEH' ##NO_TEXT.
+  constants DEL_REL type STRING value 'DEL' ##NO_TEXT.
+  constants CHANGE_REL type STRING value 'AEND' ##NO_TEXT.
   constants INSERT_REL type STRING value 'INSE' ##NO_TEXT.
   constants HIGHDATE_ORACLE type DATS value '47121231' ##NO_TEXT.
   constants INTEGRATION_RUN_ID_PATH type STRING value '//RequestId' ##NO_TEXT.
@@ -192,12 +195,18 @@ public section.
     CONSTANTS m45 TYPE char3 VALUE '045'.
     CONSTANTS END OF msg_no .
   constants IT0000 type STRING value '0000' ##NO_TEXT.
+  constants IT0008 type STRING value '0008' ##NO_TEXT.
   constants M4 type CHAR3 value '004' ##NO_TEXT.
   constants IT0002 type STRING value '0002' ##NO_TEXT.
+  constants IT0009 type STRING value '0009' ##NO_TEXT.
+  constants IT0027 type STRING value '0027' ##NO_TEXT.
+  constants IT0016 type STRING value '0016' ##NO_TEXT.
+  constants IT0041 type STRING value '0041' ##NO_TEXT.
   constants IT0001 type STRING value '0001' ##NO_TEXT.
   constants M5 type CHAR3 value '005' ##NO_TEXT.
   constants IT1000 type STRING value '1000' ##NO_TEXT.
   constants M6 type CHAR3 value '006' ##NO_TEXT.
+  constants IT0006 type STRING value '0006' ##NO_TEXT.
   constants M7 type CHAR3 value '007' ##NO_TEXT.
   constants IT1001 type STRING value '1001' ##NO_TEXT.
   constants IT0105 type STRING value '0105' ##NO_TEXT.
@@ -268,6 +277,7 @@ public section.
   class-data TERMINATION_RANGE type /SDF/CALM_RANGE_TT .
   class-data ORGCHANGE_RANGE type /SDF/CALM_RANGE_TT .
   class-data REHIRE_RANGE type /SDF/CALM_RANGE_TT .
+  class-data NOSHOW_RANGE type /SDF/CALM_RANGE_TT .
 
   class-methods NON_RELEVANT_ACTION
     returning
@@ -301,6 +311,9 @@ CLASS /SEW/CL_INT_CONSTANTS IMPLEMENTATION.
   METHOD set_action_ranges.
 
     SELECT * FROM /sew/int_map_act INTO TABLE @DATA(map_act) WHERE molga = @molga.
+    IF map_act IS INITIAL.
+      SELECT * FROM /sew/int_map_act INTO TABLE @map_act WHERE molga = '15'.
+    ENDIF.
 
     LOOP AT map_act ASSIGNING FIELD-SYMBOL(<map_act_line>).
       IF <map_act_line>-is_hire = abap_true.
